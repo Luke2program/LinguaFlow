@@ -16,6 +16,12 @@ enum ReviewDirection: String, Codable, CaseIterable, Identifiable {
     var title: String { self == .germanToSpanish ? "German → Spanish" : "Spanish → German" }
     var source: AppLanguage { self == .germanToSpanish ? .german : .spanish }
     var target: AppLanguage { self == .germanToSpanish ? .spanish : .german }
+    var reversed: ReviewDirection { self == .germanToSpanish ? .spanishToGerman : .germanToSpanish }
+}
+
+enum ChallengeMode: String, Codable {
+    case word
+    case sentence
 }
 
 enum CEFRLevel: String, Codable, CaseIterable, Identifiable, Comparable {
@@ -43,8 +49,15 @@ struct VocabularyCard: Identifiable, Codable, Hashable {
     let exampleGerman: String
     let exampleSpanish: String
     let hint: String
-    func prompt(for direction: ReviewDirection) -> String { direction == .germanToSpanish ? german : spanish }
-    func answer(for direction: ReviewDirection) -> String { direction == .germanToSpanish ? spanish : german }
+
+    func prompt(for direction: ReviewDirection, mode: ChallengeMode = .word) -> String {
+        if mode == .sentence { return direction == .germanToSpanish ? exampleGerman : exampleSpanish }
+        return direction == .germanToSpanish ? german : spanish
+    }
+    func answer(for direction: ReviewDirection, mode: ChallengeMode = .word) -> String {
+        if mode == .sentence { return direction == .germanToSpanish ? exampleSpanish : exampleGerman }
+        return direction == .germanToSpanish ? spanish : german
+    }
     func example(for language: AppLanguage) -> String { language == .german ? exampleGerman : exampleSpanish }
 }
 
@@ -71,8 +84,10 @@ struct CardSchedule: Codable, Equatable {
 }
 
 struct UserStats: Codable, Equatable {
+    var hasSeenTitle: Bool = false
     var selectedLevel: CEFRLevel? = nil
     var direction: ReviewDirection = .germanToSpanish
+    var autoMixDirections: Bool = true
     var xp: Int = 0
     var streak: Int = 0
     var bestStreak: Int = 0
@@ -82,6 +97,12 @@ struct UserStats: Codable, Equatable {
     var lastPracticeDay: Date? = nil
     var totalReviews: Int = 0
     var fluentDrops: Double = 0
+    var goalName: String = "Speak fluently on vacation"
+    var goalDate: Date = Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
+    var dailyGoal: Int = 12
+    var darkMode: Bool = false
+    var workMinutes: Int = 25
+    var breakMinutes: Int = 5
     var fluency: Double { min(1, fluentDrops / 900) }
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }

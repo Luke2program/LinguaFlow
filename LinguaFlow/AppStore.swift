@@ -8,17 +8,24 @@ final class AppStore: ObservableObject {
     @Published var stats: UserStats = UserStats()
     @Published var schedules: [String: CardSchedule] = [:]
     @Published var currentCard: VocabularyCard?
-    @Published var showingAnswer = false
+    @Published var activeDirection: ReviewDirection = .germanToSpanish
+    @Published var challengeMode: ChallengeMode = .word
     @Published var combo = 0
     @Published var spokenTranscript = ""
     @Published var isListening = false
+    @Published var feedbackMessage = ""
+    @Published var speechMessage = "Tap Speak, say the answer, then tap Use speech."
+    @Published var pomodoroRemaining = 25 * 60
+    @Published var pomodoroRunning = false
+    @Published var pomodoroIsBreak = false
 
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private let audioEngine = AVAudioEngine()
+    private var pomodoroTimer: Timer?
 
     private let scheduler = SpacedRepetitionScheduler()
-    private let statsKey = "linguaflow.stats.v1"
+    private let statsKey = "linguaflow.stats.v2"
     private let schedulesKey = "linguaflow.schedules.v1"
     private let synthesizer = AVSpeechSynthesizer()
 
@@ -28,8 +35,15 @@ final class AppStore: ObservableObject {
     }
     var dueCount: Int { scheduler.dueCards(from: availableCards, schedules: schedules, limit: 999).count }
     var learnedCount: Int { schedules.values.filter { $0.repetitions > 0 }.count }
+    var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
+    var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
+    var daysUntilGoal: Int { max(1, Calendar.current.dateComponents([.day], from: Date(), to: stats.goalDate).day ?? 1) }
+    var goalDailyNeed: Int { max(5, Int(ceil((900 - stats.fluentDrops) / Double(daysUntilGoal) / 9))) }
+    var learnedEnoughToday: Bool { stats.reviewedToday >= max(stats.dailyGoal, goalDailyNeed) }
 
-    init() { load(); refreshPracticeDay(); pickNextCard() }
+    init() { load(); refreshPracticeDay(); resetPomodoro(); pickNextCard() }
+
+    func finishTitle() { stats.hasSeenTitle = true; save() }
 
     func select(level: CEFRLevel) {
         stats.selectedLevel = level
@@ -37,11 +51,9 @@ final class AppStore: ObservableObject {
         save(); pickNextCard()
     }
 
-    func toggleDirection() { stats.direction = stats.direction == .germanToSpanish ? .spanishToGerman : .germanToSpanish; showingAnswer = false; save(); pickNextCard() }
+    func toggleDirection() { stats.autoMixDirections.toggle(); feedbackMessage = stats.autoMixDirections ? "Auto-mix is on: German → Spanish and Spanish → German rotate automatically." : "Auto-mix off. Tap again to enable."; save() }
 
-    func reveal() { showingAnswer = true; speakAnswer() }
-
-    func grade(_ grade: ReviewGrade) {
+    func grade(_ grade: ReviewGrade, expected: String) {
         guard let card = currentCard else { return }
         let old = schedules[card.id] ?? CardSchedule()
         schedules[card.id] = scheduler.nextSchedule(from: old, grade: grade)
@@ -53,37 +65,48 @@ final class AppStore: ObservableObject {
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
         save()
-        showingAnswer = false
         pickNextCard(excluding: card.id)
     }
 
     func pickNextCard(excluding id: String? = nil) {
         let due = scheduler.dueCards(from: availableCards, schedules: schedules, limit: 30).filter { $0.id != id }
         currentCard = due.first ?? availableCards.filter { $0.id != id }.randomElement() ?? availableCards.first
+        activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .germanToSpanish : .spanishToGerman) : stats.direction
+        challengeMode = stats.totalReviews > 0 && stats.totalReviews.isMultiple(of: 4) ? .sentence : .word
     }
 
-    func speakPrompt() { speak(currentCard?.prompt(for: stats.direction) ?? "", language: stats.direction.source) }
-    func speakAnswer() { speak(currentCard?.answer(for: stats.direction) ?? "", language: stats.direction.target) }
-
+    @discardableResult
     func submit(answer attempt: String) -> AnswerEvaluator.Result {
-        guard let card = currentCard else { return .wrong }
-        let result = AnswerEvaluator.evaluate(attempt, expected: card.answer(for: stats.direction))
+        let expected = currentAnswer
+        let result = AnswerEvaluator.evaluate(attempt, expected: expected)
         switch result {
-        case .correct: grade(.good)
-        case .almost: grade(.hard)
-        case .wrong: grade(.again)
+        case .correct:
+            feedbackMessage = "✅ Correct. +fluency 💧"
+            grade(.good, expected: expected)
+        case .almost:
+            feedbackMessage = "🟡 Almost. Correct answer: \(expected). It comes back sooner."
+            grade(.hard, expected: expected)
+        case .wrong:
+            feedbackMessage = "❌ Not quite. Correct answer: \(expected). It comes back in 10 minutes."
+            grade(.again, expected: expected)
         }
         return result
     }
 
+    func speakPrompt() { speak(currentPrompt, language: activeDirection.source) }
+    func speakAnswer() { speak(currentAnswer, language: activeDirection.target) }
+
     func startSpeechInput() {
-        guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return }
+        guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { speechMessage = "Speech is disabled during UI tests."; return }
         stopSpeechInput()
         spokenTranscript = ""
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: stats.direction.target.rawValue))
+        speechMessage = "Listening…"
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: activeDirection.target.rawValue))
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
-            guard status == .authorized else { return }
-            DispatchQueue.main.async { self?.beginRecognition(with: recognizer) }
+            DispatchQueue.main.async {
+                guard status == .authorized else { self?.speechMessage = "Speech permission is needed. You can still type the answer."; return }
+                self?.beginRecognition(with: recognizer)
+            }
         }
     }
 
@@ -94,21 +117,22 @@ final class AppStore: ObservableObject {
         recognitionTask = nil
         recognitionRequest = nil
         isListening = false
+        if spokenTranscript.isEmpty { speechMessage = "I didn’t catch that. Try again or type it." }
     }
 
     private func beginRecognition(with recognizer: SFSpeechRecognizer?) {
-        guard let recognizer, recognizer.isAvailable else { return }
+        guard let recognizer, recognizer.isAvailable else { speechMessage = "Speech recognition is unavailable right now. Typing still works."; return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         recognitionRequest = request
         let inputNode = audioEngine.inputNode
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            if let result { DispatchQueue.main.async { self?.spokenTranscript = result.bestTranscription.formattedString } }
+            if let result { DispatchQueue.main.async { self?.spokenTranscript = result.bestTranscription.formattedString; self?.speechMessage = "Heard: \(result.bestTranscription.formattedString)" } }
             if error != nil || result?.isFinal == true { DispatchQueue.main.async { self?.stopSpeechInput() } }
         }
         let format = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in request.append(buffer) }
-        do { try audioEngine.start(); isListening = true } catch { stopSpeechInput() }
+        do { try audioEngine.start(); isListening = true } catch { speechMessage = "Mic failed to start. Type the answer instead."; stopSpeechInput() }
     }
 
     func speak(_ text: String, language: AppLanguage) {
@@ -119,6 +143,30 @@ final class AppStore: ObservableObject {
         utterance.voice = AVSpeechSynthesisVoice(language: language.rawValue)
         utterance.rate = 0.46
         synthesizer.speak(utterance)
+    }
+
+    func updateGoal(name: String, date: Date, dailyGoal: Int) {
+        stats.goalName = name.isEmpty ? "Speak fluently" : name
+        stats.goalDate = date
+        stats.dailyGoal = max(5, dailyGoal)
+        save()
+    }
+
+    func resetPomodoro() { pomodoroRemaining = (pomodoroIsBreak ? stats.breakMinutes : stats.workMinutes) * 60 }
+    func togglePomodoro() {
+        pomodoroRunning.toggle()
+        if pomodoroRunning { startPomodoroTimer() } else { pomodoroTimer?.invalidate() }
+    }
+    func setPomodoro(work: Int, pause: Int) { stats.workMinutes = max(5, work); stats.breakMinutes = max(1, pause); pomodoroIsBreak = false; resetPomodoro(); save() }
+    private func startPomodoroTimer() {
+        pomodoroTimer?.invalidate()
+        pomodoroTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                if self.pomodoroRemaining > 0 { self.pomodoroRemaining -= 1 }
+                else { self.pomodoroIsBreak.toggle(); self.resetPomodoro() }
+            }
+        }
     }
 
     private func refreshPracticeDay(now: Date = Date()) {
