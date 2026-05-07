@@ -1,0 +1,12 @@
+name: iOS Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: xcodebuild test -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -parallel-testing-enabled NO
