@@ -9,7 +9,7 @@ final class LinguaFlowUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["chooseNiveauTitle"].waitForExistence(timeout: 8))
         app.buttons["level_A1"].tap()
-        XCTAssertTrue(app.otherElements["dashboardView"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["dashboardReady"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["promptText"].exists)
         app.buttons["audioPromptButton"].tap()
         app.buttons["revealButton"].tap()

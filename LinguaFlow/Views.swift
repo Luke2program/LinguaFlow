@@ -67,6 +67,10 @@ struct DashboardView: View {
     @EnvironmentObject var store: AppStore
     var body: some View {
         VStack(spacing: 14) {
+            Text("dashboardReady")
+                .font(.caption2)
+                .opacity(0.01)
+                .accessibilityIdentifier("dashboardReady")
             header
             FluencyDropView(progress: store.stats.fluency, streak: store.stats.streak)
             ReviewCardView()
