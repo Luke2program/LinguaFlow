@@ -60,6 +60,7 @@ final class AppStore: ObservableObject {
 
     func speak(_ text: String, language: AppLanguage) {
         guard !text.isEmpty else { return }
+        guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return }
         synthesizer.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text.replacingOccurrences(of: " / ", with: ", "))
         utterance.voice = AVSpeechSynthesisVoice(language: language.rawValue)
