@@ -85,3 +85,46 @@ struct UserStats: Codable, Equatable {
     var fluency: Double { min(1, fluentDrops / 900) }
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }
+
+struct AnswerEvaluator {
+    enum Result: Equatable { case correct, almost, wrong }
+
+    static func evaluate(_ attempt: String, expected: String) -> Result {
+        let typed = normalize(attempt)
+        guard !typed.isEmpty else { return .wrong }
+        let answers = expected.components(separatedBy: "/").map(normalize).filter { !$0.isEmpty }
+        if answers.contains(typed) { return .correct }
+        if answers.contains(where: { isClose(typed, $0) }) { return .almost }
+        return .wrong
+    }
+
+    static func normalize(_ text: String) -> String {
+        text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .replacingOccurrences(of: "¿", with: "")
+            .replacingOccurrences(of: "?", with: "")
+            .replacingOccurrences(of: "!", with: "")
+            .replacingOccurrences(of: ".", with: "")
+            .replacingOccurrences(of: ",", with: "")
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func isClose(_ a: String, _ b: String) -> Bool {
+        let distance = levenshtein(Array(a), Array(b))
+        return distance <= max(1, min(3, b.count / 6))
+    }
+
+    private static func levenshtein(_ a: [Character], _ b: [Character]) -> Int {
+        var dp = Array(0...b.count)
+        for (i, ca) in a.enumerated() {
+            var previous = dp[0]
+            dp[0] = i + 1
+            for (j, cb) in b.enumerated() {
+                let temp = dp[j + 1]
+                dp[j + 1] = ca == cb ? previous : min(previous, dp[j], dp[j + 1]) + 1
+                previous = temp
+            }
+        }
+        return dp[b.count]
+    }
+}

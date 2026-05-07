@@ -122,28 +122,69 @@ struct FluencyDropView: View {
 
 struct ReviewCardView: View {
     @EnvironmentObject var store: AppStore
+    @State private var typedAnswer = ""
+    @State private var feedback = ""
+
     var body: some View {
         GlassCard {
             if let card = store.currentCard {
-                VStack(spacing: 18) {
+                VStack(spacing: 16) {
                     HStack {
                         Text(card.category.uppercased()).font(.caption.bold()).foregroundStyle(.white.opacity(0.72))
                         Spacer(); Text(store.stats.direction.source.flag).font(.title)
                     }
-                    Text(card.prompt(for: store.stats.direction)).font(.system(size: 42, weight: .black, design: .rounded)).foregroundStyle(.white).multilineTextAlignment(.center).minimumScaleFactor(0.55).accessibilityIdentifier("promptText")
-                    Button { store.speakPrompt() } label: { Label("Hear prompt", systemImage: "speaker.wave.2.fill") }.buttonStyle(.borderedProminent).tint(.white.opacity(0.25)).accessibilityIdentifier("audioPromptButton")
-                    if store.showingAnswer {
-                        Divider().background(.white.opacity(0.4))
-                        Text(card.answer(for: store.stats.direction)).font(.system(size: 34, weight: .bold, design: .rounded)).foregroundStyle(.white).accessibilityIdentifier("answerText")
-                        Text(card.example(for: store.stats.direction.target)).font(.callout).foregroundStyle(.white.opacity(0.82)).multilineTextAlignment(.center)
-                        HStack { ForEach(ReviewGrade.allCases) { grade in Button(grade.title) { store.grade(grade) }.buttonStyle(.borderedProminent).tint(grade.color.opacity(0.72)).accessibilityIdentifier("grade_\(grade.title)") } }
-                    } else {
-                        Button("Reveal answer") { store.reveal() }.font(.headline).buttonStyle(.borderedProminent).tint(.white.opacity(0.28)).accessibilityIdentifier("revealButton")
+                    Text(card.prompt(for: store.stats.direction))
+                        .font(.system(size: 42, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.55)
+                        .accessibilityIdentifier("promptText")
+                    Button { store.speakPrompt() } label: { Label("Hear prompt", systemImage: "speaker.wave.2.fill") }
+                        .buttonStyle(.borderedProminent).tint(.white.opacity(0.25)).accessibilityIdentifier("audioPromptButton")
+
+                    TextField("Type the answer in \(store.stats.direction.target.name)…", text: $typedAnswer)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .padding(14)
+                        .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .foregroundStyle(.white)
+                        .accessibilityIdentifier("answerInput")
+
+                    HStack(spacing: 10) {
+                        Button { checkTypedAnswer() } label: { Label("Check", systemImage: "checkmark.circle.fill") }
+                            .buttonStyle(.borderedProminent).tint(.green.opacity(0.75)).accessibilityIdentifier("checkAnswerButton")
+                        Button { toggleSpeech(card: card) } label: { Label(store.isListening ? "Stop" : "Speak", systemImage: store.isListening ? "mic.fill" : "mic.circle.fill") }
+                            .buttonStyle(.borderedProminent).tint(.blue.opacity(0.7)).accessibilityIdentifier("speakAnswerButton")
                     }
+                    if !store.spokenTranscript.isEmpty {
+                        Text("Heard: \(store.spokenTranscript)").font(.caption).foregroundStyle(.white.opacity(0.82)).accessibilityIdentifier("speechTranscript")
+                    }
+                    if !feedback.isEmpty { Text(feedback).bold().foregroundStyle(.white).accessibilityIdentifier("answerFeedback") }
+                    Button("Show solution") { store.reveal(); feedback = "Solution: \(card.answer(for: store.stats.direction))" }
+                        .font(.caption.bold()).foregroundStyle(.white.opacity(0.78)).accessibilityIdentifier("showSolutionButton")
                     if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
                 }
+                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; feedback = ""; store.spokenTranscript = "" }
             } else { Text("Choose a level to start.").foregroundStyle(.white) }
         }
+    }
+
+    private func checkTypedAnswer() {
+        let result = store.submit(answer: typedAnswer)
+        switch result {
+        case .correct: feedback = "Perfect — fluency drop grew 💧"
+        case .almost: feedback = "Almost. Counted as hard, review comes back sooner."
+        case .wrong: feedback = "Not yet — it comes back in 10 minutes."
+        }
+        typedAnswer = ""
+    }
+
+    private func toggleSpeech(card: VocabularyCard) {
+        if store.isListening {
+            store.stopSpeechInput()
+            typedAnswer = store.spokenTranscript
+            checkTypedAnswer()
+        } else { store.startSpeechInput() }
     }
 }
 

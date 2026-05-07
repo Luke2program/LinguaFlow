@@ -30,4 +30,12 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(VocabularyData.cards.contains { $0.level == .a1 && $0.german == "Hallo" && $0.spanish == "Hola" })
         XCTAssertEqual(VocabularyCard(id: "x", german: "Wasser", spanish: "agua", level: .a1, category: "noun", exampleGerman: "", exampleSpanish: "", hint: "").prompt(for: .spanishToGerman), "agua")
     }
+
+    func testAnswerEvaluatorAcceptsTypedAndNearSpeechAnswers() {
+        XCTAssertEqual(AnswerEvaluator.evaluate("sí", expected: "sí"), .correct)
+        XCTAssertEqual(AnswerEvaluator.evaluate("si", expected: "sí"), .correct)
+        XCTAssertEqual(AnswerEvaluator.evaluate("buenno", expected: "bueno"), .almost)
+        XCTAssertEqual(AnswerEvaluator.evaluate("adios", expected: "Hola"), .wrong)
+        XCTAssertEqual(AnswerEvaluator.evaluate("estar", expected: "ser / estar"), .correct)
+    }
 }

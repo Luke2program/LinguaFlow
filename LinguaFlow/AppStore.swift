@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import Speech
 import SwiftUI
 
 @MainActor
@@ -9,6 +10,12 @@ final class AppStore: ObservableObject {
     @Published var currentCard: VocabularyCard?
     @Published var showingAnswer = false
     @Published var combo = 0
+    @Published var spokenTranscript = ""
+    @Published var isListening = false
+
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private let audioEngine = AVAudioEngine()
 
     private let scheduler = SpacedRepetitionScheduler()
     private let statsKey = "linguaflow.stats.v1"
@@ -57,6 +64,52 @@ final class AppStore: ObservableObject {
 
     func speakPrompt() { speak(currentCard?.prompt(for: stats.direction) ?? "", language: stats.direction.source) }
     func speakAnswer() { speak(currentCard?.answer(for: stats.direction) ?? "", language: stats.direction.target) }
+
+    func submit(answer attempt: String) -> AnswerEvaluator.Result {
+        guard let card = currentCard else { return .wrong }
+        let result = AnswerEvaluator.evaluate(attempt, expected: card.answer(for: stats.direction))
+        switch result {
+        case .correct: grade(.good)
+        case .almost: grade(.hard)
+        case .wrong: grade(.again)
+        }
+        return result
+    }
+
+    func startSpeechInput() {
+        guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return }
+        stopSpeechInput()
+        spokenTranscript = ""
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: stats.direction.target.rawValue))
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            guard status == .authorized else { return }
+            DispatchQueue.main.async { self?.beginRecognition(with: recognizer) }
+        }
+    }
+
+    func stopSpeechInput() {
+        if audioEngine.isRunning { audioEngine.stop(); audioEngine.inputNode.removeTap(onBus: 0) }
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        recognitionRequest = nil
+        isListening = false
+    }
+
+    private func beginRecognition(with recognizer: SFSpeechRecognizer?) {
+        guard let recognizer, recognizer.isAvailable else { return }
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        recognitionRequest = request
+        let inputNode = audioEngine.inputNode
+        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+            if let result { DispatchQueue.main.async { self?.spokenTranscript = result.bestTranscription.formattedString } }
+            if error != nil || result?.isFinal == true { DispatchQueue.main.async { self?.stopSpeechInput() } }
+        }
+        let format = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in request.append(buffer) }
+        do { try audioEngine.start(); isListening = true } catch { stopSpeechInput() }
+    }
 
     func speak(_ text: String, language: AppLanguage) {
         guard !text.isEmpty else { return }
