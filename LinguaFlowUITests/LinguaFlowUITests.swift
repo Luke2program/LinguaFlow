@@ -8,15 +8,15 @@ final class LinguaFlowUITests: XCTestCase {
         app.launchArguments = ["--ui-testing"]
         app.launch()
 
-        // Handle all three possible launch states
-        if app.otherElements["titleScreen"].waitForExistence(timeout: 4) {
-            app.buttons["startLearningButton"].tap()
+        // Handle title screen or skip if already past it
+        if app.buttons["Get Started"].waitForExistence(timeout: 4) {
+            app.buttons["Get Started"].tap()
         }
-        if app.staticTexts["chooseNiveauTitle"].waitForExistence(timeout: 4) {
+        if app.staticTexts["Choose your level"].waitForExistence(timeout: 4) {
             app.buttons["level_A1"].tap()
         }
 
-        XCTAssertTrue(app.staticTexts["dashboardReady"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Today's Flow"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["promptText"].exists)
         XCTAssertTrue(app.textFields["answerInput"].exists)
         app.textFields["answerInput"].tap()
