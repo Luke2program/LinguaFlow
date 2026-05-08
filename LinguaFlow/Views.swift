@@ -317,9 +317,9 @@ struct ReviewCardView: View {
                         }
                     }
                     if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
-                }
-                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = "" }
-            } else { Text("Choose a level to start.").foregroundStyle(.secondary) }
+                    Spacer().frame(height: 1)
+                        .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = "" }
+                } else { Text("Choose a level to start.").foregroundStyle(.secondary) }
         }
     }
     private func check(_ answer: String) {
