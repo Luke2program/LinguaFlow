@@ -15,6 +15,7 @@ final class AppStore: ObservableObject {
     @Published var isListening = false
     @Published var feedbackMessage = ""
     @Published var speechMessage = "Tap Speak, say the answer, then tap Use speech."
+    @Published var showingSettings = false
     @Published var pomodoroRemaining = 25 * 60
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false

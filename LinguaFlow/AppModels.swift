@@ -103,6 +103,9 @@ struct UserStats: Codable, Equatable {
     var darkMode: Bool = false
     var workMinutes: Int = 25
     var breakMinutes: Int = 5
+    var soundEnabled: Bool = true
+    var hapticsEnabled: Bool = true
+    var notificationsEnabled: Bool = true
     var fluency: Double { min(1, fluentDrops / 900) }
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }

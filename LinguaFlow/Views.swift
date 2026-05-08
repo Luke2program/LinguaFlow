@@ -11,6 +11,7 @@ struct RootView: View {
         }
         .preferredColorScheme(.dark)
         .accessibilityIdentifier("rootView")
+        .sheet(isPresented: $store.showingSettings) { SettingsView() }
     }
 }
 
@@ -175,6 +176,9 @@ struct DashboardView: View {
             Button { store.toggleDirection() } label: {
                 Image(systemName: "shuffle.circle.fill").font(.system(size: 32)).foregroundStyle(.white.opacity(0.9))
             }.accessibilityIdentifier("directionToggle")
+            Button { store.showingSettings = true } label: {
+                Image(systemName: "gearshape.fill").font(.system(size: 28)).foregroundStyle(.white.opacity(0.9))
+            }.accessibilityIdentifier("settingsButton")
         }
     }
     var statsGrid: some View {
@@ -340,6 +344,44 @@ struct StatPill: View {
                 Text(value).font(.title3.bold()).foregroundStyle(.white)
                 Text(title).font(.caption).foregroundStyle(.white.opacity(0.5))
             }.frame(maxWidth: .infinity)
+        }
+    }
+}
+
+struct SettingsView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Appearance") {
+                    Toggle("Dark mode", isOn: $store.stats.darkMode)
+                }
+                Section("Audio & Feedback") {
+                    Toggle("Sound", isOn: $store.stats.soundEnabled)
+                    Toggle("Haptics", isOn: $store.stats.hapticsEnabled)
+                    Toggle("Notifications", isOn: $store.stats.notificationsEnabled)
+                }
+                Section("Pomodoro defaults") {
+                    Stepper("Focus minutes: \(store.stats.workMinutes)", value: $store.stats.workMinutes, in: 5...60, step: 5)
+                    Stepper("Break minutes: \(store.stats.breakMinutes)", value: $store.stats.breakMinutes, in: 1...20)
+                }
+                Section("Data") {
+                    Button("Reset all progress") {
+                        store.stats = UserStats()
+                        store.schedules = [:]
+                        store.save()
+                        dismiss()
+                    }
+                    .foregroundStyle(.red)
+                }
+                Section("About") {
+                    HStack { Text("Version"); Spacer(); Text("1.0").foregroundStyle(.secondary) }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); dismiss() } } }
         }
     }
 }
