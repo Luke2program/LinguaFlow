@@ -373,6 +373,29 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Language Level") {
+                    if !store.stats.unlockedLevels.isEmpty {
+                        Picker("Current Level", selection: $store.stats.selectedLevel) {
+                            ForEach(store.stats.unlockedLevels.sorted(by: { ($0.rawValue) < ($1.rawValue) })) { level in
+                                Text(level.rawValue + " — " + level.subtitle)
+                                    .tag(Optional(level))
+                            }
+                        }
+                        .pickerStyle(.navigationLink)
+                        .onChange(of: store.stats.selectedLevel) { _, newLevel in
+                            if let level = newLevel {
+                                // Re-init cards for this level if needed
+                                for card in VocabularyData.cards where card.level <= level && store.schedules[card.id] == nil {
+                                    store.schedules[card.id] = CardSchedule()
+                                }
+                                store.save()
+                            }
+                        }
+                    } else {
+                        Text("No levels unlocked yet")
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Section("Appearance") {
                     Toggle("Dark mode", isOn: $store.stats.darkMode)
                 }
