@@ -106,19 +106,20 @@ struct LevelPickerView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Choose your level").font(.largeTitle.bold()).foregroundStyle(.white).accessibilityIdentifier("chooseNiveauTitle")
                 ForEach(CEFRLevel.allCases) { level in
-                    Button { store.select(level: level) } label: {
+                    let isUnlocked = store.stats.unlockedLevels.contains(level)
+                    Button { if isUnlocked { store.select(level: level) } } label: {
                         GlassCard {
                             HStack(spacing: 16) {
-                                Text(level.rawValue).font(.system(size: 32, weight: .black, design: .rounded)).foregroundStyle(.white).frame(width: 64)
+                                Text(level.rawValue).font(.system(size: 32, weight: .black, design: .rounded)).foregroundStyle(isUnlocked ? .white : .white.opacity(0.35)).frame(width: 64)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(level.subtitle).font(.headline).foregroundStyle(.white)
-                                    Text("Speaking-first vocabulary").font(.caption).foregroundStyle(.white.opacity(0.6))
+                                    Text(level.subtitle).font(.headline).foregroundStyle(isUnlocked ? .white : .white.opacity(0.35))
+                                    Text(isUnlocked ? "Speaking-first vocabulary" : "Complete previous level to unlock").font(.caption).foregroundStyle(.white.opacity(isUnlocked ? 0.6 : 0.3))
                                 }
                                 Spacer()
-                                Image(systemName: "chevron.right").font(.title3.bold()).foregroundStyle(.white.opacity(0.5))
+                                Image(systemName: isUnlocked ? "chevron.right" : "lock.fill").font(.title3.bold()).foregroundStyle(.white.opacity(isUnlocked ? 0.5 : 0.25))
                             }
                         }
-                    }.buttonStyle(.plain).accessibilityIdentifier("level_\(level.rawValue)")
+                    }.buttonStyle(.plain).disabled(!isUnlocked).accessibilityIdentifier("level_\(level.rawValue)")
                 }
             }.padding(20).padding(.top, 20)
         }
@@ -134,6 +135,9 @@ struct DashboardView: View {
                 VStack(spacing: 14) {
                     Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
                     header
+                    if let unlocked = store.newlyUnlockedLevel {
+                        UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
+                    }
                     if !store.feedbackMessage.isEmpty {
                         FeedbackBanner(text: store.feedbackMessage)
                             .id("feedbackBanner")
@@ -186,6 +190,21 @@ struct DashboardView: View {
             StatPill(title: "XP", value: "\(store.stats.xp)", icon: "sparkles")
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
+        }
+    }
+}
+
+struct UnlockBanner: View {
+    let level: CEFRLevel
+    let dismiss: () -> Void
+    var body: some View {
+        GlassCard {
+            VStack(spacing: 8) {
+                Text("🎉 Level Unlocked").font(.headline).foregroundStyle(.white)
+                Text("You mastered \(level.rawValue)!").font(.subheadline).foregroundStyle(.white.opacity(0.9))
+                Button("Continue") { dismiss() }
+                    .buttonStyle(.borderedProminent).tint(.green.opacity(0.7))
+            }
         }
     }
 }

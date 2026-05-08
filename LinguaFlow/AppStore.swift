@@ -16,6 +16,7 @@ final class AppStore: ObservableObject {
     @Published var feedbackMessage = ""
     @Published var speechMessage = "Tap Speak, say the answer, then tap Use speech."
     @Published var showingSettings = false
+    @Published var newlyUnlockedLevel: CEFRLevel? = nil
     @Published var pomodoroRemaining = 25 * 60
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false
@@ -53,8 +54,31 @@ final class AppStore: ObservableObject {
 
     func select(level: CEFRLevel) {
         stats.selectedLevel = level
+        if !stats.unlockedLevels.contains(level) { stats.unlockedLevels.append(level) }
         for card in VocabularyData.cards where card.level <= level && schedules[card.id] == nil { schedules[card.id] = CardSchedule() }
         save(); pickNextCard()
+    }
+
+    func isLevelCompleted(_ level: CEFRLevel) -> Bool {
+        let cards = VocabularyData.cards.filter { $0.level == level }
+        guard !cards.isEmpty else { return false }
+        let mastered = cards.filter { card in
+            let s = schedules[card.id]
+            return (s?.repetitions ?? 0) >= 3 && (s?.easeFactor ?? 0) >= 2.3
+        }.count
+        return Double(mastered) / Double(cards.count) >= 0.8
+    }
+
+    func checkForLevelUnlock() {
+        guard let current = stats.selectedLevel else { return }
+        guard isLevelCompleted(current) else { return }
+        guard let nextIndex = CEFRLevel.allCases.firstIndex(of: current)?.advanced(by: 1),
+              nextIndex < CEFRLevel.allCases.count else { return }
+        let next = CEFRLevel.allCases[nextIndex]
+        guard !stats.unlockedLevels.contains(next) else { return }
+        stats.unlockedLevels.append(next)
+        newlyUnlockedLevel = next
+        save()
     }
 
     func toggleDirection() { stats.autoMixDirections.toggle(); feedbackMessage = stats.autoMixDirections ? "Auto-mix is on: German → Spanish and Spanish → German rotate automatically." : "Auto-mix off. Tap again to enable."; save() }
@@ -71,6 +95,7 @@ final class AppStore: ObservableObject {
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
         save()
+        checkForLevelUnlock()
         pickNextCard(excluding: card.id)
     }
 
