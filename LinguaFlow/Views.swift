@@ -128,29 +128,41 @@ struct DashboardView: View {
     @EnvironmentObject var store: AppStore
     @State private var keyboardHeight: CGFloat = 0
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 14) {
-                Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
-                header
-                if !store.feedbackMessage.isEmpty { FeedbackBanner(text: store.feedbackMessage) }
-                FluencyDropView()
-                GoalView()
-                ReviewCardView()
-                PomodoroView()
-                statsGrid
-                Spacer().frame(height: keyboardHeight + 40)
-            }.padding(18)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
-            if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = frame.height }
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 14) {
+                    Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
+                    header
+                    if !store.feedbackMessage.isEmpty {
+                        FeedbackBanner(text: store.feedbackMessage)
+                            .id("feedbackBanner")
+                    }
+                    FluencyDropView()
+                    GoalView()
+                    ReviewCardView()
+                    PomodoroView()
+                    statsGrid
+                    Spacer().frame(height: keyboardHeight + 40)
+                }.padding(18)
             }
+            .scrollDismissesKeyboard(.interactively)
+            .onChange(of: store.feedbackMessage) { _, new in
+                if !new.isEmpty {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        proxy.scrollTo("feedbackBanner", anchor: .top)
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
+                if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = frame.height }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
+            }
+            .accessibilityIdentifier("dashboardView")
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
-        }
-        .accessibilityIdentifier("dashboardView")
     }
     var header: some View {
         HStack {
@@ -280,7 +292,11 @@ struct ReviewCardView: View {
             } else { Text("Choose a level to start.").foregroundStyle(.white) }
         }
     }
-    private func check(_ answer: String) { _ = store.submit(answer: answer); typedAnswer = "" }
+    private func check(_ answer: String) {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        _ = store.submit(answer: answer)
+        typedAnswer = ""
+    }
 }
 
 struct PomodoroView: View {
