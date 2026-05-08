@@ -3,10 +3,12 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showPetPicker = false
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             if !store.stats.hasSeenTitle { TitleScreenView() }
+            else if showPetPicker { PetPickerView { showPetPicker = false } }
             else if store.stats.selectedLevel == nil { LevelPickerView() }
             else { DashboardView() }
         }
@@ -71,6 +73,7 @@ struct SecondaryButton: View {
 
 struct TitleScreenView: View {
     @EnvironmentObject var store: AppStore
+    @State private var showGameOnboarding = false
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
@@ -85,11 +88,18 @@ struct TitleScreenView: View {
                 FeatureRow(icon: "target", text: "Daily fluency goal tracking")
                 FeatureRow(icon: "timer", text: "Built-in Pomodoro focus mode")
             }.padding(.horizontal, 32).padding(.vertical, 8)
-            PrimaryButton(title: "Get Started") { store.finishTitle() }
-                .padding(.horizontal, 32)
-                .accessibilityIdentifier("startLearningButton")
+            PrimaryButton(title: "Get Started") {
+                store.finishTitle()
+                showGameOnboarding = true
+            }
+            .padding(.horizontal, 32)
+            .accessibilityIdentifier("startLearningButton")
             Spacer()
-        }.accessibilityIdentifier("titleScreen")
+        }
+        .accessibilityIdentifier("titleScreen")
+        .fullScreenCover(isPresented: $showGameOnboarding) {
+            PetPickerView { showGameOnboarding = false }
+        }
     }
 }
 
@@ -482,6 +492,88 @@ struct StatBar: View {
                 }
             }.frame(height: 10)
             Text("\(Int(value * 100))%").font(.caption).foregroundStyle(.secondary).frame(width: 35, alignment: .trailing)
+        }
+    }
+}
+
+struct PetPickerView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+    let onComplete: () -> Void
+    @State private var selectedPet: PetType = .cat
+    @State private var petName = ""
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 40)
+                Text("Choose Your Companion")
+                    .font(.system(size: 36, weight: .black, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                
+                Text("Your pet grows as you learn. Keep it happy by answering correctly!")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                
+                HStack(spacing: 16) {
+                    ForEach(PetType.allCases) { type in
+                        let isSelected = selectedPet == type
+                        Button {
+                            selectedPet = type
+                            store.stats.pet.type = type
+                        } label: {
+                            VStack(spacing: 8) {
+                                Text(type.emoji)
+                                    .font(.system(size: 52))
+                                Text(type.displayName)
+                                    .font(.caption.bold())
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.primary.opacity(0.05))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                
+                TextField("Name your pet...", text: $petName)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal, 32)
+                    .font(.headline)
+                
+                GlassCard {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack { Image(systemName: "heart.fill").foregroundStyle(.pink); Text("Happiness").font(.subheadline); Spacer(); Text("🟢 0.5").font(.caption) }
+                        HStack { Image(systemName: "fork.knife").foregroundStyle(.orange); Text("Hunger").font(.subheadline); Spacer(); Text("🟡 0.3").font(.caption) }
+                        HStack { Image(systemName: "bolt.fill").foregroundStyle(.green); Text("Energy").font(.subheadline); Spacer(); Text("🟢 0.7").font(.caption) }
+                        Text("Answer correctly to feed your pet and level it up!")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 4)
+                    }
+                }
+                .padding(.horizontal)
+                
+                PrimaryButton(title: "Start Learning") {
+                    store.stats.pet.type = selectedPet
+                    if !petName.isEmpty { store.stats.pet.name = petName }
+                    store.save()
+                    onComplete()
+                }
+                .padding(.horizontal, 32)
+                
+                Spacer()
+            }
         }
     }
 }
