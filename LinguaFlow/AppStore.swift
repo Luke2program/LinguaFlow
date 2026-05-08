@@ -94,9 +94,22 @@ final class AppStore: ObservableObject {
         stats.gems += grade == .easy ? 2 : (grade == .good ? 1 : 0)
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
+        // Feed pet on correct answers
+        if grade != .again {
+            feedPet(correctCount: grade == .easy ? 2 : 1)
+        }
         save()
         checkForLevelUnlock()
         pickNextCard(excluding: card.id)
+    }
+
+    func feedPet(correctCount: Int) {
+        stats.pet.feed(correctAnswers: correctCount)
+        // Add pet reaction to feedback
+        let petReaction = stats.pet.mood == .happy ? " \(stats.pet.emoji)" : ""
+        if !petReaction.isEmpty && !feedbackMessage.isEmpty {
+            feedbackMessage += petReaction
+        }
     }
 
     func pickNextCard(excluding id: String? = nil) {

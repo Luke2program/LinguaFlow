@@ -83,6 +83,82 @@ struct CardSchedule: Codable, Equatable {
     var lastReviewed: Date?
 }
 
+// MARK: - Pet System
+struct Pet: Codable, Equatable {
+    var type: PetType = .cat
+    var name: String = "Mochi"
+    var happiness: Double = 0.5
+    var hunger: Double = 0.3
+    var energy: Double = 0.7
+    var level: Int = 1
+    var xp: Int = 0
+    var totalFed: Int = 0
+    var lastInteraction: Date? = nil
+    
+    var mood: PetMood {
+        if happiness > 0.7 && hunger < 0.4 { return .happy }
+        if hunger > 0.7 { return .hungry }
+        if happiness < 0.3 { return .sad }
+        if energy < 0.2 { return .tired }
+        return .neutral
+    }
+    
+    var emoji: String {
+        switch mood {
+        case .happy: return type == .cat ? "😸" : type == .dog ? "🐕" : type == .owl ? "🦉" : type == .fox ? "🦊" : "🐧"
+        case .hungry: return type == .cat ? "🙀" : type == .dog ? "🐕‍🦺" : type == .owl ? "🦉" : type == .fox ? "🦊" : "🐧"
+        case .sad: return type == .cat ? "😿" : type == .dog ? "🐕" : type == .owl ? "🦉" : type == .fox ? "🦊" : "🐧"
+        case .tired: return "😴"
+        case .neutral: return type.emoji
+        }
+    }
+    
+    var description: String {
+        switch mood {
+        case .happy: return "\(name) is ecstatic! Keep learning!"
+        case .hungry: return "\(name) is hungry! Answer correctly to feed them."
+        case .sad: return "\(name) misses you. Come practice!"
+        case .tired: return "\(name) needs rest."
+        case .neutral: return "\(name) is doing okay."
+        }
+    }
+    
+    mutating func feed(correctAnswers: Int) {
+        let food = Double(correctAnswers) * 0.15
+        hunger = max(0, hunger - food)
+        happiness = min(1, happiness + food * 0.5)
+        energy = min(1, energy + food * 0.3)
+        xp += correctAnswers * 10
+        totalFed += correctAnswers
+        let newLevel = (xp / 100) + 1
+        if newLevel > level {
+            level = newLevel
+            happiness = min(1, happiness + 0.2)
+        }
+        lastInteraction = Date()
+    }
+    
+    mutating func decay() {
+        hunger = min(1, hunger + 0.02)
+        happiness = max(0, happiness - 0.01)
+        energy = max(0, energy - 0.005)
+    }
+}
+
+enum PetType: String, Codable, CaseIterable, Identifiable {
+    case cat = "cat", dog = "dog", owl = "owl", fox = "fox", penguin = "penguin"
+    var id: String { rawValue }
+    var emoji: String {
+        switch self { case .cat: return "🐱"; case .dog: return "🐶"; case .owl: return "🦉"; case .fox: return "🦊"; case .penguin: return "🐧" }
+    }
+    var displayName: String {
+        switch self { case .cat: return "Cat"; case .dog: return "Dog"; case .owl: return "Owl"; case .fox: return "Fox"; case .penguin: return "Penguin" }
+    }
+}
+
+enum PetMood: String, Codable { case happy, hungry, sad, tired, neutral }
+
+// MARK: - User Stats
 struct UserStats: Codable, Equatable {
     var hasSeenTitle: Bool = false
     var selectedLevel: CEFRLevel? = nil
@@ -107,10 +183,12 @@ struct UserStats: Codable, Equatable {
     var hapticsEnabled: Bool = true
     var notificationsEnabled: Bool = true
     var unlockedLevels: [CEFRLevel] = [.a1]
-    var fluency: Double { 0 } // computed in AppStore based on real mastery vs available cards
+    var pet: Pet = Pet()
+    var fluency: Double { 0 }
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }
 
+// MARK: - Answer Evaluator
 struct AnswerEvaluator {
     enum Result: Equatable { case correct, almost, wrong }
 

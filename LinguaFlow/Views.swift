@@ -140,6 +140,7 @@ struct DashboardView: View {
                 VStack(spacing: 14) {
                     Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
                     header
+                    PetView()
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
                     }
@@ -351,6 +352,136 @@ struct StatPill: View {
                 Text(value).font(.title3.bold()).foregroundStyle(.primary)
                 Text(title).font(.caption).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity)
+        }
+    }
+}
+
+struct PetView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var showingPetDetail = false
+    var body: some View {
+        GlassCard {
+            HStack(spacing: 14) {
+                Text(store.stats.pet.emoji)
+                    .font(.system(size: 44))
+                    .accessibilityIdentifier("petEmoji")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(store.stats.pet.name)
+                        .font(.headline.bold())
+                    Text("Lv. \(store.stats.pet.level)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(store.stats.pet.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .foregroundStyle(.pink)
+                            .font(.caption)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.pink.opacity(0.2))
+                                Capsule().fill(Color.pink).frame(width: geo.size.width * store.stats.pet.happiness)
+                            }
+                        }.frame(width: 40, height: 6)
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "fork.knife")
+                            .foregroundStyle(.orange)
+                            .font(.caption)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.orange.opacity(0.2))
+                                Capsule().fill(Color.orange).frame(width: geo.size.width * (1 - store.stats.pet.hunger))
+                            }
+                        }.frame(width: 40, height: 6)
+                    }
+                }
+            }
+        }
+        .onTapGesture { showingPetDetail = true }
+        .sheet(isPresented: $showingPetDetail) {
+            PetDetailView()
+        }
+        .accessibilityIdentifier("petView")
+    }
+}
+
+struct PetDetailView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) var dismiss
+    @State private var newName = ""
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text(store.stats.pet.emoji)
+                        .font(.system(size: 80))
+                    Text(store.stats.pet.name)
+                        .font(.largeTitle.bold())
+                    Text("Level \(store.stats.pet.level)")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    
+                    VStack(spacing: 12) {
+                        StatBar(label: "Happiness", value: store.stats.pet.happiness, color: .pink, icon: "heart.fill")
+                        StatBar(label: "Fullness", value: 1 - store.stats.pet.hunger, color: .orange, icon: "fork.knife")
+                        StatBar(label: "Energy", value: store.stats.pet.energy, color: .green, icon: "bolt.fill")
+                    }
+                    .padding(.horizontal)
+                    
+                    Text(store.stats.pet.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    
+                    Text("Total words fed: \(store.stats.pet.totalFed)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("Rename pet...", text: $newName)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal)
+                    
+                    Button("Rename") {
+                        if !newName.isEmpty {
+                            store.stats.pet.name = newName
+                            store.save()
+                            newName = ""
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(newName.isEmpty)
+                }
+                .padding()
+            }
+            .navigationTitle("Your Pet")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+
+struct StatBar: View {
+    let label: String
+    let value: Double
+    let color: Color
+    let icon: String
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon).foregroundStyle(color).frame(width: 20)
+            Text(label).font(.subheadline)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(color.opacity(0.15))
+                    Capsule().fill(color).frame(width: geo.size.width * value)
+                }
+            }.frame(height: 10)
+            Text("\(Int(value * 100))%").font(.caption).foregroundStyle(.secondary).frame(width: 35, alignment: .trailing)
         }
     }
 }
