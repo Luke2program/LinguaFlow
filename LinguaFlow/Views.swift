@@ -126,6 +126,7 @@ struct LevelPickerView: View {
 
 struct DashboardView: View {
     @EnvironmentObject var store: AppStore
+    @State private var keyboardHeight: CGFloat = 0
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 14) {
@@ -137,8 +138,19 @@ struct DashboardView: View {
                 ReviewCardView()
                 PomodoroView()
                 statsGrid
+                Spacer().frame(height: keyboardHeight + 40)
             }.padding(18)
-        }.accessibilityIdentifier("dashboardView")
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
+            if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = frame.height }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
+        }
+        .accessibilityIdentifier("dashboardView")
     }
     var header: some View {
         HStack {
@@ -264,7 +276,7 @@ struct ReviewCardView: View {
                         .font(.caption.bold()).foregroundStyle(.white.opacity(0.6)).accessibilityIdentifier("showSolutionButton")
                     if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
                 }
-                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = "" }
+                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = ""; store.feedbackMessage = "" }
             } else { Text("Choose a level to start.").foregroundStyle(.white) }
         }
     }
