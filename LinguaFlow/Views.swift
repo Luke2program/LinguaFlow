@@ -397,9 +397,6 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                Section("Appearance") {
-                    Toggle("Dark mode", isOn: $store.stats.darkMode)
-                }
                 Section("Audio & Feedback") {
                     Toggle("Sound", isOn: $store.stats.soundEnabled)
                     Toggle("Haptics", isOn: $store.stats.hapticsEnabled)
