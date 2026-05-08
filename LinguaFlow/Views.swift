@@ -280,6 +280,16 @@ struct ReviewCardView: View {
                             .buttonStyle(.borderedProminent).tint(.blue.opacity(0.55)).accessibilityIdentifier("speakAnswerButton")
                     }
                     Text(store.speechMessage).font(.caption).foregroundStyle(.white.opacity(0.6)).accessibilityIdentifier("speechStatus")
+                    if !store.feedbackMessage.isEmpty {
+                        Text(store.feedbackMessage)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(12)
+                            .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(.white.opacity(0.15), lineWidth: 1))
+                            .accessibilityIdentifier("inlineAnswerFeedback")
+                    }
                     if !store.spokenTranscript.isEmpty {
                         Button("Use speech: \(store.spokenTranscript)") { check(store.spokenTranscript) }
                             .buttonStyle(.bordered).tint(.white.opacity(0.2)).accessibilityIdentifier("useSpeechButton")
