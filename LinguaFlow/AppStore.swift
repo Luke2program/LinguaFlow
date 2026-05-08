@@ -186,7 +186,7 @@ final class AppStore: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: statsKey), let decoded = try? decoder.decode(UserStats.self, from: data) { stats = decoded }
         if let data = UserDefaults.standard.data(forKey: schedulesKey), let decoded = try? decoder.decode([String: CardSchedule].self, from: data) { schedules = decoded }
     }
-    private func save() {
+    func save() {
         let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
         UserDefaults.standard.set(try? encoder.encode(stats), forKey: statsKey)
         UserDefaults.standard.set(try? encoder.encode(schedules), forKey: schedulesKey)
