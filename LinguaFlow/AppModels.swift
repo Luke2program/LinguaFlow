@@ -184,6 +184,7 @@ struct UserStats: Codable, Equatable {
     var notificationsEnabled: Bool = true
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
+    var hasSeenPetPicker: Bool = false
     var fluency: Double { 0 }
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }
