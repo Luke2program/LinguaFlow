@@ -276,7 +276,7 @@ struct ReviewCardView: View {
                         .font(.caption.bold()).foregroundStyle(.white.opacity(0.6)).accessibilityIdentifier("showSolutionButton")
                     if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
                 }
-                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = ""; store.feedbackMessage = "" }
+                .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = "" }
             } else { Text("Choose a level to start.").foregroundStyle(.white) }
         }
     }
