@@ -389,6 +389,7 @@ struct SettingsView: View {
                                     store.schedules[card.id] = CardSchedule()
                                 }
                                 store.save()
+                                store.pickNextCard()
                             }
                         }
                     } else {
