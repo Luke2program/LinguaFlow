@@ -106,7 +106,7 @@ struct UserStats: Codable, Equatable {
     var soundEnabled: Bool = true
     var hapticsEnabled: Bool = true
     var notificationsEnabled: Bool = true
-    var fluency: Double { min(1, fluentDrops / 900) }
+    var fluency: Double { 0 } // computed in AppStore based on real mastery vs available cards
     var accuracyToday: Double { reviewedToday == 0 ? 0 : Double(correctToday) / Double(reviewedToday) }
 }
 

@@ -209,14 +209,14 @@ struct FluencyDropView: View {
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                HStack { Text("Fluency Drop").font(.headline).foregroundStyle(.white); Spacer(); Text("\(Int(store.stats.fluency * 100))%").bold().foregroundStyle(.white) }
+                HStack { Text("Fluency").font(.headline).foregroundStyle(.white); Spacer(); Text("\(Int(store.realFluency * 100))%").bold().foregroundStyle(.white) }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.12))
-                        Capsule().fill(.white.opacity(0.85)).frame(width: geo.size.width * store.stats.fluency)
+                        Capsule().fill(.white.opacity(0.85)).frame(width: geo.size.width * store.realFluency)
                     }
                 }.frame(height: 10)
-                Text(store.stats.streak > 1 ? "🔥 \(store.stats.streak)-day streak" : "Start a streak today. 5 reviews is enough.")
+                Text("\(store.masteredCount) of \(store.availableCards.count) words mastered · \(store.stats.streak > 1 ? "🔥 \(store.stats.streak)-day streak" : "Start a streak today.")")
                     .font(.caption).foregroundStyle(.white.opacity(0.6))
             }
         }.accessibilityIdentifier("fluencyDrop")
@@ -238,7 +238,7 @@ struct GoalView: View {
                         .font(.caption.bold())
                 }
                 Text(store.stats.goalName).font(.subheadline.bold())
-                Text("Date: \(store.stats.goalDate.formatted(date: .abbreviated, time: .omitted)) · Need: \(max(store.stats.dailyGoal, store.goalDailyNeed)) reviews/day")
+                Text("Date: \(store.stats.goalDate.formatted(date: .abbreviated, time: .omitted)) · Need: \(max(store.stats.dailyGoal, store.goalDailyNeed))/day · \(store.availableCards.count - store.masteredCount) words left")
                     .font(.caption).foregroundStyle(.white.opacity(0.55))
                 TextField("Goal name", text: $goalName).textFieldStyle(.roundedBorder)
                 DatePicker("Date", selection: $goalDate, displayedComponents: .date).foregroundStyle(.white)

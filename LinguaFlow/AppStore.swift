@@ -36,10 +36,15 @@ final class AppStore: ObservableObject {
     }
     var dueCount: Int { scheduler.dueCards(from: availableCards, schedules: schedules, limit: 999).count }
     var learnedCount: Int { schedules.values.filter { $0.repetitions > 0 }.count }
+    var masteredCount: Int { schedules.values.filter { $0.repetitions >= 3 && $0.easeFactor >= 2.3 }.count }
     var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
     var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
     var daysUntilGoal: Int { max(1, Calendar.current.dateComponents([.day], from: Date(), to: stats.goalDate).day ?? 1) }
-    var goalDailyNeed: Int { max(5, Int(ceil((900 - stats.fluentDrops) / Double(daysUntilGoal) / 9))) }
+    var realFluency: Double {
+        let total = max(1, availableCards.count)
+        return Double(masteredCount) / Double(total)
+    }
+    var goalDailyNeed: Int { max(5, Int(ceil(Double(availableCards.count - masteredCount) / Double(daysUntilGoal)))) }
     var learnedEnoughToday: Bool { stats.reviewedToday >= max(stats.dailyGoal, goalDailyNeed) }
 
     init() { load(); refreshPracticeDay(); resetPomodoro(); pickNextCard() }
