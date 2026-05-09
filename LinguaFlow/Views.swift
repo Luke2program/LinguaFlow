@@ -290,34 +290,36 @@ struct ReviewCardView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack { Text("Review").font(.headline); Spacer(); Text(store.challengeMode == .sentence ? "Sentence" : "Word").font(.caption).foregroundStyle(.secondary) }
                 if let card = store.currentCard {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Prompt:").font(.caption).foregroundStyle(.secondary)
-                        Text(store.currentPrompt).font(.title2.bold())
-                        Button("Speak prompt") { store.speakPrompt() }.font(.caption)
-                    }
-                    TextField("Type your answer…", text: $typedAnswer)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isInputFocused)
-                        .accessibilityIdentifier("answerTextField")
-                    HStack(spacing: 8) {
-                        Button("Speak answer") { store.startSpeechInput() }.font(.caption)
-                        if !store.spokenTranscript.isEmpty {
-                            Button("Use speech") { typedAnswer = store.spokenTranscript }.font(.caption).buttonStyle(.borderedProminent).tint(.blue)
+                    Group {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Prompt:").font(.caption).foregroundStyle(.secondary)
+                            Text(store.currentPrompt).font(.title2.bold())
+                            Button("Speak prompt") { store.speakPrompt() }.font(.caption)
                         }
-                    }
-                    Button("Check") { check(typedAnswer) }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(typedAnswer.isEmpty)
-                        .accessibilityIdentifier("checkAnswerButton")
-                    HStack(spacing: 10) {
-                        ForEach(ReviewGrade.allCases) { grade in
-                            Button(grade.title) { store.grade(grade, expected: store.currentAnswer) }
-                                .buttonStyle(.bordered)
-                                .tint(grade.color)
+                        TextField("Type your answer…", text: $typedAnswer)
+                            .textFieldStyle(.roundedBorder)
+                            .focused($isInputFocused)
+                            .accessibilityIdentifier("answerTextField")
+                        HStack(spacing: 8) {
+                            Button("Speak answer") { store.startSpeechInput() }.font(.caption)
+                            if !store.spokenTranscript.isEmpty {
+                                Button("Use speech") { typedAnswer = store.spokenTranscript }.font(.caption).buttonStyle(.borderedProminent).tint(.blue)
+                            }
                         }
+                        Button("Check") { check(typedAnswer) }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(typedAnswer.isEmpty)
+                            .accessibilityIdentifier("checkAnswerButton")
+                        HStack(spacing: 10) {
+                            ForEach(ReviewGrade.allCases) { grade in
+                                Button(grade.title) { store.grade(grade, expected: store.currentAnswer) }
+                                    .buttonStyle(.bordered)
+                                    .tint(grade.color)
+                            }
+                        }
+                        if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
                     }
-                    if store.combo > 2 { Text("Combo x\(store.combo) ⚡️").bold().foregroundStyle(.yellow) }
-                } else { Text("Choose a level to start.").foregroundStyle(.secondary) }
+                }
             }
         }
         .onChange(of: store.currentCard?.id) { _, _ in typedAnswer = ""; store.spokenTranscript = "" }
