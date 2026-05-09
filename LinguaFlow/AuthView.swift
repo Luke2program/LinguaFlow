@@ -1,5 +1,6 @@
 import SwiftUI
 
+// MARK: - Auth View
 struct AuthView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var store: AppStore
@@ -30,18 +31,29 @@ struct AuthView: View {
                     formSection
                     
                     // Submit button
-                    PrimaryButton(
-                        title: isSignUp ? "Create Account" : "Sign In",
-                        isLoading: authService.isLoading
-                    ) {
-                        handleEmailAuth()
+                    Button(action: handleEmailAuth) {
+                        ZStack {
+                            if authService.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text(isSignUp ? "Create Account" : "Sign In")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(12)
                     }
+                    .disabled(authService.isLoading)
                     
                     // Toggle sign in/up
                     Button(action: { withAnimation { isSignUp.toggle() } }) {
                         Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
                             .font(.subheadline)
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(.blue)
                     }
                     
                     // Divider
@@ -79,7 +91,7 @@ struct AuthView: View {
     private var logoSection: some View {
         ZStack {
             Circle()
-                .fill(Color.accentColor.opacity(0.1))
+                .fill(Color.blue.opacity(0.1))
                 .frame(width: 120, height: 120)
             
             Text("🦉")
@@ -120,7 +132,7 @@ struct AuthView: View {
                     showForgotPassword = true
                 }
                 .font(.caption)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(.blue)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
@@ -128,19 +140,22 @@ struct AuthView: View {
     
     private var socialSignInSection: some View {
         VStack(spacing: 12) {
-            // Apple Sign In
-            SignInWithAppleButton(.signIn) { request in
-                // Apple Sign In is handled by AuthService
-            } onCompletion: { result in
-                // Handled by AuthService delegate
-            }
-            .frame(height: 50)
-            .cornerRadius(12)
-            .onTapGesture {
-                authService.signInWithApple()
+            // Apple Sign In Button
+            Button(action: { authService.signInWithApple() }) {
+                HStack {
+                    Image(systemName: "apple.logo")
+                        .font(.title3)
+                    Text("Sign in with Apple")
+                        .font(.headline)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.primary)
+                .foregroundStyle(.white)
+                .cornerRadius(12)
             }
             
-            // Google Sign In
+            // Google Sign In Button
             Button(action: { authService.signInWithGoogle() }) {
                 HStack {
                     Image(systemName: "g.circle.fill")
@@ -154,8 +169,6 @@ struct AuthView: View {
                 .cornerRadius(12)
             }
             .foregroundStyle(.primary)
-            
-            // Email Sign In (already shown above, but this is the button style reference)
         }
     }
     
@@ -232,9 +245,22 @@ struct ForgotPasswordView: View {
                     textContentType: .emailAddress
                 )
                 
-                PrimaryButton(title: "Send Reset Link", isLoading: isLoading) {
-                    sendResetLink()
+                Button(action: sendResetLink) {
+                    ZStack {
+                        if isLoading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Send Reset Link")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(12)
                 }
+                .disabled(isLoading)
                 
                 Spacer()
             }
@@ -284,21 +310,11 @@ struct AccountSettingsView: View {
                     HStack(spacing: 16) {
                         ZStack {
                             Circle()
-                                .fill(Color.accentColor.opacity(0.1))
+                                .fill(Color.blue.opacity(0.1))
                                 .frame(width: 60, height: 60)
                             
-                            if let url = authService.profileImageURL {
-                                AsyncImage(url: url) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .frame(width: 60, height: 60)
-                                .clipShape(Circle())
-                            } else {
-                                Text("🦉")
-                                    .font(.system(size: 30))
-                            }
+                            Text("🦉")
+                                .font(.system(size: 30))
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
@@ -309,7 +325,7 @@ struct AccountSettingsView: View {
                                 .foregroundStyle(.secondary)
                             Text("Signed in with \(authService.authProvider.rawValue.capitalized)")
                                 .font(.caption2)
-                                .foregroundStyle(.accentColor)
+                                .foregroundStyle(.blue)
                         }
                     }
                     .padding(.vertical, 4)
@@ -329,10 +345,6 @@ struct AccountSettingsView: View {
                         CloudSyncService.shared.forceSync { success in
                             syncStatus = success ? .success(Date()) : .failed("Sync failed")
                         }
-                    }
-                    
-                    Button("Sync Settings...") {
-                        // Show sync settings
                     }
                 }
                 
@@ -382,6 +394,8 @@ struct AccountSettingsView: View {
     }
 }
 
-
-
-// MARK: - Preview
+#Preview {
+    AuthView()
+        .environmentObject(AuthService.shared)
+        .environmentObject(AppStore())
+}
