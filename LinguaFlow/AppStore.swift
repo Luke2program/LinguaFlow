@@ -113,6 +113,7 @@ final class AppStore: ObservableObject {
     }
 
     func pickNextCard(excluding id: String? = nil) {
+        feedbackMessage = ""
         let due = scheduler.dueCards(from: availableCards, schedules: schedules, limit: 30).filter { $0.id != id }
         currentCard = due.first ?? availableCards.filter { $0.id != id }.randomElement() ?? availableCards.first
         activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .germanToSpanish : .spanishToGerman) : stats.direction

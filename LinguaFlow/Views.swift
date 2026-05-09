@@ -171,10 +171,6 @@ struct DashboardView: View {
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
                     }
-                    if !store.feedbackMessage.isEmpty {
-                        FeedbackBanner(text: store.feedbackMessage)
-                            .id("feedbackBanner")
-                    }
                     FluencyDropView()
                     GoalView()
                     ReviewCardView()
@@ -184,13 +180,6 @@ struct DashboardView: View {
                 }.padding(18)
             }
             .scrollDismissesKeyboard(.interactively)
-            .onChange(of: store.feedbackMessage) { _, new in
-                if !new.isEmpty {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        proxy.scrollTo("feedbackBanner", anchor: .top)
-                    }
-                }
-            }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
                 if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
                     withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = frame.height }
@@ -330,6 +319,16 @@ struct ReviewCardView: View {
                             .buttonStyle(.borderedProminent)
                             .disabled(typedAnswer.isEmpty)
                             .accessibilityIdentifier("checkAnswerButton")
+                        if !store.feedbackMessage.isEmpty {
+                            Text(store.feedbackMessage)
+                                .font(.subheadline.bold())
+                                .foregroundStyle(store.feedbackMessage.contains("✅") ? .green : (store.feedbackMessage.contains("🟡") ? .orange : .red))
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 12)
+                                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                                .accessibilityIdentifier("answerFeedback")
+                        }
                         HStack(spacing: 10) {
                             ForEach(ReviewGrade.allCases) { grade in
                                 Button(grade.title) { store.grade(grade, expected: store.currentAnswer) }
