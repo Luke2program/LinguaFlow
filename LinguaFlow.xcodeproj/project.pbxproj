@@ -16,6 +16,7 @@
 		B8A18A8902073FEC8DF4F509 = { isa = PBXBuildFile; fileRef = 21F6BE6ABF0D7C1C1E21862A; };
 		47AAEB26C57D21FA5D328263 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
 	F922166DD658E9248AAE56DC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
+	69444A07563979EC81FC0DE6 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailConfigView.swift; sourceTree = "<group>"; };
 	10D85B139348FB833B7CBE83 = { isa = PBXBuildFile; fileRef = 9C538C729E4A25DA5E51339E; };
 	3E99D72EA0B2191EDDCE52BF = { isa = PBXBuildFile; fileRef = 6FAF704CA399E237725305F5; };
 	3673F73EDC35E5DF64D20690 = { isa = PBXBuildFile; fileRef = C72541B56C4F6EE9D87DE3CB; };

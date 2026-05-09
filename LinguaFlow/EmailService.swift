@@ -8,15 +8,24 @@ final class EmailService {
     static let shared = EmailService()
     
     private let baseURL = "https://api.resend.com/v1"
-    private var apiKey: String {
-        // Store in secure keychain or environment in production
-        UserDefaults.standard.string(forKey: "resend_api_key") ?? ""
+    private let defaults = UserDefaults.standard
+    
+    var apiKey: String {
+        get { defaults.string(forKey: "resend_api_key") ?? "" }
+        set { defaults.set(newValue, forKey: "resend_api_key") }
     }
+    
+    var hasAPIKey: Bool { !apiKey.isEmpty }
+    var verifiedDomain: String? { hasAPIKey ? "lukaskoprolin.com" : nil }
     
     private let fromEmail = "LinguaFlow <linguaflow@lukaskoprolin.com>"
     private let replyTo = "support@lukaskoprolin.com"
     
     private init() {}
+    
+    func saveAPIKey(_ key: String) {
+        apiKey = key
+    }
     
     // MARK: - Send Email
     func sendEmail(to: String, subject: String, html: String, completion: @escaping (Bool) -> Void) {
@@ -47,7 +56,14 @@ final class EmailService {
         request.httpBody = body
         
         URLSession.shared.dataTask(with: request) { data, response, error in
-            let success = (response as? HTTPURLResponse)?.statusCode == 200
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let success = (200...299).contains(statusCode)
+            
+            if let data = data {
+                let responseString = String(data: data, encoding: .utf8) ?? ""
+                print("Resend response: \(responseString)")
+            }
+            
             DispatchQueue.main.async {
                 completion(success)
             }
