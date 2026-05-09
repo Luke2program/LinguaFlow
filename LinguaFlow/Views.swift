@@ -799,10 +799,10 @@ struct FeaturesStep: View {
                 .foregroundStyle(Color.blue)
             
             VStack(alignment: .leading, spacing: 20) {
-                FeatureRow(icon: "brain.head.profile", text: "Spaced repetition that actually works", detail: "Words come back right when you're about to forget them")
-                FeatureRow(icon: "mic.fill", text: "Speak your answers", detail: "Practice pronunciation with speech recognition")
-                FeatureRow(icon: "timer", text: "Pomodoro focus sessions", detail: "Stay in flow with built-in focus timer")
-                FeatureRow(icon: "heart.fill", text: "Your own learning pet", detail: "Keep them happy by practicing daily")
+                OnboardingFeatureRow(icon: "brain.head.profile", text: "Spaced repetition that actually works", detail: "Words come back right when you're about to forget them")
+                OnboardingFeatureRow(icon: "mic.fill", text: "Speak your answers", detail: "Practice pronunciation with speech recognition")
+                OnboardingFeatureRow(icon: "timer", text: "Pomodoro focus sessions", detail: "Stay in flow with built-in focus timer")
+                OnboardingFeatureRow(icon: "heart.fill", text: "Your own learning pet", detail: "Keep them happy by practicing daily")
             }
             .padding(.horizontal, 32)
             .opacity(showFeatures ? 1 : 0)
