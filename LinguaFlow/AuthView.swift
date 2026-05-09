@@ -382,31 +382,6 @@ struct AccountSettingsView: View {
     }
 }
 
-// MARK: - Primary Button (reused)
-struct PrimaryButton: View {
-    let title: String
-    var isLoading: Bool = false
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            ZStack {
-                if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.accentColor)
-            .cornerRadius(12)
-        }
-        .disabled(isLoading)
-    }
-}
+
 
 // MARK: - Preview
