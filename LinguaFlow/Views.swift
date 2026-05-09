@@ -8,7 +8,7 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            if !store.stats.hasSeenTitle { TitleScreenView() }
+            if !store.stats.hasSeenTitle { OnboardingView() }
             else if showPetPicker { PetPickerView { showPetPicker = false } }
             else if store.stats.selectedLevel == nil || showLevelPicker { LevelPickerView(onBack: { showLevelPicker = false }) }
             else { DashboardView(showLevelPicker: $showLevelPicker) }
