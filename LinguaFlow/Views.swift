@@ -259,7 +259,7 @@ struct FluencyDropView: View {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.15))
-                        Capsule().fill(Color.accentColor.opacity(0.85)).frame(width: geo.size.width * store.realFluency)
+                        Capsule().fill(Color.blue.opacity(0.85)).frame(width: geo.size.width * store.realFluency)
                     }
                 }.frame(height: 10)
                 Text("\(store.masteredCount) of \(store.availableCards.count) words mastered · \(store.stats.streak > 1 ? "🔥 \(store.stats.streak)-day streak" : "Start a streak today.")")
@@ -555,11 +555,11 @@ struct PetPickerView: View {
                             .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.primary.opacity(0.05))
+                                    .fill(isSelected ? Color.blue.opacity(0.15) : Color.primary.opacity(0.05))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .stroke(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+                                    .stroke(isSelected ? Color.blue : Color.primary.opacity(0.1), lineWidth: isSelected ? 2 : 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -683,7 +683,7 @@ struct OnboardingView: View {
                 HStack(spacing: 4) {
                     ForEach(0..<totalSteps, id: \.self) { i in
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(i <= step ? Color.accentColor : Color.primary.opacity(0.1))
+                            .fill(i <= step ? Color.blue : Color.primary.opacity(0.1))
                             .frame(height: 4)
                     }
                 }
@@ -747,7 +747,7 @@ struct WelcomeStep: View {
             
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.1))
+                    .fill(Color.blue.opacity(0.1))
                     .frame(width: 180, height: 180)
                 
                 Text("🤯")
@@ -796,7 +796,7 @@ struct FeaturesStep: View {
             
             Text("Meet LinguaFlow")
                 .font(.title2)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.blue)
             
             VStack(alignment: .leading, spacing: 20) {
                 FeatureRow(icon: "brain.head.profile", text: "Spaced repetition that actually works", detail: "Words come back right when you're about to forget them")
@@ -880,17 +880,17 @@ struct LanguagePairCard: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.blue)
                 }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.05))
+                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.primary.opacity(0.05))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -939,7 +939,7 @@ struct LevelCard: View {
             HStack(spacing: 16) {
                 Text(level.rawValue)
                     .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                    .foregroundStyle(isSelected ? Color.blue : Color.primary)
                     .frame(width: 56)
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -956,17 +956,17 @@ struct LevelCard: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.blue)
                 }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.05))
+                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.primary.opacity(0.05))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -1007,7 +1007,7 @@ struct PetStep: View {
             // Selected pet preview
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.1))
+                    .fill(Color.blue.opacity(0.1))
                     .frame(width: 140, height: 140)
                 
                 Text(selectedPet.emoji)
@@ -1052,11 +1052,11 @@ struct PetButton: View {
                 .padding(12)
                 .background(
                     Circle()
-                        .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+                        .fill(isSelected ? Color.blue.opacity(0.2) : Color.clear)
                 )
                 .overlay(
                     Circle()
-                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
                 )
         }
         .buttonStyle(.plain)
@@ -1090,7 +1090,7 @@ struct OnboardingFeatureRow: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.blue)
                 .frame(width: 36)
             
             VStack(alignment: .leading, spacing: 2) {
