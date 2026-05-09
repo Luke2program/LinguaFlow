@@ -11,7 +11,7 @@ final class EmailService {
     private let defaults = UserDefaults.standard
     
     var apiKey: String {
-        get { defaults.string(forKey: "resend_api_key") ?? "" }
+        get { defaults.string(forKey: "resend_api_key") ?? "re_Tx5zkEtH_4VpcvWgN83RBqSB9hTBbuyvL" }
         set { defaults.set(newValue, forKey: "resend_api_key") }
     }
     
