@@ -103,6 +103,8 @@ struct VocabularyCard: Identifiable, Codable, Hashable {
     let exampleGerman: String
     let exampleSpanish: String
     let hint: String
+    let sourceLanguage: AppLanguage
+    let targetLanguage: AppLanguage
 
     func prompt(for direction: ReviewDirection, mode: ChallengeMode = .word) -> String {
         if mode == .sentence { return direction == .germanToSpanish ? exampleGerman : exampleSpanish }
@@ -113,6 +115,36 @@ struct VocabularyCard: Identifiable, Codable, Hashable {
         return direction == .germanToSpanish ? spanish : german
     }
     func example(for language: AppLanguage) -> String { language == .german ? exampleGerman : exampleSpanish }
+
+    // Convenience init for backward-compatible German-Spanish cards
+    init(id: String, german: String, spanish: String, level: CEFRLevel, category: String,
+         exampleGerman: String, exampleSpanish: String, hint: String) {
+        self.id = id
+        self.german = german
+        self.spanish = spanish
+        self.level = level
+        self.category = category
+        self.exampleGerman = exampleGerman
+        self.exampleSpanish = exampleSpanish
+        self.hint = hint
+        self.sourceLanguage = .german
+        self.targetLanguage = .spanish
+    }
+
+    // Full init for any language pair
+    init(id: String, sourceText: String, targetText: String, sourceLanguage: AppLanguage, targetLanguage: AppLanguage,
+         level: CEFRLevel, category: String, exampleSource: String, exampleTarget: String, hint: String) {
+        self.id = id
+        self.german = sourceText
+        self.spanish = targetText
+        self.level = level
+        self.category = category
+        self.exampleGerman = exampleSource
+        self.exampleSpanish = exampleTarget
+        self.hint = hint
+        self.sourceLanguage = sourceLanguage
+        self.targetLanguage = targetLanguage
+    }
 }
 
 enum ReviewGrade: Int, Codable, CaseIterable, Identifiable {
