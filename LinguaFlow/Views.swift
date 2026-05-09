@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var authService: AuthService
     @Environment(\.colorScheme) private var colorScheme
     @State private var showPetPicker = false
     @State private var showLevelPicker = false
@@ -9,6 +10,7 @@ struct RootView: View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             if !store.stats.hasSeenTitle { OnboardingView() }
+            else if !authService.isAuthenticated && !store.stats.hasSkippedAuth { AuthView() }
             else if showPetPicker { PetPickerView { showPetPicker = false } }
             else if store.stats.selectedLevel == nil || showLevelPicker { LevelPickerView(onBack: { showLevelPicker = false }) }
             else { DashboardView(showLevelPicker: $showLevelPicker) }
