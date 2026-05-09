@@ -4,9 +4,63 @@ import SwiftUI
 enum AppLanguage: String, Codable, CaseIterable, Identifiable {
     case german = "de-DE"
     case spanish = "es-ES"
+    case french = "fr-FR"
+    case italian = "it-IT"
+    case portuguese = "pt-PT"
+    case dutch = "nl-NL"
+    case polish = "pl-PL"
+    case russian = "ru-RU"
+    case english = "en-US"
+
     var id: String { rawValue }
-    var flag: String { self == .german ? "🇩🇪" : "🇪🇸" }
-    var name: String { self == .german ? "German" : "Spanish" }
+    var flag: String {
+        switch self {
+        case .german: return "🇩🇪"
+        case .spanish: return "🇪🇸"
+        case .french: return "🇫🇷"
+        case .italian: return "🇮🇹"
+        case .portuguese: return "🇵🇹"
+        case .dutch: return "🇳🇱"
+        case .polish: return "🇵🇱"
+        case .russian: return "🇷🇺"
+        case .english: return "🇬🇧"
+        }
+    }
+    var name: String {
+        switch self {
+        case .german: return "German"
+        case .spanish: return "Spanish"
+        case .french: return "French"
+        case .italian: return "Italian"
+        case .portuguese: return "Portuguese"
+        case .dutch: return "Dutch"
+        case .polish: return "Polish"
+        case .russian: return "Russian"
+        case .english: return "English"
+        }
+    }
+    var localeIdentifier: String { rawValue }
+}
+
+struct LanguagePair: Codable, Equatable, Hashable, Identifiable {
+    let source: AppLanguage
+    let target: AppLanguage
+    var id: String { source.rawValue + "-" + target.rawValue }
+    var displayName: String { source.flag + " " + source.name + " ↔ " + target.name + " " + target.flag }
+    static var popularPairs: [LanguagePair] {
+        [
+            LanguagePair(source: .german, target: .spanish),
+            LanguagePair(source: .spanish, target: .french),
+            LanguagePair(source: .french, target: .english),
+            LanguagePair(source: .german, target: .english),
+            LanguagePair(source: .italian, target: .english),
+            LanguagePair(source: .portuguese, target: .spanish),
+            LanguagePair(source: .dutch, target: .german),
+            LanguagePair(source: .polish, target: .english),
+            LanguagePair(source: .russian, target: .english),
+            LanguagePair(source: .french, target: .german),
+        ]
+    }
 }
 
 enum ReviewDirection: String, Codable, CaseIterable, Identifiable {
