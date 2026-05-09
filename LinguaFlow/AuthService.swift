@@ -2,8 +2,7 @@ import Foundation
 import AuthenticationServices
 import CryptoKit
 
-// MARK: - Stub Auth Service (Firebase-free for now)
-// Replace with full Firebase version once packages are added
+// MARK: - Auth Service (Stub version - replace with Firebase later)
 final class AuthService: NSObject, ObservableObject {
     static let shared = AuthService()
     
@@ -82,18 +81,5 @@ final class AuthService: NSObject, ObservableObject {
     func deleteAccount(completion: @escaping (Bool) -> Void) {
         signOut()
         completion(true)
-    }
-}
-
-enum AuthError: Error, LocalizedError {
-    case signInFailed, noAuthData, userCancelled, invalidCredentials, unknown
-    var errorDescription: String? {
-        switch self {
-        case .signInFailed: return "Sign-in failed"
-        case .noAuthData: return "No authentication data"
-        case .userCancelled: return "Cancelled"
-        case .invalidCredentials: return "Invalid credentials"
-        case .unknown: return "Unknown error"
-        }
     }
 }

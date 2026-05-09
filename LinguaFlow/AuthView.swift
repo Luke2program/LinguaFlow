@@ -1,7 +1,5 @@
 import SwiftUI
-import AuthenticationServices
 
-// MARK: - Auth View
 struct AuthView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var store: AppStore
@@ -412,8 +410,3 @@ struct PrimaryButton: View {
 }
 
 // MARK: - Preview
-#Preview {
-    AuthView()
-        .environmentObject(AuthService.shared)
-        .environmentObject(AppStore())
-}
