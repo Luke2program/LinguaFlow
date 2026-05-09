@@ -74,6 +74,21 @@ struct AuthView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
+                    
+                    // Legal links
+                    HStack(spacing: 4) {
+                        Text("By continuing, you agree to our")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Link("Privacy Policy", destination: URL(string: "https://luke2program.github.io/LinguaFlow/privacy.html")!)
+                            .font(.caption2)
+                        Text("and")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Link("EULA", destination: URL(string: "https://luke2program.github.io/LinguaFlow/eula.html")!)
+                            .font(.caption2)
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(24)
             }

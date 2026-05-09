@@ -653,6 +653,8 @@ struct SettingsView: View {
                 }
                 Section("About") {
                     HStack { Text("Version"); Spacer(); Text("1.0").foregroundStyle(.secondary) }
+                    Link("Privacy Policy", destination: URL(string: "https://luke2program.github.io/LinguaFlow/privacy.html")!)
+                    Link("End User License Agreement", destination: URL(string: "https://luke2program.github.io/LinguaFlow/eula.html")!)
                 }
             }
             .navigationTitle("Settings")
