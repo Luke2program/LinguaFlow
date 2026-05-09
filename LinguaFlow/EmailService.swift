@@ -72,7 +72,7 @@ final class EmailService {
     
     // MARK: - Password Reset
     func sendPasswordReset(to email: String, resetToken: String, completion: @escaping (Bool) -> Void) {
-        let resetURL = "https://lukaskoprolin.com/linguaflow/reset?token=\(resetToken)"
+        let resetURL = "https://luke2program.github.io/LinguaFlow/reset.html?token=\(resetToken)"
         let html = """
         <!DOCTYPE html>
         <html>
@@ -94,7 +94,7 @@ final class EmailService {
             </div>
             <p style="text-align: center; color: #adb5bd; font-size: 12px; margin-top: 24px;">
                 LinguaFlow by Lukas Koprolin<br>
-                <a href="https://lukaskoprolin.com/linguaflow-privacy" style="color: #adb5bd;">Privacy Policy</a>
+                <a href="https://luke2program.github.io/LinguaFlow/privacy" style="color: #adb5bd;">Privacy Policy</a>
             </p>
         </body>
         </html>
@@ -124,13 +124,13 @@ final class EmailService {
                     <li>🐾 Keep your pet happy by learning daily</li>
                 </ul>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="https://lukaskoprolin.com/linguaflow" style="background: #00D4AA; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Open LinguaFlow</a>
+                    <a href="https://luke2program.github.io/LinguaFlow" style="background: #00D4AA; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Open LinguaFlow</a>
                 </div>
                 <p style="color: #6c757d; font-size: 14px;">Your account is synced across all devices. Sign in on any iPhone or iPad to continue learning.</p>
             </div>
             <p style="text-align: center; color: #adb5bd; font-size: 12px; margin-top: 24px;">
                 LinguaFlow by Lukas Koprolin<br>
-                <a href="https://lukaskoprolin.com/linguaflow-privacy" style="color: #adb5bd;">Privacy Policy</a>
+                <a href="https://luke2program.github.io/LinguaFlow/privacy" style="color: #adb5bd;">Privacy Policy</a>
             </p>
         </body>
         </html>
@@ -154,7 +154,7 @@ final class EmailService {
                 <p>You're on a <strong>\(streak)-day streak</strong>! Don't break it now.</p>
                 <p>Just 5 minutes of practice keeps your pet happy and your streak burning.</p>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="https://lukaskoprolin.com/linguaflow" style="background: #FF6B6B; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Practice Now</a>
+                    <a href="https://luke2program.github.io/LinguaFlow" style="background: #FF6B6B; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Practice Now</a>
                 </div>
             </div>
         </body>

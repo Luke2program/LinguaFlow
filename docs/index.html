@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaFlow — Language Learning App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 40px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            max-width: 500px;
+            width: 100%;
+        }
+        .logo { font-size: 64px; margin-bottom: 16px; }
+        h1 { color: #00D4AA; font-size: 32px; margin-bottom: 8px; }
+        p { color: #666; margin-bottom: 32px; }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .links a {
+            display: block;
+            padding: 14px 24px;
+            background: #00D4AA;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .links a:hover { transform: scale(1.02); }
+        .links a.secondary {
+            background: transparent;
+            color: #00D4AA;
+            border: 2px solid #00D4AA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🦉</div>
+        <h1>LinguaFlow</h1>
+        <p>Learn languages with spaced repetition, speech recognition, and your own learning pet.</p>
+        <div class="links">
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="eula.html" class="secondary">End User License Agreement</a>
+        </div>
+    </div>
+</body>
+</html>
