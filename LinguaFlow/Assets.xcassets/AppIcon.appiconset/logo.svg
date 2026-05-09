@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00A8E8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+    
+    <!-- Glow for speech bubble -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bgGrad)" />
+
+  <!-- Decorative circles -->
+  <circle cx="200" cy="300" r="80" fill="#FFF" opacity="0.08" />
+  <circle cx="850" cy="750" r="120" fill="#FFF" opacity="0.06" />
+  <circle cx="150" cy="700" r="50" fill="#FFF" opacity="0.1" />
+
+  <!-- Main owl character -->
+  <g transform="translate(512, 520)" filter="url(#shadow)">
+    
+    <!-- Body -->
+    <ellipse cx="0" cy="60" rx="160" ry="180" fill="#FFF" />
+    
+    <!-- Belly -->
+    <ellipse cx="0" cy="100" rx="100" ry="110" fill="#F0F9FF" />
+    
+    <!-- Wings -->
+    <ellipse cx="-170" cy="40" rx="50" ry="80" fill="#FFF" transform="rotate(-15 -170 40)" />
+    <ellipse cx="170" cy="40" rx="50" ry="80" fill="#FFF" transform="rotate(15 170 40)" />
+    
+    <!-- Ears/tufts -->
+    <polygon points="-80,-140 -120,-220 -40,-160" fill="#FFF" />
+    <polygon points="80,-140 120,-220 40,-160" fill="#FFF" />
+    
+    <!-- Inner ears -->
+    <polygon points="-80,-150 -105,-200 -55,-165" fill="#FFD6E0" />
+    <polygon points="80,-150 105,-200 55,-165" fill="#FFD6E0" />
+    
+    <!-- Eyes (large and expressive) -->
+    <circle cx="-55" cy="-30" r="65" fill="#FFF" />
+    <circle cx="55" cy="-30" r="65" fill="#FFF" />
+    
+    <!-- Eye outlines -->
+    <circle cx="-55" cy="-30" r="62" fill="none" stroke="#E0E0E0" stroke-width="2" />
+    <circle cx="55" cy="-30" r="62" fill="none" stroke="#E0E0E0" stroke-width="2" />
+    
+    <!-- Pupils (looking slightly up-right, curious) -->
+    <circle cx="-40" cy="-40" r="32" fill="#FF6B6B" />
+    <circle cx="40" cy="-40" r="32" fill="#FF6B6B" />
+    
+    <!-- Pupil highlights -->
+    <circle cx="-32" cy="-52" r="12" fill="#FFF" opacity="0.9" />
+    <circle cx="48" cy="-52" r="12" fill="#FFF" opacity="0.9" />
+    <circle cx="-48" cy="-28" r="5" fill="#FFF" opacity="0.6" />
+    <circle cx="32" cy="-28" r="5" fill="#FFF" opacity="0.6" />
+    
+    <!-- Beak -->
+    <polygon points="0,20 -20,50 0,65 20,50" fill="#FFB347" />
+    <!-- Beak highlight -->
+    <polygon points="0,25 -12,45 0,40" fill="#FFD700" opacity="0.5" />
+    
+    <!-- Blush/cheeks -->
+    <ellipse cx="-100" cy="20" rx="20" ry="12" fill="#FFB6C1" opacity="0.5" />
+    <ellipse cx="100" cy="20" rx="20" ry="12" fill="#FFB6C1" opacity="0.5" />
+    
+    <!-- Feet -->
+    <ellipse cx="-60" cy="230" rx="30" ry="15" fill="#FFB347" />
+    <ellipse cx="60" cy="230" rx="30" ry="15" fill="#FFB347" />
+    
+    <!-- Headphones -->
+    <path d="M -130,-60 Q -160,-60 -160,0 L -160,60 Q -160,100 -130,100" 
+          fill="none" stroke="#FF6B6B" stroke-width="20" stroke-linecap="round" />
+    <path d="M 130,-60 Q 160,-60 160,0 L 160,60 Q 160,100 130,100" 
+          fill="none" stroke="#FF6B6B" stroke-width="20" stroke-linecap="round" />
+    
+    <!-- Headphone band -->
+    <path d="M -130,-60 Q 0,-180 130,-60" 
+          fill="none" stroke="#FF6B6B" stroke-width="18" stroke-linecap="round" />
+    
+  </g>
+
+  <!-- Speech bubble with heart (representing language/love) -->
+  <g transform="translate(750, 280)" filter="url(#shadow)">
+    <!-- Bubble -->
+    <rect x="-80" y="-60" width="160" height="100" rx="25" fill="#FFF" />
+    
+    <!-- Bubble tail -->
+    <polygon points="-20,40 -40,70 0,40" fill="#FFF" />
+    
+    <!-- Heart inside bubble -->
+    <path d="M 0,15 
+             C -20,-5 -35,10 -35,25 
+             C -35,45 0,60 0,60 
+             C 0,60 35,45 35,25 
+             C 35,10 20,-5 0,15 Z" 
+          fill="#FF6B6B" transform="translate(0, -5) scale(0.7)" />
+    
+    <!-- Small sparkle -->
+    <polygon points="45,-40 48,-48 50,-40 58,-38 50,-36 48,-28 46,-36 38,-38" fill="#FFD700" />
+    
+  </g>
+
+  <!-- Floating letters/characters (representing languages) -->
+  <g opacity="0.9">
+    <!-- A -->
+    <text x="180" y="200" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+          font-size="48" font-weight="800" fill="#FFF" opacity="0.6">A</text>
+    
+    <!-- ñ -->
+    <text x="820" y="180" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+          font-size="44" font-weight="800" fill="#FFF" opacity="0.5">ñ</text>
+    
+    <!-- 文 -->
+    <text x="220" y="780" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+          font-size="42" font-weight="800" fill="#FFF" opacity="0.45">文</text>
+    
+    <!-- € -->
+    <text x="800" y="750" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+          font-size="46" font-weight="800" fill="#FFF" opacity="0.55">€</text>
+    
+  </g>
+
+  <!-- Small stars/sparkles -->
+  <g fill="#FFD700" opacity="0.7">
+    <polygon points="300,150 303,158 305,150 313,148 305,146 303,138 301,146 293,148" />
+    <polygon points="720,650 723,658 725,650 733,648 725,646 723,638 721,646 713,648" />
+    <polygon points="400,850 402,855 404,850 409,848 404,846 402,841 400,846 395,848" />
+  </g>
+
+</svg>
