@@ -4,13 +4,14 @@ struct RootView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.colorScheme) private var colorScheme
     @State private var showPetPicker = false
+    @State private var showLevelPicker = false
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             if !store.stats.hasSeenTitle { TitleScreenView() }
             else if showPetPicker { PetPickerView { showPetPicker = false } }
-            else if store.stats.selectedLevel == nil { LevelPickerView() }
-            else { DashboardView() }
+            else if store.stats.selectedLevel == nil || showLevelPicker { LevelPickerView(onBack: { showLevelPicker = false }) }
+            else { DashboardView(showLevelPicker: $showLevelPicker) }
         }
         .preferredColorScheme(store.stats.darkMode ? .dark : nil)
         .accessibilityIdentifier("rootView")
@@ -116,10 +117,22 @@ struct FeatureRow: View {
 
 struct LevelPickerView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) var dismiss
+    var onBack: (() -> Void)? = nil
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Choose your level").font(.largeTitle.bold()).foregroundStyle(.primary).accessibilityIdentifier("chooseNiveauTitle")
+                HStack {
+                    Text("Choose your level").font(.largeTitle.bold()).foregroundStyle(.primary).accessibilityIdentifier("chooseNiveauTitle")
+                    Spacer()
+                    if onBack != nil {
+                        Button { onBack?() } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
                 ForEach(CEFRLevel.allCases) { level in
                     let isUnlocked = store.stats.unlockedLevels.contains(level)
                     Button { if isUnlocked { store.select(level: level) } } label: {
@@ -143,7 +156,11 @@ struct LevelPickerView: View {
 
 struct DashboardView: View {
     @EnvironmentObject var store: AppStore
+    @Binding var showLevelPicker: Bool
     @State private var keyboardHeight: CGFloat = 0
+    init(showLevelPicker: Binding<Bool> = .constant(false)) {
+        _showLevelPicker = showLevelPicker
+    }
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
@@ -193,6 +210,9 @@ struct DashboardView: View {
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
+            Button { showLevelPicker = true } label: {
+                Image(systemName: "arrow.up.arrow.down.circle.fill").font(.system(size: 28)).foregroundStyle(.primary.opacity(0.9))
+            }.accessibilityIdentifier("levelSwitchButton")
             Button { store.toggleDirection() } label: {
                 Image(systemName: "shuffle.circle.fill").font(.system(size: 32)).foregroundStyle(.primary.opacity(0.9))
             }.accessibilityIdentifier("directionToggle")
