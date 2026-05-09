@@ -796,7 +796,7 @@ struct FeaturesStep: View {
             
             Text("Meet LinguaFlow")
                 .font(.title2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(.accentColor)
             
             VStack(alignment: .leading, spacing: 20) {
                 FeatureRow(icon: "brain.head.profile", text: "Spaced repetition that actually works", detail: "Words come back right when you're about to forget them")
@@ -880,7 +880,7 @@ struct LanguagePairCard: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(.accentColor)
                 }
             }
             .padding(16)
@@ -939,7 +939,7 @@ struct LevelCard: View {
             HStack(spacing: 16) {
                 Text(level.rawValue)
                     .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(isSelected ? .accent : .primary)
+                    .foregroundStyle(isSelected ? .accentColor : .primary)
                     .frame(width: 56)
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -956,7 +956,7 @@ struct LevelCard: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(.accentColor)
                 }
             }
             .padding(16)
@@ -1090,7 +1090,7 @@ struct OnboardingFeatureRow: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(.accentColor)
                 .frame(width: 36)
             
             VStack(alignment: .leading, spacing: 2) {
