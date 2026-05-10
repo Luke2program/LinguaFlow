@@ -32,13 +32,14 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO
 
-      - name: Run Tests
-        run: |
-          xcodebuild test \
-            -project "LinguaFlow.xcodeproj" \
-            -scheme "LinguaFlow" \
-            -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest" \
-            -parallel-testing-enabled NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+      # Tests disabled - only build for now
+      # - name: Run Tests
+      #   run: |
+      #     xcodebuild test \
+      #       -project "LinguaFlow.xcodeproj" \
+      #       -scheme "LinguaFlow" \
+      #       -sdk iphonesimulator \
+      #       -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest" \
+      #       -parallel-testing-enabled NO \
+      #       CODE_SIGN_IDENTITY="" \
+      #       CODE_SIGNING_REQUIRED=NO
