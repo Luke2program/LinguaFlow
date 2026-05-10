@@ -104,9 +104,13 @@ final class AppStore: ObservableObject {
     }
 
     func feedPet(correctCount: Int) {
-        stats.pet.feed(correctAnswers: correctCount)
-        // Add pet reaction to feedback
-        let petReaction = stats.pet.mood == .happy ? " \(stats.pet.emoji)" : ""
+        let bonusMultiplier = stats.pet.abilities.contains(where: { $0.name == "XP Boost" }) ? 1.1 : 1.0
+        let gemsToAdd = stats.pet.abilities.contains(where: { $0.name == "Gem Hunter" }) ? correctCount : 0
+        stats.pet.evolvedFeed(correctAnswers: correctCount)
+        stats.gems += gemsToAdd
+        let xpBonus = Int(Double(correctCount * 10) * bonusMultiplier)
+        stats.pet.addXP(xpBonus)
+        let petReaction = stats.pet.mood == .happy ? " \(stats.pet.currentEmoji)" : ""
         if !petReaction.isEmpty && !feedbackMessage.isEmpty {
             feedbackMessage += petReaction
         }

@@ -394,15 +394,20 @@ struct PetView: View {
     var body: some View {
         GlassCard {
             HStack(spacing: 14) {
-                Text(store.stats.pet.emoji)
+                Text(store.stats.pet.currentEmoji)
                     .font(.system(size: 44))
                     .accessibilityIdentifier("petEmoji")
                 VStack(alignment: .leading, spacing: 4) {
                     Text(store.stats.pet.name)
                         .font(.headline.bold())
-                    Text("Lv. \(store.stats.pet.level)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Text("Lv. \(store.stats.pet.level)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("• \(store.stats.pet.stage.title)")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                     Text(store.stats.pet.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -447,24 +452,97 @@ struct PetDetailView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) var dismiss
     @State private var newName = ""
+    @State private var showEvolutionAlert = false
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    Text(store.stats.pet.emoji)
-                        .font(.system(size: 80))
+                    // Pet Emoji + Stage Badge
+                    ZStack(alignment: .bottomTrailing) {
+                        Text(store.stats.pet.currentEmoji)
+                            .font(.system(size: 100))
+                        Text(store.stats.pet.stage.title)
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.8))
+                            .foregroundStyle(.white)
+                            .clipShape(Capsule())
+                    }
+                    
                     Text(store.stats.pet.name)
                         .font(.largeTitle.bold())
-                    Text("Level \(store.stats.pet.level)")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
                     
+                    // Level + XP Progress
+                    VStack(spacing: 8) {
+                        Text("Level \(store.stats.pet.level) • \(store.stats.pet.xp) / \(store.stats.pet.xpToNextLevel) XP")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.blue.opacity(0.2))
+                                Capsule().fill(Color.blue)
+                                    .frame(width: geo.size.width * store.stats.pet.progressToNextLevel)
+                            }
+                        }.frame(height: 8)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Stats Bars
                     VStack(spacing: 12) {
                         StatBar(label: "Happiness", value: store.stats.pet.happiness, color: .pink, icon: "heart.fill")
                         StatBar(label: "Fullness", value: 1 - store.stats.pet.hunger, color: .orange, icon: "fork.knife")
                         StatBar(label: "Energy", value: store.stats.pet.energy, color: .green, icon: "bolt.fill")
                     }
                     .padding(.horizontal)
+                    
+                    // Interactions
+                    HStack(spacing: 12) {
+                        PetActionButton(icon: "hand.tap.fill", label: "Stroke", color: .pink) {
+                            store.stats.pet.stroke()
+                            store.save()
+                        }
+                        PetActionButton(icon: "play.fill", label: "Play", color: .green) {
+                            store.stats.pet.play()
+                            store.save()
+                        }
+                        PetActionButton(icon: "moon.fill", label: "Sleep", color: .purple) {
+                            store.stats.pet.sleep()
+                            store.save()
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Abilities
+                    if !store.stats.pet.abilities.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Abilities")
+                                .font(.headline)
+                                .padding(.horizontal)
+                            ForEach(store.stats.pet.abilities, id: \.name) { ability in
+                                HStack(spacing: 12) {
+                                    Image(systemName: ability.icon)
+                                        .foregroundStyle(.blue)
+                                        .frame(width: 24)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(ability.name)
+                                            .font(.subheadline.bold())
+                                        Text(ability.description)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 6)
+                                .background(Color.primary.opacity(0.05))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
                     
                     Text(store.stats.pet.description)
                         .font(.subheadline)
@@ -476,24 +554,48 @@ struct PetDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
-                    TextField("Rename pet...", text: $newName)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.horizontal)
-                    
-                    Button("Rename") {
-                        if !newName.isEmpty {
-                            store.stats.pet.name = newName
-                            store.save()
-                            newName = ""
+                    // Rename
+                    HStack {
+                        TextField("New name...", text: $newName)
+                            .textFieldStyle(.roundedBorder)
+                        Button("Rename") {
+                            if !newName.isEmpty {
+                                store.stats.pet.name = newName
+                                store.save()
+                                newName = ""
+                            }
                         }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(newName.isEmpty)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(newName.isEmpty)
+                    .padding(.horizontal)
                 }
                 .padding()
             }
             .navigationTitle("Your Pet")
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+
+struct PetActionButton: View {
+    let icon: String
+    let label: String
+    let color: Color
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.title2)
+                Text(label)
+                    .font(.caption)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(color.opacity(0.15))
+            .foregroundStyle(color)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
     }
 }
