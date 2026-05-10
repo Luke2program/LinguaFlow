@@ -50,9 +50,10 @@ struct LanguagePair: Codable, Equatable, Hashable, Identifiable {
     static var popularPairs: [LanguagePair] {
         [
             LanguagePair(source: .german, target: .spanish),
+            LanguagePair(source: .german, target: .french),
             LanguagePair(source: .spanish, target: .french),
-            LanguagePair(source: .french, target: .english),
             LanguagePair(source: .german, target: .english),
+            LanguagePair(source: .french, target: .english),
             LanguagePair(source: .italian, target: .english),
             LanguagePair(source: .portuguese, target: .spanish),
             LanguagePair(source: .dutch, target: .german),
@@ -64,13 +65,11 @@ struct LanguagePair: Codable, Equatable, Hashable, Identifiable {
 }
 
 enum ReviewDirection: String, Codable, CaseIterable, Identifiable {
-    case germanToSpanish
-    case spanishToGerman
+    case sourceToTarget
+    case targetToSource
     var id: String { rawValue }
-    var title: String { self == .germanToSpanish ? "German → Spanish" : "Spanish → German" }
-    var source: AppLanguage { self == .germanToSpanish ? .german : .spanish }
-    var target: AppLanguage { self == .germanToSpanish ? .spanish : .german }
-    var reversed: ReviewDirection { self == .germanToSpanish ? .spanishToGerman : .germanToSpanish }
+    var title: String { self == .sourceToTarget ? "Forward" : "Reverse" }
+    var reversed: ReviewDirection { self == .sourceToTarget ? .targetToSource : .sourceToTarget }
 }
 
 enum ChallengeMode: String, Codable {
@@ -96,36 +95,36 @@ enum CEFRLevel: String, Codable, CaseIterable, Identifiable, Comparable {
 
 struct VocabularyCard: Identifiable, Codable, Hashable {
     let id: String
-    let german: String
-    let spanish: String
-    let level: CEFRLevel
-    let category: String
-    let exampleGerman: String
-    let exampleSpanish: String
-    let hint: String
+    let sourceText: String
+    let targetText: String
     let sourceLanguage: AppLanguage
     let targetLanguage: AppLanguage
+    let level: CEFRLevel
+    let category: String
+    let exampleSource: String
+    let exampleTarget: String
+    let hint: String
 
     func prompt(for direction: ReviewDirection, mode: ChallengeMode = .word) -> String {
-        if mode == .sentence { return direction == .germanToSpanish ? exampleGerman : exampleSpanish }
-        return direction == .germanToSpanish ? german : spanish
+        if mode == .sentence { return direction == .sourceToTarget ? exampleSource : exampleTarget }
+        return direction == .sourceToTarget ? sourceText : targetText
     }
     func answer(for direction: ReviewDirection, mode: ChallengeMode = .word) -> String {
-        if mode == .sentence { return direction == .germanToSpanish ? exampleSpanish : exampleGerman }
-        return direction == .germanToSpanish ? spanish : german
+        if mode == .sentence { return direction == .sourceToTarget ? exampleTarget : exampleSource }
+        return direction == .sourceToTarget ? targetText : sourceText
     }
-    func example(for language: AppLanguage) -> String { language == .german ? exampleGerman : exampleSpanish }
+    func example(for language: AppLanguage) -> String { language == sourceLanguage ? exampleSource : exampleTarget }
 
-    // Convenience init for backward-compatible German-Spanish cards
+    // Legacy init for backward-compatible German-Spanish cards
     init(id: String, german: String, spanish: String, level: CEFRLevel, category: String,
          exampleGerman: String, exampleSpanish: String, hint: String) {
         self.id = id
-        self.german = german
-        self.spanish = spanish
+        self.sourceText = german
+        self.targetText = spanish
         self.level = level
         self.category = category
-        self.exampleGerman = exampleGerman
-        self.exampleSpanish = exampleSpanish
+        self.exampleSource = exampleGerman
+        self.exampleTarget = exampleSpanish
         self.hint = hint
         self.sourceLanguage = .german
         self.targetLanguage = .spanish
@@ -135,12 +134,12 @@ struct VocabularyCard: Identifiable, Codable, Hashable {
     init(id: String, sourceText: String, targetText: String, sourceLanguage: AppLanguage, targetLanguage: AppLanguage,
          level: CEFRLevel, category: String, exampleSource: String, exampleTarget: String, hint: String) {
         self.id = id
-        self.german = sourceText
-        self.spanish = targetText
+        self.sourceText = sourceText
+        self.targetText = targetText
         self.level = level
         self.category = category
-        self.exampleGerman = exampleSource
-        self.exampleSpanish = exampleTarget
+        self.exampleSource = exampleSource
+        self.exampleTarget = exampleTarget
         self.hint = hint
         self.sourceLanguage = sourceLanguage
         self.targetLanguage = targetLanguage
@@ -248,7 +247,8 @@ enum PetMood: String, Codable { case happy, hungry, sad, tired, neutral }
 struct UserStats: Codable, Equatable {
     var hasSeenTitle: Bool = false
     var selectedLevel: CEFRLevel? = nil
-    var direction: ReviewDirection = .germanToSpanish
+    var direction: ReviewDirection = .sourceToTarget
+    var selectedLanguagePair: LanguagePair = LanguagePair(source: .german, target: .spanish)
     var autoMixDirections: Bool = true
     var xp: Int = 0
     var streak: Int = 0

@@ -8,7 +8,7 @@ final class AppStore: ObservableObject {
     @Published var stats: UserStats = UserStats()
     @Published var schedules: [String: CardSchedule] = [:]
     @Published var currentCard: VocabularyCard?
-    @Published var activeDirection: ReviewDirection = .germanToSpanish
+    @Published var activeDirection: ReviewDirection = .sourceToTarget
     @Published var challengeMode: ChallengeMode = .word
     @Published var combo = 0
     @Published var spokenTranscript = ""
@@ -33,7 +33,7 @@ final class AppStore: ObservableObject {
 
     var availableCards: [VocabularyCard] {
         guard let level = stats.selectedLevel else { return [] }
-        return VocabularyData.cards.filter { $0.level <= level }
+        return VocabularyData.cards(for: stats.selectedLanguagePair).filter { $0.level <= level }
     }
     var dueCount: Int { scheduler.dueCards(from: availableCards, schedules: schedules, limit: 999).count }
     var learnedCount: Int { schedules.values.filter { $0.repetitions > 0 }.count }
@@ -55,12 +55,12 @@ final class AppStore: ObservableObject {
     func select(level: CEFRLevel) {
         stats.selectedLevel = level
         if !stats.unlockedLevels.contains(level) { stats.unlockedLevels.append(level) }
-        for card in VocabularyData.cards where card.level <= level && schedules[card.id] == nil { schedules[card.id] = CardSchedule() }
+        for card in VocabularyData.cards(for: stats.selectedLanguagePair) where card.level <= level && schedules[card.id] == nil { schedules[card.id] = CardSchedule() }
         save(); pickNextCard()
     }
 
     func isLevelCompleted(_ level: CEFRLevel) -> Bool {
-        let cards = VocabularyData.cards.filter { $0.level == level }
+        let cards = VocabularyData.cards(for: stats.selectedLanguagePair).filter { $0.level == level }
         guard !cards.isEmpty else { return false }
         let mastered = cards.filter { card in
             let s = schedules[card.id]
@@ -81,7 +81,7 @@ final class AppStore: ObservableObject {
         save()
     }
 
-    func toggleDirection() { stats.autoMixDirections.toggle(); feedbackMessage = stats.autoMixDirections ? "Auto-mix is on: German → Spanish and Spanish → German rotate automatically." : "Auto-mix off. Tap again to enable."; save() }
+    func toggleDirection() { stats.autoMixDirections.toggle(); feedbackMessage = stats.autoMixDirections ? "Auto-mix is on: languages rotate automatically." : "Auto-mix off. Tap again to enable."; save() }
 
     func grade(_ grade: ReviewGrade, expected: String) {
         guard let card = currentCard else { return }
@@ -116,7 +116,7 @@ final class AppStore: ObservableObject {
         feedbackMessage = ""
         let due = scheduler.dueCards(from: availableCards, schedules: schedules, limit: 30).filter { $0.id != id }
         currentCard = due.first ?? availableCards.filter { $0.id != id }.randomElement() ?? availableCards.first
-        activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .germanToSpanish : .spanishToGerman) : stats.direction
+        activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource) : stats.direction
         challengeMode = stats.totalReviews > 0 && stats.totalReviews.isMultiple(of: 4) ? .sentence : .word
     }
 
@@ -138,15 +138,16 @@ final class AppStore: ObservableObject {
         return result
     }
 
-    func speakPrompt() { speak(currentPrompt, language: activeDirection.source) }
-    func speakAnswer() { speak(currentAnswer, language: activeDirection.target) }
+    func speakPrompt() { speak(currentPrompt, language: activeDirection == .sourceToTarget ? stats.selectedLanguagePair.source : stats.selectedLanguagePair.target) }
+    func speakAnswer() { speak(currentAnswer, language: activeDirection == .sourceToTarget ? stats.selectedLanguagePair.target : stats.selectedLanguagePair.source) }
 
     func startSpeechInput() {
         guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { speechMessage = "Speech is disabled during UI tests."; return }
         stopSpeechInput()
         spokenTranscript = ""
         speechMessage = "Listening…"
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: activeDirection.target.rawValue))
+        let targetLang = activeDirection == .sourceToTarget ? stats.selectedLanguagePair.target : stats.selectedLanguagePair.source
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: targetLang.rawValue))
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             DispatchQueue.main.async {
                 guard status == .authorized else { self?.speechMessage = "Speech permission is needed. You can still type the answer."; return }
