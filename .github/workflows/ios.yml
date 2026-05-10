@@ -1,15 +1,44 @@
-name: iOS Tests
+name: iOS Build & Test
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 jobs:
-  test:
-    runs-on: macos-15
-    timeout-minutes: 20
+  build:
+    name: Build & Test
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build app and test bundles
-        run: xcodebuild build-for-testing -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -parallel-testing-enabled NO
-      - name: Run deterministic unit tests
-        run: xcodebuild test -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -only-testing:LinguaFlowTests -parallel-testing-enabled NO
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Resolve Package Dependencies
+        run: xcodebuild -resolvePackageDependencies
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project "LinguaFlow.xcodeproj" \
+            -scheme "LinguaFlow" \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -configuration Debug \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Run Tests
+        run: |
+          xcodebuild test \
+            -project "LinguaFlow.xcodeproj" \
+            -scheme "LinguaFlow" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest" \
+            -parallel-testing-enabled NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
