@@ -15,12 +15,44 @@ final class AuthService: NSObject, ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var showError = false
     
-    enum AuthProvider: String {
+    enum AuthProvider: String, Codable {
         case none, apple, google, email
     }
     
+    private let authKey = "linguaflow.auth.v1"
+    
     private override init() {
         super.init()
+        load()
+    }
+    
+    private func load() {
+        let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
+        if let data = UserDefaults.standard.data(forKey: authKey),
+           let decoded = try? decoder.decode(AuthState.self, from: data) {
+            self.isAuthenticated = decoded.isAuthenticated
+            self.displayName = decoded.displayName
+            self.email = decoded.email
+            self.authProvider = decoded.authProvider
+        }
+    }
+    
+    private func save() {
+        let state = AuthState(
+            isAuthenticated: isAuthenticated,
+            displayName: displayName,
+            email: email,
+            authProvider: authProvider
+        )
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        UserDefaults.standard.set(try? encoder.encode(state), forKey: authKey)
+    }
+    
+    private struct AuthState: Codable {
+        var isAuthenticated: Bool
+        var displayName: String
+        var email: String
+        var authProvider: AuthProvider
     }
     
     func signInWithApple() {
@@ -31,6 +63,7 @@ final class AuthService: NSObject, ObservableObject {
             self.displayName = "Apple User"
             self.email = "user@icloud.com"
             self.authProvider = .apple
+            self.save()
         }
     }
     
@@ -42,6 +75,7 @@ final class AuthService: NSObject, ObservableObject {
             self.displayName = "Google User"
             self.email = "user@gmail.com"
             self.authProvider = .google
+            self.save()
         }
     }
     
@@ -53,6 +87,7 @@ final class AuthService: NSObject, ObservableObject {
             self.displayName = email.components(separatedBy: "@").first ?? "User"
             self.email = email
             self.authProvider = .email
+            self.save()
         }
     }
     
@@ -64,6 +99,7 @@ final class AuthService: NSObject, ObservableObject {
             self.displayName = displayName
             self.email = email
             self.authProvider = .email
+            self.save()
         }
     }
     
@@ -76,6 +112,7 @@ final class AuthService: NSObject, ObservableObject {
         displayName = ""
         email = ""
         authProvider = .none
+        save()
     }
     
     func deleteAccount(completion: @escaping (Bool) -> Void) {

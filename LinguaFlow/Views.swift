@@ -4,14 +4,13 @@ struct RootView: View {
     @EnvironmentObject var store: AppStore
     @EnvironmentObject var authService: AuthService
     @Environment(\.colorScheme) private var colorScheme
-    @State private var showPetPicker = false
     @State private var showLevelPicker = false
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             if !store.stats.hasSeenTitle { OnboardingView() }
             else if !authService.isAuthenticated && !store.stats.hasSkippedAuth { AuthView() }
-            else if showPetPicker { PetPickerView { showPetPicker = false } }
+            else if !store.stats.hasSeenPetPicker { PetPickerView { store.stats.hasSeenPetPicker = true; store.save() } }
             else if store.stats.selectedLevel == nil || showLevelPicker { LevelPickerView(onBack: { showLevelPicker = false }) }
             else { DashboardView(showLevelPicker: $showLevelPicker) }
         }
@@ -731,6 +730,7 @@ struct OnboardingView: View {
     
     private func finishOnboarding() {
         store.stats.hasSeenTitle = true
+        store.stats.hasSeenPetPicker = true
         store.stats.selectedLevel = selectedLevel
         store.stats.pet.type = selectedPet
         store.stats.pet.name = petName.isEmpty ? "Mochi" : petName
