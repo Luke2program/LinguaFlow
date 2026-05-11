@@ -630,7 +630,7 @@ struct PetPickerView: View {
         ScrollView {
             VStack(spacing: 24) {
                 Spacer().frame(height: 40)
-                Text("Choose Your Companion")
+                Text("Choose Your Learning Buddy")
                     .font(.system(size: 36, weight: .black, design: .rounded))
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
@@ -834,9 +834,10 @@ struct OnboardingView: View {
         store.stats.hasSeenTitle = true
         store.stats.hasSeenPetPicker = true
         store.stats.selectedLevel = selectedLevel
+        store.stats.selectedLanguagePair = selectedPair
         store.stats.pet.type = selectedPet
         store.stats.pet.name = petName.isEmpty ? "Mochi" : petName
-        store.stats.direction = selectedPair.source == .german ? .germanToSpanish : .spanishToGerman
+        store.stats.direction = selectedPair.source == .german ? .sourceToTarget : .targetToSource
         store.select(level: selectedLevel)
         store.save()
     }
