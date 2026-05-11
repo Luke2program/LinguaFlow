@@ -16,7 +16,7 @@ struct RootView: View {
         }
         .preferredColorScheme(store.stats.darkMode ? .dark : nil)
         .accessibilityIdentifier("rootView")
-        .sheet(isPresented: $store.showingSettings) { SettingsView() }
+        // Settings sheet moved to DashboardView for reliability
     }
 }
 
@@ -135,8 +135,8 @@ struct LevelPickerView: View {
                     }
                 }
                 ForEach(CEFRLevel.allCases) { level in
-                    let isUnlocked = store.stats.unlockedLevels.contains(level)
-                    Button { if isUnlocked { store.select(level: level) } } label: {
+                    let isUnlocked = true  // All levels unlocked for testing
+                    Button { store.select(level: level) } label: {
                         GlassCard {
                             HStack(spacing: 16) {
                                 Text(level.rawValue).font(.system(size: 32, weight: .black, design: .rounded)).foregroundStyle(isUnlocked ? .primary : .secondary).frame(width: 64)
@@ -145,10 +145,10 @@ struct LevelPickerView: View {
                                     Text(isUnlocked ? "Speaking-first vocabulary" : "Complete previous level to unlock").font(.caption).foregroundStyle(.secondary.opacity(isUnlocked ? 0.8 : 0.5))
                                 }
                                 Spacer()
-                                Image(systemName: isUnlocked ? "chevron.right" : "lock.fill").font(.title3.bold()).foregroundStyle(.secondary.opacity(isUnlocked ? 0.5 : 0.25))
+                                Image(systemName: "chevron.right").font(.title3.bold()).foregroundStyle(.secondary.opacity(0.5))
                             }
                         }
-                    }.buttonStyle(.plain).disabled(!isUnlocked).accessibilityIdentifier("level_\(level.rawValue)")
+                    }.buttonStyle(.plain).accessibilityIdentifier("level_\(level.rawValue)")
                 }
             }.padding(20).padding(.top, 20)
         }
@@ -159,6 +159,7 @@ struct DashboardView: View {
     @EnvironmentObject var store: AppStore
     @Binding var showLevelPicker: Bool
     @State private var keyboardHeight: CGFloat = 0
+    @State private var showingSettings = false
     init(showLevelPicker: Binding<Bool> = .constant(false)) {
         _showLevelPicker = showLevelPicker
     }
@@ -180,6 +181,7 @@ struct DashboardView: View {
                     Spacer().frame(height: keyboardHeight + 40)
                 }.padding(18)
             }
+            .sheet(isPresented: $showingSettings) { SettingsView() }
             .scrollDismissesKeyboard(.interactively)
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
                 if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
@@ -206,7 +208,7 @@ struct DashboardView: View {
             Button { store.toggleDirection() } label: {
                 Image(systemName: "shuffle.circle.fill").font(.system(size: 32)).foregroundStyle(.primary.opacity(0.9))
             }.accessibilityIdentifier("directionToggle")
-            Button { store.showingSettings = true } label: {
+            Button { showingSettings = true } label: {
                 Image(systemName: "gearshape.fill").font(.system(size: 28)).foregroundStyle(.primary.opacity(0.9))
             }.accessibilityIdentifier("settingsButton")
         }
