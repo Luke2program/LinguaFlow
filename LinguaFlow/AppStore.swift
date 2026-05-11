@@ -13,7 +13,7 @@ final class AppStore: ObservableObject {
     @Published var combo = 0
     @Published var spokenTranscript = ""
     @Published var isListening = false
-    @Published var feedbackMessage = ""
+    @Published var feedbackMessage = "" 
     @Published var speechMessage = "Tap Speak, say the answer, then tap Use speech."
     @Published var showingSettings = false
     @Published var newlyUnlockedLevel: CEFRLevel? = nil
@@ -117,7 +117,7 @@ final class AppStore: ObservableObject {
     }
 
     func pickNextCard(excluding id: String? = nil) {
-        feedbackMessage = ""
+        
         let due = scheduler.dueCards(from: availableCards, schedules: schedules, limit: 30).filter { $0.id != id }
         currentCard = due.first ?? availableCards.filter { $0.id != id }.randomElement() ?? availableCards.first
         activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource) : stats.direction
