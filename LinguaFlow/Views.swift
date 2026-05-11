@@ -711,27 +711,14 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Language Level") {
-                    if !store.stats.unlockedLevels.isEmpty {
-                        Picker("Current Level", selection: $store.stats.selectedLevel) {
-                            ForEach(store.stats.unlockedLevels.sorted(by: { ($0.rawValue) < ($1.rawValue) })) { level in
-                                Text(level.rawValue + " — " + level.subtitle)
-                                    .tag(Optional(level))
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
-                        .onChange(of: store.stats.selectedLevel) { _, newLevel in
-                            if let level = newLevel {
-                                for card in VocabularyData.cards where card.level <= level && store.schedules[card.id] == nil {
-                                    store.schedules[card.id] = CardSchedule()
-                                }
-                                store.save()
-                                store.pickNextCard()
-                            }
-                        }
-                    } else {
-                        Text("No levels unlocked yet")
-                            .foregroundStyle(.secondary)
+                    Picker("Level", selection: $store.stats.selectedLevel) {
+                        Text("A1").tag(Optional(CEFRLevel.a1))
+                        Text("A2").tag(Optional(CEFRLevel.a2))
+                        Text("B1").tag(Optional(CEFRLevel.b1))
+                        Text("B2").tag(Optional(CEFRLevel.b2))
+                        Text("C1").tag(Optional(CEFRLevel.c1))
                     }
+                    .pickerStyle(.navigationLink)
                 }
                 Section("Appearance") {
                     Toggle("Dark mode", isOn: $store.stats.darkMode)
