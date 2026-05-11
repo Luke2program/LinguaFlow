@@ -3,6 +3,9 @@ import Foundation
 enum VocabularyData {
     // Get cards for a specific language pair
     static func cards(for pair: LanguagePair) -> [VocabularyCard] {
+        // Return vocabulary cards for the selected language pair
+        // For now, German-Spanish cards serve as fallback for all pairs
+        // TODO: Add proper vocabulary sets for each language pair
         switch pair.id {
         case "de-DE-fr-FR", "fr-FR-de-DE": return germanFrenchCards
         default: return germanSpanishCards
