@@ -25,9 +25,11 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp()
 
         XCTAssertTrue(app.staticTexts["promptText"].exists)
-        XCTAssertTrue(app.textFields["answerInput"].exists)
-        app.textFields["answerInput"].tap()
-        app.textFields["answerInput"].typeText("Hola")
+        let answerField = app.textFields["answerInput"].firstMatch
+        XCTAssertTrue(answerField.waitForExistence(timeout: 3))
+        answerField.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 2))
+        answerField.typeText("Hola")
         app.buttons["checkAnswerButton"].tap()
         XCTAssertTrue(app.staticTexts["answerFeedback"].waitForExistence(timeout: 3))
         app.buttons["directionToggle"].tap()
@@ -42,7 +44,7 @@ final class LinguaFlowUITests: XCTestCase {
         let learningPicker = app.descendants(matching: .any)["learningLanguagePicker"].firstMatch
         XCTAssertTrue(learningPicker.waitForExistence(timeout: 3))
         learningPicker.tap()
-        let frenchOption = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
+        let frenchOption = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
         XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
         frenchOption.tap()
 
@@ -61,6 +63,9 @@ final class LinguaFlowUITests: XCTestCase {
         openSettings(in: app)
         app.buttons["Sign in or create account"].tap()
 
-        XCTAssertTrue(app.staticTexts["Welcome Back"].waitForExistence(timeout: 3))
+        // After dismissing settings, RootView should present AuthView because hasSkippedAuth is now false
+        // Wait for AuthView title; increase timeout for sheet dismissal + view transition
+        let welcomeText = app.staticTexts["Welcome Back"].firstMatch
+        XCTAssertTrue(welcomeText.waitForExistence(timeout: 6))
     }
 }
