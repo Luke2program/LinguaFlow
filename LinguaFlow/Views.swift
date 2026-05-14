@@ -212,7 +212,9 @@ struct DashboardView: View {
             }.accessibilityIdentifier("directionToggle")
             Button { showingSettings = true } label: {
                 Image(systemName: "gearshape.fill").font(.system(size: 28)).foregroundStyle(.primary.opacity(0.9))
-            }.accessibilityIdentifier("settingsButton")
+            }
+            .accessibilityLabel("Settings")
+            .accessibilityIdentifier("settingsButton")
         }
     }
     var statsGrid: some View {
@@ -308,12 +310,13 @@ struct ReviewCardView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Prompt:").font(.caption).foregroundStyle(.secondary)
                             Text(store.currentPrompt).font(.title2.bold())
+                                .accessibilityIdentifier("promptText")
                             Button("Speak prompt") { store.speakPrompt() }.font(.caption)
                         }
                         TextField("Type your answer…", text: $typedAnswer)
                             .textFieldStyle(.roundedBorder)
                             .focused($isInputFocused)
-                            .accessibilityIdentifier("answerTextField")
+                            .accessibilityIdentifier("answerInput")
                         HStack(spacing: 8) {
                             Button("Speak answer") { store.startSpeechInput() }.font(.caption)
                             if !store.spokenTranscript.isEmpty {
