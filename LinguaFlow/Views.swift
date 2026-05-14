@@ -779,7 +779,9 @@ struct SettingsView: View {
                         Button("Manage account") { showAccountSettings = true }
                         Button("Switch login") {
                             authService.signOut()
-                            store.stats.hasSkippedAuth = false
+                            var updatedStats = store.stats
+                            updatedStats.hasSkippedAuth = false
+                            store.stats = updatedStats
                             store.save()
                             dismiss()
                         }
@@ -787,7 +789,9 @@ struct SettingsView: View {
                         Text(store.stats.hasSkippedAuth ? "Using without an account" : "Not signed in")
                             .foregroundStyle(.secondary)
                         Button("Sign in or create account") {
-                            store.stats.hasSkippedAuth = false
+                            var updatedStats = store.stats
+                            updatedStats.hasSkippedAuth = false
+                            store.stats = updatedStats
                             store.save()
                             dismiss()
                         }

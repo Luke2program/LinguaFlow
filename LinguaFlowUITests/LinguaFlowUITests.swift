@@ -46,8 +46,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
         frenchOption.tap()
 
-        app.navigationBars.buttons["Settings"].tap()
-        app.buttons["Done"].tap()
+        let settingsBackButton = app.navigationBars.buttons["Settings"].firstMatch
+        if settingsBackButton.waitForExistence(timeout: 1) { settingsBackButton.tap() }
+        let doneButton = app.buttons["Done"].firstMatch
+        if doneButton.waitForExistence(timeout: 1) { doneButton.tap() }
 
         let frenchPair = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
         XCTAssertTrue(frenchPair.waitForExistence(timeout: 3))
