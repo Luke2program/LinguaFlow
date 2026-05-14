@@ -316,6 +316,10 @@ struct AccountSettingsView: View {
     @State private var showDeleteConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var syncStatus: CloudSyncService.SyncStatus = .idle
+    @State private var editableDisplayName = ""
+    @State private var editableEmail = ""
+    @State private var newPassword = ""
+    @State private var accountMessage: String? = nil
     
     var body: some View {
         NavigationStack {
@@ -346,6 +350,33 @@ struct AccountSettingsView: View {
                     .padding(.vertical, 4)
                 }
                 
+                Section("Login Details") {
+                    TextField("Display name", text: $editableDisplayName)
+                        .textContentType(.name)
+                        .accessibilityIdentifier("accountDisplayNameField")
+                    TextField("Email", text: $editableEmail)
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .accessibilityIdentifier("accountEmailField")
+                    SecureField("New password (optional)", text: $newPassword)
+                        .textContentType(.newPassword)
+                        .accessibilityIdentifier("accountPasswordField")
+                    Button("Save login changes") {
+                        authService.updateLogin(email: editableEmail, password: newPassword, displayName: editableDisplayName) { success in
+                            accountMessage = success ? "Login updated" : authService.errorMessage
+                            if success { newPassword = "" }
+                        }
+                    }
+                    .accessibilityIdentifier("saveLoginChangesButton")
+                    if let accountMessage {
+                        Text(accountMessage)
+                            .font(.caption)
+                            .foregroundStyle(accountMessage == "Login updated" ? .green : .red)
+                    }
+                }
+
                 // Sync Section
                 Section("Cloud Sync") {
                     HStack {
@@ -404,6 +435,8 @@ struct AccountSettingsView: View {
             }
             .onAppear {
                 syncStatus = CloudSyncService.shared.syncStatus
+                editableDisplayName = authService.displayName
+                editableEmail = authService.email
             }
         }
     }

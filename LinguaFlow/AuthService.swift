@@ -109,6 +109,27 @@ final class AuthService: NSObject, ObservableObject {
     func sendPasswordReset(email: String, completion: @escaping (Bool) -> Void) {
         completion(true)
     }
+
+    func updateLogin(email: String, password: String, displayName: String, completion: @escaping (Bool) -> Void) {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Email cannot be empty."
+            showError = true
+            completion(false)
+            return
+        }
+        isLoading = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            self.isLoading = false
+            self.email = trimmedEmail
+            self.displayName = trimmedName.isEmpty ? (trimmedEmail.components(separatedBy: "@").first ?? "User") : trimmedName
+            if self.authProvider == .none { self.authProvider = .email }
+            self.isAuthenticated = true
+            self.save()
+            completion(true)
+        }
+    }
     
     func signOut() {
         isAuthenticated = false

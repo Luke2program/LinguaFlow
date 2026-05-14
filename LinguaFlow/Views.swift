@@ -715,18 +715,37 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Learning Language") {
-                    Picker("Language Pair", selection: $store.stats.selectedLanguagePair) {
-                        ForEach(LanguagePair.allPairs) { pair in
-                            Text(pair.learningName).tag(pair)
+                    Picker("I speak", selection: Binding(
+                        get: { store.stats.selectedLanguagePair.source },
+                        set: { source in
+                            let currentTarget = store.stats.selectedLanguagePair.target
+                            let target = currentTarget == source ? AppLanguage.allCases.first(where: { $0 != source }) ?? .english : currentTarget
+                            store.select(languagePair: LanguagePair(source: source, target: target))
+                        }
+                    )) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text("\(language.flag) \(language.name)").tag(language)
                         }
                     }
                     .pickerStyle(.navigationLink)
-                    .accessibilityIdentifier("languagePairPicker")
-                    .onChange(of: store.stats.selectedLanguagePair) { _, newPair in
-                        store.select(languagePair: newPair)
-                    }
+                    .accessibilityIdentifier("nativeLanguagePicker")
 
-                    Text("Currently learning: \(store.stats.selectedLanguagePair.target.flag) \(store.stats.selectedLanguagePair.target.name)")
+                    Picker("I want to learn", selection: Binding(
+                        get: { store.stats.selectedLanguagePair.target },
+                        set: { target in
+                            let currentSource = store.stats.selectedLanguagePair.source
+                            let source = currentSource == target ? AppLanguage.allCases.first(where: { $0 != target }) ?? .english : currentSource
+                            store.select(languagePair: LanguagePair(source: source, target: target))
+                        }
+                    )) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text("\(language.flag) \(language.name)").tag(language)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                    .accessibilityIdentifier("learningLanguagePicker")
+
+                    Text("Currently: \(store.stats.selectedLanguagePair.learningName)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

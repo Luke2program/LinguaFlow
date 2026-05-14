@@ -30,8 +30,8 @@ final class LinguaFlowUITests: XCTestCase {
         app.buttons["settingsButton"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
 
-        app.descendants(matching: .any)["languagePairPicker"].tap()
-        app.buttons["Learn 🇫🇷 French from 🇩🇪 German"].tap()
+        app.descendants(matching: .any)["learningLanguagePicker"].tap()
+        app.buttons["🇫🇷 French"].tap()
 
         app.navigationBars.buttons["Settings"].tap()
         app.buttons["Done"].tap()
