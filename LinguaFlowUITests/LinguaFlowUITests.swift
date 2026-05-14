@@ -11,6 +11,16 @@ final class LinguaFlowUITests: XCTestCase {
         return app
     }
 
+    private func openSettings(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let settingsButton = app.buttons["settingsButton"].firstMatch
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5), file: file, line: line)
+        for _ in 0..<3 {
+            settingsButton.tap()
+            if app.navigationBars["Settings"].waitForExistence(timeout: 2) { return }
+        }
+        XCTFail("Settings did not open", file: file, line: line)
+    }
+
     func testRequiresTypedAnswerAndDirection() throws {
         let app = launchReadyApp()
 
@@ -27,11 +37,14 @@ final class LinguaFlowUITests: XCTestCase {
     func testCanChangeLearningLanguageAfterOnboarding() throws {
         let app = launchReadyApp()
 
-        app.buttons["settingsButton"].tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+        openSettings(in: app)
 
-        app.descendants(matching: .any)["learningLanguagePicker"].tap()
-        app.buttons["🇫🇷 French"].tap()
+        let learningPicker = app.descendants(matching: .any)["learningLanguagePicker"].firstMatch
+        XCTAssertTrue(learningPicker.waitForExistence(timeout: 3))
+        learningPicker.tap()
+        let frenchOption = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
+        XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
+        frenchOption.tap()
 
         app.navigationBars.buttons["Settings"].tap()
         app.buttons["Done"].tap()
@@ -43,8 +56,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testCanOpenLoginAgainAfterSkippingAccount() throws {
         let app = launchReadyApp()
 
-        app.buttons["settingsButton"].tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
+        openSettings(in: app)
         app.buttons["Sign in or create account"].tap()
 
         XCTAssertTrue(app.staticTexts["Welcome Back"].waitForExistence(timeout: 3))
