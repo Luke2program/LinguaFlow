@@ -27,8 +27,22 @@ final class LinguaFlowTests: XCTestCase {
 
     func testVocabularyContainsBothDirectionsAndLevels() {
         XCTAssertGreaterThanOrEqual(VocabularyData.cards.count, 125)
-        XCTAssertTrue(VocabularyData.cards.contains { $0.level == .a1 && $0.german == "Hallo" && $0.spanish == "Hola" })
-        XCTAssertEqual(VocabularyCard(id: "x", german: "Wasser", spanish: "agua", level: .a1, category: "noun", exampleGerman: "", exampleSpanish: "", hint: "").prompt(for: .spanishToGerman), "agua")
+        let hasHelloCard = VocabularyData.cards.contains { card in
+            card.level == .a1 && card.sourceText == "Hallo" && card.targetText == "Hola"
+        }
+        XCTAssertTrue(hasHelloCard)
+
+        let waterCard = VocabularyCard(
+            id: "x",
+            german: "Wasser",
+            spanish: "agua",
+            level: .a1,
+            category: "noun",
+            exampleGerman: "",
+            exampleSpanish: "",
+            hint: ""
+        )
+        XCTAssertEqual(waterCard.prompt(for: .targetToSource), "agua")
     }
 
     func testAnswerEvaluatorAcceptsTypedAndNearSpeechAnswers() {
