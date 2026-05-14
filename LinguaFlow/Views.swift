@@ -717,6 +717,28 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    HStack {
+                        Spacer()
+                        Button("Done") { store.save(); isPresented = false }
+                            .font(.headline)
+                            .accessibilityIdentifier("settingsDoneButton")
+                        Spacer()
+                    }
+                }
+                .listRowBackground(Color.clear)
+
+                Section {
+                    HStack {
+                        Spacer()
+                        Button("Done") { store.save(); isPresented = false }
+                            .font(.headline)
+                            .accessibilityIdentifier("settingsDoneButton")
+                        Spacer()
+                    }
+                }
+                .listRowBackground(Color.clear)
+
                 Section("Learning Language") {
                     Picker("I speak", selection: Binding(
                         get: { store.stats.selectedLanguagePair.source },
@@ -827,7 +849,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); isPresented = false }.accessibilityIdentifier("settingsDoneButton") } }
             .sheet(isPresented: $showAccountSettings) { AccountSettingsView() }
         }
     }

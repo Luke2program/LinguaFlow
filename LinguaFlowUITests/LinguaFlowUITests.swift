@@ -48,13 +48,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
         frenchOption.tap()
 
-        // Navigate back from picker to Settings
-        let backButton = app.navigationBars.buttons.firstMatch
-        if backButton.waitForExistence(timeout: 1) { backButton.tap() }
-
-        // Now dismiss Settings sheet
+        // Dismiss Settings sheet using inline Done button
         let doneButton = app.buttons["settingsDoneButton"].firstMatch
-        if doneButton.waitForExistence(timeout: 1) { doneButton.tap() }
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 3))
+        doneButton.tap()
 
         // Verify dashboard reflects French
         let frenchPair = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
