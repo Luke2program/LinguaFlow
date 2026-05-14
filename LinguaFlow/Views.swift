@@ -793,6 +793,7 @@ struct SettingsView: View {
                             updatedStats.hasSkippedAuth = false
                             store.stats = updatedStats
                             store.save()
+                            // Dismiss settings so RootView can present AuthView via overlay
                             dismiss()
                         }
                     }
@@ -827,7 +828,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); dismiss() } } }
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); dismiss() }.accessibilityIdentifier("settingsDoneButton") } }
             .sheet(isPresented: $showAccountSettings) { AccountSettingsView() }
         }
     }
