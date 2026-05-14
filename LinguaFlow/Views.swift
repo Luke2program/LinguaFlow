@@ -181,7 +181,7 @@ struct DashboardView: View {
                     Spacer().frame(height: keyboardHeight + 40)
                 }.padding(18)
             }
-            .sheet(isPresented: $showingSettings) { SettingsView() }
+            .sheet(isPresented: $showingSettings) { SettingsView(isPresented: $showingSettings) }
             .scrollDismissesKeyboard(.interactively)
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notif in
                 if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
@@ -712,7 +712,7 @@ struct PetPickerView: View {
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
     @EnvironmentObject var authService: AuthService
-    @Environment(\.dismiss) var dismiss
+    @Binding var isPresented: Bool
     @State private var showAccountSettings = false
     var body: some View {
         NavigationStack {
@@ -783,7 +783,7 @@ struct SettingsView: View {
                             updatedStats.hasSkippedAuth = false
                             store.stats = updatedStats
                             store.save()
-                            dismiss()
+                            isPresented = false
                         }
                     } else {
                         Text(store.stats.hasSkippedAuth ? "Using without an account" : "Not signed in")
@@ -793,8 +793,7 @@ struct SettingsView: View {
                             updatedStats.hasSkippedAuth = false
                             store.stats = updatedStats
                             store.save()
-                            // Dismiss settings so RootView can present AuthView via overlay
-                            dismiss()
+                            isPresented = false
                         }
                     }
                 }
@@ -816,7 +815,7 @@ struct SettingsView: View {
                         store.stats = UserStats()
                         store.schedules = [:]
                         store.save()
-                        dismiss()
+                        isPresented = false
                     }
                     .foregroundStyle(.red)
                 }
@@ -828,7 +827,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); dismiss() }.accessibilityIdentifier("settingsDoneButton") } }
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); isPresented = false }.accessibilityIdentifier("settingsDoneButton") } }
             .sheet(isPresented: $showAccountSettings) { AccountSettingsView() }
         }
     }

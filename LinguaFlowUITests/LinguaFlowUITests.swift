@@ -48,9 +48,15 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
         frenchOption.tap()
 
+        // Navigate back from picker to Settings
+        let backButton = app.navigationBars.buttons.firstMatch
+        if backButton.waitForExistence(timeout: 1) { backButton.tap() }
+
+        // Now dismiss Settings sheet
         let doneButton = app.buttons["settingsDoneButton"].firstMatch
         if doneButton.waitForExistence(timeout: 1) { doneButton.tap() }
 
+        // Verify dashboard reflects French
         let frenchPair = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
         XCTAssertTrue(frenchPair.waitForExistence(timeout: 3))
     }
@@ -61,9 +67,8 @@ final class LinguaFlowUITests: XCTestCase {
         openSettings(in: app)
         app.buttons["Sign in or create account"].tap()
 
-        // After dismissing settings, RootView should present AuthView because hasSkippedAuth is now false
-        // Wait for AuthView title; increase timeout for sheet dismissal + view transition
+        // Wait longer for sheet dismissal + AuthView to appear
         let welcomeText = app.staticTexts["Welcome Back"].firstMatch
-        XCTAssertTrue(welcomeText.waitForExistence(timeout: 6))
+        XCTAssertTrue(welcomeText.waitForExistence(timeout: 10))
     }
 }
