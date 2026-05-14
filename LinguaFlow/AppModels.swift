@@ -46,7 +46,15 @@ struct LanguagePair: Codable, Equatable, Hashable, Identifiable {
     let source: AppLanguage
     let target: AppLanguage
     var id: String { source.rawValue + "-" + target.rawValue }
-    var displayName: String { source.flag + " " + source.name + " ↔ " + target.name + " " + target.flag }
+    var displayName: String { source.flag + " " + source.name + " → " + target.name + " " + target.flag }
+    var learningName: String { "Learn \(target.flag) \(target.name) from \(source.flag) \(source.name)" }
+    static var allPairs: [LanguagePair] {
+        AppLanguage.allCases.flatMap { source in
+            AppLanguage.allCases.compactMap { target in
+                source == target ? nil : LanguagePair(source: source, target: target)
+            }
+        }
+    }
     static var popularPairs: [LanguagePair] {
         [
             LanguagePair(source: .german, target: .spanish),

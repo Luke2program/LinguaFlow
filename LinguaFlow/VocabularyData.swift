@@ -3,14 +3,77 @@ import Foundation
 enum VocabularyData {
     // Get cards for a specific language pair
     static func cards(for pair: LanguagePair) -> [VocabularyCard] {
-        // Return vocabulary cards for the selected language pair
-        // For now, German-Spanish cards serve as fallback for all pairs
-        // TODO: Add proper vocabulary sets for each language pair
-        switch pair.id {
-        case "de-DE-fr-FR", "fr-FR-de-DE": return germanFrenchCards
-        default: return germanSpanishCards
+        if pair.source == .german && pair.target == .spanish { return germanSpanishCards }
+        if pair.source == .spanish && pair.target == .german { return reversedCards(germanSpanishCards, for: pair) }
+        if pair.source == .french && pair.target == .german { return germanFrenchCards }
+        if pair.source == .german && pair.target == .french { return reversedCards(germanFrenchCards, for: pair) }
+        return generatedCards(for: pair)
+    }
+
+    private static func reversedCards(_ cards: [VocabularyCard], for pair: LanguagePair) -> [VocabularyCard] {
+        cards.map { card in
+            VocabularyCard(
+                id: pair.id + "-" + card.id,
+                sourceText: card.targetText,
+                targetText: card.sourceText,
+                sourceLanguage: card.targetLanguage,
+                targetLanguage: card.sourceLanguage,
+                level: card.level,
+                category: card.category,
+                exampleSource: card.exampleTarget,
+                exampleTarget: card.exampleSource,
+                hint: card.hint
+            )
         }
     }
+
+    private struct MultilingualRow {
+        let id: String
+        let level: CEFRLevel
+        let category: String
+        let hint: String
+        let text: [AppLanguage: String]
+    }
+
+    private static func generatedCards(for pair: LanguagePair) -> [VocabularyCard] {
+        multilingualRows.compactMap { row in
+            guard let sourceText = row.text[pair.source], let targetText = row.text[pair.target] else { return nil }
+            return VocabularyCard(
+                id: pair.id + "-" + row.id,
+                sourceText: sourceText,
+                targetText: targetText,
+                sourceLanguage: pair.source,
+                targetLanguage: pair.target,
+                level: row.level,
+                category: row.category,
+                exampleSource: sourceText,
+                exampleTarget: targetText,
+                hint: row.hint
+            )
+        }
+    }
+
+    private static let multilingualRows: [MultilingualRow] = [
+        MultilingualRow(id: "multi-a1-01", level: .a1, category: "phrase", hint: "Greeting", text: [.german: "Hallo", .spanish: "Hola", .french: "Bonjour", .italian: "Ciao", .portuguese: "Olá", .dutch: "Hallo", .polish: "Cześć", .russian: "Привет", .english: "Hello"]),
+        MultilingualRow(id: "multi-a1-02", level: .a1, category: "phrase", hint: "Thanks", text: [.german: "Danke", .spanish: "Gracias", .french: "Merci", .italian: "Grazie", .portuguese: "Obrigado", .dutch: "Dank je", .polish: "Dziękuję", .russian: "Спасибо", .english: "Thank you"]),
+        MultilingualRow(id: "multi-a1-03", level: .a1, category: "phrase", hint: "Polite request", text: [.german: "bitte", .spanish: "por favor", .french: "s'il vous plaît", .italian: "per favore", .portuguese: "por favor", .dutch: "alsjeblieft", .polish: "proszę", .russian: "пожалуйста", .english: "please"]),
+        MultilingualRow(id: "multi-a1-04", level: .a1, category: "phrase", hint: "Yes", text: [.german: "ja", .spanish: "sí", .french: "oui", .italian: "sì", .portuguese: "sim", .dutch: "ja", .polish: "tak", .russian: "да", .english: "yes"]),
+        MultilingualRow(id: "multi-a1-05", level: .a1, category: "phrase", hint: "No", text: [.german: "nein", .spanish: "no", .french: "non", .italian: "no", .portuguese: "não", .dutch: "nee", .polish: "nie", .russian: "нет", .english: "no"]),
+        MultilingualRow(id: "multi-a1-06", level: .a1, category: "noun", hint: "House", text: [.german: "Haus", .spanish: "casa", .french: "maison", .italian: "casa", .portuguese: "casa", .dutch: "huis", .polish: "dom", .russian: "дом", .english: "house"]),
+        MultilingualRow(id: "multi-a1-07", level: .a1, category: "noun", hint: "Water", text: [.german: "Wasser", .spanish: "agua", .french: "eau", .italian: "acqua", .portuguese: "água", .dutch: "water", .polish: "woda", .russian: "вода", .english: "water"]),
+        MultilingualRow(id: "multi-a1-08", level: .a1, category: "noun", hint: "Friend", text: [.german: "Freund", .spanish: "amigo", .french: "ami", .italian: "amico", .portuguese: "amigo", .dutch: "vriend", .polish: "przyjaciel", .russian: "друг", .english: "friend"]),
+        MultilingualRow(id: "multi-a1-09", level: .a1, category: "verb", hint: "To eat", text: [.german: "essen", .spanish: "comer", .french: "manger", .italian: "mangiare", .portuguese: "comer", .dutch: "eten", .polish: "jeść", .russian: "есть", .english: "to eat"]),
+        MultilingualRow(id: "multi-a1-10", level: .a1, category: "adjective", hint: "Good", text: [.german: "gut", .spanish: "bueno", .french: "bon", .italian: "buono", .portuguese: "bom", .dutch: "goed", .polish: "dobry", .russian: "хороший", .english: "good"]),
+        MultilingualRow(id: "multi-a2-01", level: .a2, category: "phrase", hint: "Excuse me", text: [.german: "Entschuldigung", .spanish: "perdón", .french: "excusez-moi", .italian: "scusa", .portuguese: "desculpe", .dutch: "sorry", .polish: "przepraszam", .russian: "извините", .english: "excuse me"]),
+        MultilingualRow(id: "multi-a2-02", level: .a2, category: "phrase", hint: "I do not understand", text: [.german: "Ich verstehe nicht", .spanish: "No entiendo", .french: "Je ne comprends pas", .italian: "Non capisco", .portuguese: "Não entendo", .dutch: "Ik begrijp het niet", .polish: "Nie rozumiem", .russian: "Я не понимаю", .english: "I do not understand"]),
+        MultilingualRow(id: "multi-a2-03", level: .a2, category: "noun", hint: "Work", text: [.german: "Arbeit", .spanish: "trabajo", .french: "travail", .italian: "lavoro", .portuguese: "trabalho", .dutch: "werk", .polish: "praca", .russian: "работа", .english: "work"]),
+        MultilingualRow(id: "multi-a2-04", level: .a2, category: "verb", hint: "To buy", text: [.german: "kaufen", .spanish: "comprar", .french: "acheter", .italian: "comprare", .portuguese: "comprar", .dutch: "kopen", .polish: "kupować", .russian: "покупать", .english: "to buy"]),
+        MultilingualRow(id: "multi-a2-05", level: .a2, category: "adjective", hint: "Fast", text: [.german: "schnell", .spanish: "rápido", .french: "rapide", .italian: "veloce", .portuguese: "rápido", .dutch: "snel", .polish: "szybki", .russian: "быстрый", .english: "fast"]),
+        MultilingualRow(id: "multi-b1-01", level: .b1, category: "phrase", hint: "Opinion", text: [.german: "Meiner Meinung nach", .spanish: "En mi opinión", .french: "À mon avis", .italian: "Secondo me", .portuguese: "Na minha opinião", .dutch: "Naar mijn mening", .polish: "Moim zdaniem", .russian: "По моему мнению", .english: "In my opinion"]),
+        MultilingualRow(id: "multi-b1-02", level: .b1, category: "noun", hint: "Problem", text: [.german: "Problem", .spanish: "problema", .french: "problème", .italian: "problema", .portuguese: "problema", .dutch: "probleem", .polish: "problem", .russian: "проблема", .english: "problem"]),
+        MultilingualRow(id: "multi-b2-01", level: .b2, category: "phrase", hint: "Nevertheless", text: [.german: "trotzdem", .spanish: "sin embargo", .french: "cependant", .italian: "tuttavia", .portuguese: "no entanto", .dutch: "echter", .polish: "jednak", .russian: "однако", .english: "however"]),
+        MultilingualRow(id: "multi-c1-01", level: .c1, category: "phrase", hint: "Nuance", text: [.german: "im Wesentlichen", .spanish: "en esencia", .french: "essentiellement", .italian: "essenzialmente", .portuguese: "essencialmente", .dutch: "in wezen", .polish: "zasadniczo", .russian: "по существу", .english: "essentially"]),
+    ]
     
     // Legacy accessor - defaults to German-Spanish
     static var cards: [VocabularyCard] { germanSpanishCards }

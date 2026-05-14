@@ -36,8 +36,8 @@ final class AppStore: ObservableObject {
         return VocabularyData.cards(for: stats.selectedLanguagePair).filter { $0.level <= level }
     }
     var dueCount: Int { scheduler.dueCards(from: availableCards, schedules: schedules, limit: 999).count }
-    var learnedCount: Int { schedules.values.filter { $0.repetitions > 0 }.count }
-    var masteredCount: Int { schedules.values.filter { $0.repetitions >= 3 && $0.easeFactor >= 2.3 }.count }
+    var learnedCount: Int { availableCards.filter { (schedules[$0.id]?.repetitions ?? 0) > 0 }.count }
+    var masteredCount: Int { availableCards.filter { (schedules[$0.id]?.repetitions ?? 0) >= 3 && (schedules[$0.id]?.easeFactor ?? 0) >= 2.3 }.count }
     var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
     var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
     var daysUntilGoal: Int { max(1, Calendar.current.dateComponents([.day], from: Date(), to: stats.goalDate).day ?? 1) }
@@ -48,15 +48,42 @@ final class AppStore: ObservableObject {
     var goalDailyNeed: Int { max(5, Int(ceil(Double(availableCards.count - masteredCount) / Double(daysUntilGoal)))) }
     var learnedEnoughToday: Bool { stats.reviewedToday >= max(stats.dailyGoal, goalDailyNeed) }
 
-    init() { load(); refreshPracticeDay(); resetPomodoro(); pickNextCard() }
+    init() {
+        if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") {
+            UserDefaults.standard.removeObject(forKey: statsKey)
+            UserDefaults.standard.removeObject(forKey: schedulesKey)
+        }
+        load()
+        if ProcessInfo.processInfo.arguments.contains("--ui-testing") {
+            stats.hasSeenTitle = true
+            stats.hasSkippedAuth = true
+            stats.hasSeenPetPicker = true
+            if stats.selectedLevel == nil { stats.selectedLevel = .a1 }
+            prepareSchedulesForCurrentSelection()
+        }
+        refreshPracticeDay(); resetPomodoro(); pickNextCard()
+    }
 
     func finishTitle() { stats.hasSeenTitle = true; save() }
 
     func select(level: CEFRLevel) {
         stats.selectedLevel = level
         if !stats.unlockedLevels.contains(level) { stats.unlockedLevels.append(level) }
-        for card in VocabularyData.cards(for: stats.selectedLanguagePair) where card.level <= level && schedules[card.id] == nil { schedules[card.id] = CardSchedule() }
+        prepareSchedulesForCurrentSelection()
         save(); pickNextCard()
+    }
+
+    func select(languagePair: LanguagePair) {
+        stats.selectedLanguagePair = languagePair
+        stats.direction = .sourceToTarget
+        prepareSchedulesForCurrentSelection()
+        feedbackMessage = "Learning language changed to \(languagePair.displayName)."
+        save(); pickNextCard()
+    }
+
+    func prepareSchedulesForCurrentSelection() {
+        guard let level = stats.selectedLevel else { return }
+        for card in VocabularyData.cards(for: stats.selectedLanguagePair) where card.level <= level && schedules[card.id] == nil { schedules[card.id] = CardSchedule() }
     }
 
     func isLevelCompleted(_ level: CEFRLevel) -> Bool {

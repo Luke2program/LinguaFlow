@@ -198,8 +198,10 @@ struct DashboardView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Today's Flow").font(.largeTitle.bold()).foregroundStyle(.primary)
-                Text("\(store.stats.selectedLevel?.rawValue ?? "") · \(store.dueCount) due · \(store.activeDirection.title) · \(store.challengeMode == .sentence ? "sentence" : "word")")
+                Text("\(store.stats.selectedLanguagePair.displayName) · \(store.stats.selectedLevel?.rawValue ?? "") · \(store.dueCount) due")
                     .font(.subheadline).foregroundStyle(.secondary)
+                Text("\(store.activeDirection.title) · \(store.challengeMode == .sentence ? "sentence" : "word")")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             Button { showLevelPicker = true } label: {
@@ -706,20 +708,70 @@ struct PetPickerView: View {
 
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var authService: AuthService
     @Environment(\.dismiss) var dismiss
+    @State private var showAccountSettings = false
     var body: some View {
         NavigationStack {
             List {
-                Section("Language Level") {
-                    Picker("Level", selection: $store.stats.selectedLevel) {
-                        Text("A1").tag(Optional(CEFRLevel.a1))
-                        Text("A2").tag(Optional(CEFRLevel.a2))
-                        Text("B1").tag(Optional(CEFRLevel.b1))
-                        Text("B2").tag(Optional(CEFRLevel.b2))
-                        Text("C1").tag(Optional(CEFRLevel.c1))
+                Section("Learning Language") {
+                    Picker("Language Pair", selection: $store.stats.selectedLanguagePair) {
+                        ForEach(LanguagePair.allPairs) { pair in
+                            Text(pair.learningName).tag(pair)
+                        }
                     }
                     .pickerStyle(.navigationLink)
+                    .accessibilityIdentifier("languagePairPicker")
+                    .onChange(of: store.stats.selectedLanguagePair) { _, newPair in
+                        store.select(languagePair: newPair)
+                    }
+
+                    Text("Currently learning: \(store.stats.selectedLanguagePair.target.flag) \(store.stats.selectedLanguagePair.target.name)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+
+                Section("Language Level") {
+                    Picker("Level", selection: $store.stats.selectedLevel) {
+                        ForEach(CEFRLevel.allCases) { level in
+                            Text(level.rawValue + " — " + level.subtitle)
+                                .tag(Optional(level))
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                    .onChange(of: store.stats.selectedLevel) { _, newLevel in
+                        if let level = newLevel {
+                            store.select(level: level)
+                        }
+                    }
+                }
+                Section("Account") {
+                    if authService.isAuthenticated {
+                        HStack {
+                            Text("Signed in as")
+                            Spacer()
+                            Text(authService.email.isEmpty ? authService.displayName : authService.email)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Button("Manage account") { showAccountSettings = true }
+                        Button("Switch login") {
+                            authService.signOut()
+                            store.stats.hasSkippedAuth = false
+                            store.save()
+                            dismiss()
+                        }
+                    } else {
+                        Text(store.stats.hasSkippedAuth ? "Using without an account" : "Not signed in")
+                            .foregroundStyle(.secondary)
+                        Button("Sign in or create account") {
+                            store.stats.hasSkippedAuth = false
+                            store.save()
+                            dismiss()
+                        }
+                    }
+                }
+
                 Section("Appearance") {
                     Toggle("Dark mode", isOn: $store.stats.darkMode)
                 }
@@ -750,6 +802,7 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { store.save(); dismiss() } } }
+            .sheet(isPresented: $showAccountSettings) { AccountSettingsView() }
         }
     }
 }
@@ -826,7 +879,7 @@ struct OnboardingView: View {
         store.stats.selectedLanguagePair = selectedPair
         store.stats.pet.type = selectedPet
         store.stats.pet.name = petName.isEmpty ? "Mochi" : petName
-        store.stats.direction = selectedPair.source == .german ? .sourceToTarget : .targetToSource
+        store.select(languagePair: selectedPair)
         store.select(level: selectedLevel)
         store.save()
     }
@@ -931,7 +984,7 @@ struct LanguagePairStep: View {
             
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach(LanguagePair.popularPairs) { pair in
+                    ForEach(LanguagePair.allPairs) { pair in
                         LanguagePairCard(pair: pair, isSelected: selectedPair == pair) {
                             withAnimation(.spring(duration: 0.3)) {
                                 selectedPair = pair
@@ -963,7 +1016,7 @@ struct LanguagePairCard: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(pair.displayName)
+                    Text(pair.learningName)
                         .font(.headline)
                         .foregroundStyle(.primary)
                     Text("Tap to select")
@@ -990,6 +1043,7 @@ struct LanguagePairCard: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("languagePair_\(pair.id)")
     }
 }
 

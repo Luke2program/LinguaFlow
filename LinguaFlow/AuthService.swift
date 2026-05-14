@@ -23,6 +23,9 @@ final class AuthService: NSObject, ObservableObject {
     
     private override init() {
         super.init()
+        if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") {
+            UserDefaults.standard.removeObject(forKey: authKey)
+        }
         load()
     }
     
