@@ -1,0 +1,32 @@
+name: Vocabulary Contribution
+description: Suggest new vocabulary cards or corrections.
+title: "[Vocabulary]: "
+labels: ["vocabulary", "enhancement"]
+body:
+  - type: textarea
+    id: cards
+    attributes:
+      label: Vocabulary cards
+      description: Include German, Spanish, CEFR level, category, examples, and hints.
+      placeholder: |
+        German:
+        Spanish:
+        CEFR:
+        Category:
+        Example German:
+        Example Spanish:
+        Hint:
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: Main CEFR level
+      options:
+        - A1
+        - A2
+        - B1
+        - B2
+        - C1
+    validations:
+      required: true
