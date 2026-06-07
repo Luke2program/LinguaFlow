@@ -95,6 +95,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(startButton.waitForExistence(timeout: 3))
         startButton.tap()
         
+        // Wait for sheet dismissal animation
+        sleep(1)
+        
         // Verify history dashboard elements
         let historyWorldView = app.otherElements["historyWorldView"].firstMatch
         XCTAssertTrue(historyWorldView.waitForExistence(timeout: 5))
@@ -115,6 +118,7 @@ final class LinguaFlowUITests: XCTestCase {
         let startButton = app.buttons["Start Learning"].firstMatch
         XCTAssertTrue(startButton.waitForExistence(timeout: 3))
         startButton.tap()
+        sleep(1)
         
         // Select Ancient Rome world
         let romeWorld = app.buttons["world_ancient-rome"].firstMatch
@@ -136,6 +140,7 @@ final class LinguaFlowUITests: XCTestCase {
         
         app.buttons["subject_history"].firstMatch.tap()
         app.buttons["Start Learning"].firstMatch.tap()
+        sleep(1)
         app.buttons["world_ancient-rome"].firstMatch.tap()
         
         // Answer a history choice
