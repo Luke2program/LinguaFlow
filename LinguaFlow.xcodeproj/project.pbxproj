@@ -1,0 +1,500 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		10D85B139348FB833B7CBE83 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C538C729E4A25DA5E51339E /* AuthService.swift */; };
+		2B5E803B61BA4168160ADB59 /* LinguaFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96A2C8773E130F7EB1973166 /* LinguaFlowTests.swift */; };
+		2CEE737443E210471948D332 /* AppModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A1F8B46287CCED9041DFF0 /* AppModels.swift */; };
+		3673F73EDC35E5DF64D20690 /* CloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72541B56C4F6EE9D87DE3CB /* CloudSyncService.swift */; };
+		3E99D72EA0B2191EDDCE52BF /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FAF704CA399E237725305F5 /* AuthView.swift */; };
+		6F7EAED46725A2A7B860DCD6 /* LinguaFlowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE49F145FDA9988C79FC3552 /* LinguaFlowApp.swift */; };
+		87DB7F1ADBC60926F6967E78 /* Scheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C87009E8A7F770D9106FD2 /* Scheduler.swift */; };
+		A65E19CBAE530282BD36CB9D /* VocabularyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F57FD14C1604D115CEA325 /* VocabularyData.swift */; };
+		B6CC60D5D32CBE54014C2B54 /* LinguaFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 261FF2D3C425C8D99D19BDD0 /* LinguaFlowUITests.swift */; };
+		B8A18A8902073FEC8DF4F509 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F6BE6ABF0D7C1C1E21862A /* AppStore.swift */; };
+		DFE574DE739988B886E75774 /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47AAEB26C57D21FA5D328263 /* Views.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		21C402364F9572B85A8E48F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A4C123B1612DD272D1371C17 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43B026C48BBF33FEFF9243A8;
+			remoteInfo = LinguaFlow;
+		};
+		500FE7EE5FC324BDB2E1142A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A4C123B1612DD272D1371C17 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43B026C48BBF33FEFF9243A8;
+			remoteInfo = LinguaFlow;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		21F6BE6ABF0D7C1C1E21862A /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		261FF2D3C425C8D99D19BDD0 /* LinguaFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinguaFlowUITests.swift; sourceTree = "<group>"; };
+		47AAEB26C57D21FA5D328263 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		4D6608697A8D41BED440E504 /* LinguaFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguaFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		54F31AF3176813E02EA68EF7 /* LinguaFlowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguaFlowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F5DA2CEC255404E4FB44003 /* LinguaFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinguaFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6FAF704CA399E237725305F5 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		93F57FD14C1604D115CEA325 /* VocabularyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyData.swift; sourceTree = "<group>"; };
+		96A2C8773E130F7EB1973166 /* LinguaFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinguaFlowTests.swift; sourceTree = "<group>"; };
+		96C87009E8A7F770D9106FD2 /* Scheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scheduler.swift; sourceTree = "<group>"; };
+		9C538C729E4A25DA5E51339E /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		C72541B56C4F6EE9D87DE3CB /* CloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncService.swift; sourceTree = "<group>"; };
+		C8A1F8B46287CCED9041DFF0 /* AppModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModels.swift; sourceTree = "<group>"; };
+		DE49F145FDA9988C79FC3552 /* LinguaFlowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinguaFlowApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		107F80E222F828767EFC2F91 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99724CAF4941D4072014B3CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7196B50AC2F86702824C1C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		149D439536B3216FDAEEB975 = {
+			isa = PBXGroup;
+			children = (
+				729FAE923D5A4FD12AABFE22 /* LinguaFlow */,
+				8F219E9CB0EB53F16947CCF2 /* LinguaFlowTests */,
+				5EC84D8DBC74254770F58904 /* LinguaFlowUITests */,
+				DBA41ECCCC3FC1626E53A130 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5EC84D8DBC74254770F58904 /* LinguaFlowUITests */ = {
+			isa = PBXGroup;
+			children = (
+				261FF2D3C425C8D99D19BDD0 /* LinguaFlowUITests.swift */,
+			);
+			path = LinguaFlowUITests;
+			sourceTree = "<group>";
+		};
+		729FAE923D5A4FD12AABFE22 /* LinguaFlow */ = {
+			isa = PBXGroup;
+			children = (
+				DE49F145FDA9988C79FC3552 /* LinguaFlowApp.swift */,
+				C8A1F8B46287CCED9041DFF0 /* AppModels.swift */,
+				96C87009E8A7F770D9106FD2 /* Scheduler.swift */,
+				93F57FD14C1604D115CEA325 /* VocabularyData.swift */,
+				21F6BE6ABF0D7C1C1E21862A /* AppStore.swift */,
+				47AAEB26C57D21FA5D328263 /* Views.swift */,
+				9C538C729E4A25DA5E51339E /* AuthService.swift */,
+				6FAF704CA399E237725305F5 /* AuthView.swift */,
+				C72541B56C4F6EE9D87DE3CB /* CloudSyncService.swift */,
+			);
+			path = LinguaFlow;
+			sourceTree = "<group>";
+		};
+		8F219E9CB0EB53F16947CCF2 /* LinguaFlowTests */ = {
+			isa = PBXGroup;
+			children = (
+				96A2C8773E130F7EB1973166 /* LinguaFlowTests.swift */,
+			);
+			path = LinguaFlowTests;
+			sourceTree = "<group>";
+		};
+		DBA41ECCCC3FC1626E53A130 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6F5DA2CEC255404E4FB44003 /* LinguaFlow.app */,
+				4D6608697A8D41BED440E504 /* LinguaFlowTests.xctest */,
+				54F31AF3176813E02EA68EF7 /* LinguaFlowUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		08F86BEBB2737F6A6F0FB23C /* LinguaFlowUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC2BD818319478DA6BD0C621 /* Build configuration list for PBXNativeTarget "LinguaFlowUITests" */;
+			buildPhases = (
+				732881584D8C4FA2815D2802 /* Sources */,
+				107F80E222F828767EFC2F91 /* Frameworks */,
+				B14028D512C9791E558E08BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1C5CB347611A3CE9D97DCBEE /* PBXTargetDependency */,
+			);
+			name = LinguaFlowUITests;
+			productName = LinguaFlowUITests;
+			productReference = 54F31AF3176813E02EA68EF7 /* LinguaFlowUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		43B026C48BBF33FEFF9243A8 /* LinguaFlow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F09E2E8C662248B483B7FFC0 /* Build configuration list for PBXNativeTarget "LinguaFlow" */;
+			buildPhases = (
+				86E4D3CEA27D26934B484E73 /* Sources */,
+				A7196B50AC2F86702824C1C0 /* Frameworks */,
+				827283E0AD84173581569969 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LinguaFlow;
+			productName = LinguaFlow;
+			productReference = 6F5DA2CEC255404E4FB44003 /* LinguaFlow.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F506B40928B5B7A767C76FB0 /* LinguaFlowTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50FEC94DBCA3A0AAC36098B2 /* Build configuration list for PBXNativeTarget "LinguaFlowTests" */;
+			buildPhases = (
+				CF575DCAD6BA2B0AEE0CA923 /* Sources */,
+				99724CAF4941D4072014B3CE /* Frameworks */,
+				E58B081006F7E3DFC967A64C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B95523CF6941FA1C257C6F56 /* PBXTargetDependency */,
+			);
+			name = LinguaFlowTests;
+			productName = LinguaFlowTests;
+			productReference = 4D6608697A8D41BED440E504 /* LinguaFlowTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A4C123B1612DD272D1371C17 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					08F86BEBB2737F6A6F0FB23C = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 43B026C48BBF33FEFF9243A8;
+					};
+					43B026C48BBF33FEFF9243A8 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					F506B40928B5B7A767C76FB0 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 43B026C48BBF33FEFF9243A8;
+					};
+				};
+			};
+			buildConfigurationList = 624A8940F1F836F99EEE3692 /* Build configuration list for PBXProject "LinguaFlow" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 149D439536B3216FDAEEB975;
+			productRefGroup = DBA41ECCCC3FC1626E53A130 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				43B026C48BBF33FEFF9243A8 /* LinguaFlow */,
+				F506B40928B5B7A767C76FB0 /* LinguaFlowTests */,
+				08F86BEBB2737F6A6F0FB23C /* LinguaFlowUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		827283E0AD84173581569969 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B14028D512C9791E558E08BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E58B081006F7E3DFC967A64C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		732881584D8C4FA2815D2802 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6CC60D5D32CBE54014C2B54 /* LinguaFlowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		86E4D3CEA27D26934B484E73 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F7EAED46725A2A7B860DCD6 /* LinguaFlowApp.swift in Sources */,
+				2CEE737443E210471948D332 /* AppModels.swift in Sources */,
+				87DB7F1ADBC60926F6967E78 /* Scheduler.swift in Sources */,
+				A65E19CBAE530282BD36CB9D /* VocabularyData.swift in Sources */,
+				B8A18A8902073FEC8DF4F509 /* AppStore.swift in Sources */,
+				DFE574DE739988B886E75774 /* Views.swift in Sources */,
+				10D85B139348FB833B7CBE83 /* AuthService.swift in Sources */,
+				3E99D72EA0B2191EDDCE52BF /* AuthView.swift in Sources */,
+				3673F73EDC35E5DF64D20690 /* CloudSyncService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CF575DCAD6BA2B0AEE0CA923 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B5E803B61BA4168160ADB59 /* LinguaFlowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1C5CB347611A3CE9D97DCBEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43B026C48BBF33FEFF9243A8 /* LinguaFlow */;
+			targetProxy = 21C402364F9572B85A8E48F6 /* PBXContainerItemProxy */;
+		};
+		B95523CF6941FA1C257C6F56 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43B026C48BBF33FEFF9243A8 /* LinguaFlow */;
+			targetProxy = 500FE7EE5FC324BDB2E1142A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		18D8962058765A6CA7CFF00D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlowTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinguaFlow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LinguaFlow";
+			};
+			name = Release;
+		};
+		2C376631129F34369AAD80B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlowUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LinguaFlow;
+			};
+			name = Release;
+		};
+		48C801BEF750110C57513064 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2BHCGR3DXF;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = LinguaFlow;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LinguaFlow checks your spoken vocabulary answers.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "LinguaFlow transcribes your answer to check pronunciation.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlow;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		71010B93B7D946BF54074E32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2BHCGR3DXF;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = LinguaFlow;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LinguaFlow checks your spoken vocabulary answers.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "LinguaFlow transcribes your answer to check pronunciation.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlow;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		796C25410335B400141212B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlowUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LinguaFlow;
+			};
+			name = Debug;
+		};
+		87AB165C58AC5831BE38CB8C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B4BA2E751989A01749DDB14F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		D6D59291F0CDE2E5738713A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukaskoprolin.LinguaFlowTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinguaFlow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LinguaFlow";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		50FEC94DBCA3A0AAC36098B2 /* Build configuration list for PBXNativeTarget "LinguaFlowTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6D59291F0CDE2E5738713A8 /* Debug */,
+				18D8962058765A6CA7CFF00D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		624A8940F1F836F99EEE3692 /* Build configuration list for PBXProject "LinguaFlow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				87AB165C58AC5831BE38CB8C /* Debug */,
+				B4BA2E751989A01749DDB14F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC2BD818319478DA6BD0C621 /* Build configuration list for PBXNativeTarget "LinguaFlowUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				796C25410335B400141212B6 /* Debug */,
+				2C376631129F34369AAD80B8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F09E2E8C662248B483B7FFC0 /* Build configuration list for PBXNativeTarget "LinguaFlow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71010B93B7D946BF54074E32 /* Debug */,
+				48C801BEF750110C57513064 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A4C123B1612DD272D1371C17 /* Project object */;
+}

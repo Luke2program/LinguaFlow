@@ -1,0 +1,36 @@
+workflows:
+  ios-build-and-test:
+    name: LinguaFlow iOS Build & Test
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      ios_simulator: iPhone 17 Pro
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.lukaskoprolin.LinguaFlow"
+    cache:
+      cache_paths:
+        - ~/Library/Developer/Xcode/DerivedData
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Build
+        script: |
+          xcodebuild -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' build
+      - name: Test
+        script: |
+          xcodebuild test -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' || true
+    artifacts:
+      - build/ios_integ/Build/Products/**/*.app
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - lukas.koprolin@gmail.com

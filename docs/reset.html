@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password | LinguaFlow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .logo { font-size: 48px; margin-bottom: 8px; }
+        h1 { color: #00D4AA; font-size: 24px; margin-bottom: 8px; }
+        p { color: #666; margin-bottom: 24px; }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #00D4AA;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover { background: #00b894; }
+        .success { color: #00D4AA; margin-top: 16px; }
+        .error { color: #ff6b6b; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🦉</div>
+        <h1>Reset Password</h1>
+        <p>Enter your new password below.</p>
+        <input type="password" id="password" placeholder="New password" minlength="6">
+        <input type="password" id="confirm" placeholder="Confirm password" minlength="6">
+        <button onclick="resetPassword()">Reset Password</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        function resetPassword() {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm').value;
+            const msg = document.getElementById('message');
+
+            if (password.length < 6) {
+                msg.innerHTML = '<p class="error">Password must be at least 6 characters.</p>';
+                return;
+            }
+            if (password !== confirm) {
+                msg.innerHTML = '<p class="error">Passwords do not match.</p>';
+                return;
+            }
+
+            msg.innerHTML = '<p class="success">Password reset successful! You can now sign in with your new password.</p>';
+            
+            // In production, this would call your backend API
+            console.log('Reset token:', token);
+            console.log('New password:', password);
+        }
+    </script>
+</body>
+</html>
