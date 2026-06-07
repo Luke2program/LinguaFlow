@@ -265,6 +265,7 @@ final class AppStore: ObservableObject {
             pickNextCard()
         }
         save()
+        objectWillChange.send()
     }
     
     func select(worldId: String, for subject: Subject) {
