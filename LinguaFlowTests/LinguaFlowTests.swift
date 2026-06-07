@@ -90,27 +90,26 @@ final class LinguaFlowTests: XCTestCase {
     }
     
     func testHistoryChallengeScoring() async {
-        let store = await AppStore()
         await MainActor.run {
+            let store = AppStore()
             store.stats.hasSeenTitle = true
             store.stats.hasSkippedAuth = true
             store.stats.hasSeenPetPicker = true
             store.stats.hasSeenSubjectPicker = true
             store.stats.selectedSubject = .history
+            store.select(worldId: "ancient-rome", for: .history)
+            
+            let challenge = HistoryData.challenges(for: "ancient-rome")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            
+            store.submitHistoryAnswer(challenge: challenge, choice: correctChoice)
+            
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, 2)
+            let progress = store.stats.progress(for: .history)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
         }
-        
-        let challenge = HistoryData.challenges(for: "ancient-rome")[0]
-        let correctChoice = challenge.choices.first { $0.isCorrect }!
-        let initialXP = await store.stats.xp
-        
-        await store.submitHistoryAnswer(challenge: challenge, choice: correctChoice)
-        
-        let newXP = await store.stats.xp
-        XCTAssertEqual(newXP, initialXP + 25)
-        let newGems = await store.stats.gems
-        XCTAssertEqual(newGems, 2)
-        let progress = await store.stats.progress(for: .history)
-        XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
     }
     
     func testSubjectProgressPersistence() {
