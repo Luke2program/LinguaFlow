@@ -58,6 +58,7 @@ final class AppStore: ObservableObject {
             stats.hasSeenTitle = true
             stats.hasSkippedAuth = true
             stats.hasSeenPetPicker = true
+            stats.hasSeenSubjectPicker = true
             if stats.selectedLevel == nil { stats.selectedLevel = .a1 }
             prepareSchedulesForCurrentSelection()
         }
