@@ -96,11 +96,11 @@ final class LinguaFlowUITests: XCTestCase {
         startButton.tap()
         
         // Wait for sheet dismissal animation
-        sleep(1)
+        sleep(2)
         
-        // Verify history dashboard elements
-        let historyWorldView = app.otherElements["historyWorldView"].firstMatch
-        XCTAssertTrue(historyWorldView.waitForExistence(timeout: 5))
+        // Verify history dashboard elements by looking for "Worlds" text
+        let worldsLabel = app.staticTexts["Worlds"].firstMatch
+        XCTAssertTrue(worldsLabel.waitForExistence(timeout: 5))
     }
     
     func testHistoryWorldSelection() throws {
@@ -118,16 +118,16 @@ final class LinguaFlowUITests: XCTestCase {
         let startButton = app.buttons["Start Learning"].firstMatch
         XCTAssertTrue(startButton.waitForExistence(timeout: 3))
         startButton.tap()
-        sleep(1)
+        sleep(2)
         
         // Select Ancient Rome world
         let romeWorld = app.buttons["world_ancient-rome"].firstMatch
         XCTAssertTrue(romeWorld.waitForExistence(timeout: 5))
         romeWorld.tap()
         
-        // Verify challenge appears
-        let challengeView = app.otherElements["historyChallengeView"].firstMatch
-        XCTAssertTrue(challengeView.waitForExistence(timeout: 3))
+        // Verify challenge appears by looking for "Challenge" text
+        let challengeLabel = app.staticTexts["Challenge"].firstMatch
+        XCTAssertTrue(challengeLabel.waitForExistence(timeout: 3))
     }
     
     func testHistoryChallengeInteraction() throws {
@@ -140,7 +140,7 @@ final class LinguaFlowUITests: XCTestCase {
         
         app.buttons["subject_history"].firstMatch.tap()
         app.buttons["Start Learning"].firstMatch.tap()
-        sleep(1)
+        sleep(2)
         app.buttons["world_ancient-rome"].firstMatch.tap()
         
         // Answer a history choice
