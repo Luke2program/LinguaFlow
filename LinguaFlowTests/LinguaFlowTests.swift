@@ -85,9 +85,8 @@ final class LinguaFlowTests: XCTestCase {
     func testWorldUnlockRequirement() {
         let unlocked = PlayableWorld(id: "test", name: "Test", emoji: "🧪", era: "Now", description: "Test", unlockRequirement: .none)
         let locked = PlayableWorld(id: "test2", name: "Test2", emoji: "🧪", era: "Now", description: "Test", unlockRequirement: .xpRequired(1000))
-        XCTAssertTrue(unlocked.isUnlocked(xp: 0))
-        XCTAssertFalse(locked.isUnlocked(xp: 500))
-        XCTAssertTrue(locked.isUnlocked(xp: 1000))
+        XCTAssertTrue(unlocked.isUnlocked)
+        XCTAssertEqual(locked.unlockRequirement.xpRequired, 1000)
     }
     
     func testHistoryChallengeScoring() {

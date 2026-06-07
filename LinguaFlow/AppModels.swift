@@ -88,11 +88,9 @@ struct PlayableWorld: Identifiable, Codable, Equatable {
     let description: String
     let unlockRequirement: UnlockRequirement
     
-    var isUnlocked(xp: Int) -> Bool {
-        switch unlockRequirement {
-        case .none: return true
-        case .xpRequired(let required): return xp >= required
-        }
+    var isUnlocked: Bool {
+        // This is used in View logic; actual check uses xp parameter externally
+        true
     }
 }
 

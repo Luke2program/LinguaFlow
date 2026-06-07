@@ -976,13 +976,13 @@ struct HistoryWorldView: View {
                     Label("Worlds", systemImage: "globe")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.isUnlocked(xp: xp) }.count)/\(worlds.count) unlocked")
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 
                 ForEach(worlds) { world in
-                    let locked = !world.isUnlocked(xp: xp)
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
                     let selected = store.currentWorld?.id == world.id
                     Button {
                         if !locked {
