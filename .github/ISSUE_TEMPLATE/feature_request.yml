@@ -1,0 +1,37 @@
+name: Feature Request
+description: Suggest a new feature or improvement for LinguaFlow.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the learner or contributor pain point.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should happen instead? Include mockups or examples if helpful.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Learner experience
+        - Contributor tooling
+        - SwiftUI / iOS
+        - Scheduler / algorithm
+        - Vocabulary / content
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
