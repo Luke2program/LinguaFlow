@@ -127,6 +127,70 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(retrieved.totalHistoryXP, 25)
     }
     
+    func testScienceWorldsExist() {
+        let scienceWorlds = Subject.science.worlds
+        XCTAssertGreaterThanOrEqual(scienceWorlds.count, 2)
+        XCTAssertTrue(scienceWorlds.contains { $0.id == "space-exploration" })
+        XCTAssertTrue(scienceWorlds.contains { $0.id == "quantum-realm" })
+    }
+    
+    func testSpaceExplorationChallengesLoaded() {
+        let challenges = ScienceData.challenges(for: "space-exploration")
+        XCTAssertGreaterThanOrEqual(challenges.count, 3)
+        let sputnik = challenges.first { $0.id == "space-01" }
+        XCTAssertNotNil(sputnik)
+        XCTAssertEqual(sputnik?.era, "1957")
+        XCTAssertEqual(sputnik?.choices.count, 4)
+        XCTAssertTrue(sputnik?.choices.contains { $0.isCorrect } ?? false)
+    }
+    
+    func testScienceChallengeScoring() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .science
+            store.select(worldId: "space-exploration", for: .science)
+            
+            let challenge = ScienceData.challenges(for: "space-exploration")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            
+            store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
+            
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, 2)
+            let progress = store.stats.progress(for: .science)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
+        }
+    }
+    
+    func testScienceProgressPercent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .science
+            store.select(worldId: "space-exploration", for: .science)
+            
+            let challenges = ScienceData.challenges(for: "space-exploration")
+            XCTAssertGreaterThan(challenges.count, 0)
+            
+            // Complete first challenge
+            let challenge = challenges[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
+            
+            let percent = store.scienceProgressPercent
+            XCTAssertGreaterThan(percent, 0)
+            XCTAssertLessThanOrEqual(percent, 1.0)
+        }
+    }
+    
     func testSubjectDefaultIsLanguages() {
         let stats = UserStats()
         XCTAssertEqual(stats.selectedSubject, .languages)

@@ -151,4 +151,71 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextHistoryChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+    
+    // MARK: - Science Subject UI Tests
+    func testCanSwitchToScienceSubject() throws {
+        let app = launchReadyApp()
+        
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+        
+        let scienceOption = app.buttons["subject_science"].firstMatch
+        XCTAssertTrue(scienceOption.waitForExistence(timeout: 3))
+        scienceOption.tap()
+        
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+        
+        sleep(3)
+        
+        // Verify science content appears - look for Space Frontiers text
+        let spaceText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Space Frontiers")).firstMatch
+        XCTAssertTrue(spaceText.waitForExistence(timeout: 5))
+    }
+    
+    func testScienceWorldSelection() throws {
+        let app = launchReadyApp()
+        
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+        
+        app.buttons["subject_science"].firstMatch.tap()
+        app.buttons["Start Learning"].firstMatch.tap()
+        sleep(3)
+        
+        // Select Space Frontiers world
+        let spaceWorld = app.buttons["scienceWorld_space-exploration"].firstMatch
+        XCTAssertTrue(spaceWorld.waitForExistence(timeout: 5))
+        spaceWorld.tap()
+        
+        // Verify challenge appears by looking for Mission label
+        let missionText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Mission")).firstMatch
+        XCTAssertTrue(missionText.waitForExistence(timeout: 3))
+    }
+    
+    func testScienceChallengeInteraction() throws {
+        let app = launchReadyApp()
+        
+        // Switch to science and select Space Frontiers
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+        
+        app.buttons["subject_science"].firstMatch.tap()
+        app.buttons["Start Learning"].firstMatch.tap()
+        sleep(3)
+        app.buttons["scienceWorld_space-exploration"].firstMatch.tap()
+        
+        // Answer a science choice
+        let choiceB = app.buttons["scienceChoice_b"].firstMatch
+        XCTAssertTrue(choiceB.waitForExistence(timeout: 5))
+        choiceB.tap()
+        
+        // Verify result shows
+        let nextButton = app.buttons["nextScienceChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }
