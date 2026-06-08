@@ -209,6 +209,127 @@ enum HistoryData {
     }
 }
 
+// MARK: - Science Challenge (quiz-based multiple choice)
+struct ScienceChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let era: String
+    let question: String
+    let context: String
+    let choices: [ScienceChoice]
+    let funFact: String
+    let field: String
+}
+
+struct ScienceChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum ScienceData {
+    static let spaceExplorationChallenges: [ScienceChallenge] = [
+        ScienceChallenge(
+            id: "space-01",
+            worldId: "space-exploration",
+            era: "1957",
+            question: "What was the name of the first artificial satellite launched into space?",
+            context: "On October 4, 1957, the Soviet Union launched a small metal sphere into orbit. It beeped for 21 days and changed the world forever.",
+            choices: [
+                ScienceChoice(id: "a", text: "Explorer 1", isCorrect: false, explanation: "Explorer 1 was the first US satellite, launched January 31, 1958 — four months later."),
+                ScienceChoice(id: "b", text: "Sputnik 1", isCorrect: true, explanation: "Sputnik 1 was the first artificial satellite. Its radio signals were picked up by amateur radio operators worldwide. It orbited for 3 months before burning up."),
+                ScienceChoice(id: "c", text: "Vostok 1", isCorrect: false, explanation: "Vostok 1 carried the first human, Yuri Gagarin, into space in 1961 — four years after Sputnik."),
+                ScienceChoice(id: "d", text: "Apollo 11", isCorrect: false, explanation: "Apollo 11 was the 1969 mission that landed humans on the Moon — 12 years after Sputnik.")
+            ],
+            funFact: "Sputnik 1 was only 58 cm in diameter — about the size of a beach ball — but it triggered the Space Race between the US and USSR.",
+            field: "Aerospace"
+        ),
+        ScienceChallenge(
+            id: "space-02",
+            worldId: "space-exploration",
+            era: "1961",
+            question: "Why did Yuri Gagarin eject from Vostok 1 before landing?",
+            context: "The Vostok capsule was designed to land with the cosmonaut inside, but Soviet engineers worried about the impact forces on the pilot.",
+            choices: [
+                ScienceChoice(id: "a", text: "The capsule's parachute failed to deploy", isCorrect: false, explanation: "The parachute did deploy. But the landing was expected to be too violent for a human to survive."),
+                ScienceChoice(id: "b", text: "Soviet rules required the pilot to land by parachute for safety", isCorrect: true, explanation: "Correct. Gagarin ejected at 7 km altitude and landed under his own parachute. The capsule landed separately. For decades the Soviets hid this because FAI rules required the pilot to land with the spacecraft for record certification."),
+                ScienceChoice(id: "c", text: "The capsule was on fire", isCorrect: false, explanation: "There was no fire. The heat shield worked perfectly during re-entry."),
+                ScienceChoice(id: "d", text: "He wanted to be the first person to spacewalk", isCorrect: false, explanation: "The first spacewalk was by Alexei Leonov in 1965, not Gagarin in 1961. Gagarin's ejection was mandatory, not a choice.")
+            ],
+            funFact: "Gagarin's flight lasted just 108 minutes — but it proved humans could survive launch, weightlessness, and re-entry. He became the most famous person on Earth.",
+            field: "Human Spaceflight"
+        ),
+        ScienceChallenge(
+            id: "space-03",
+            worldId: "space-exploration",
+            era: "1969",
+            question: "What fuel powered the Saturn V rocket's first stage?",
+            context: "The Saturn V remains the most powerful rocket ever successfully flown. Its first stage produced 7.6 million pounds of thrust.",
+            choices: [
+                ScienceChoice(id: "a", text: "Liquid hydrogen and liquid oxygen", isCorrect: false, explanation: "LH2/LOX powered the second and third stages. The first stage used different fuels."),
+                ScienceChoice(id: "b", text: "Kerosene (RP-1) and liquid oxygen", isCorrect: true, explanation: "Correct. The F-1 engines burned RP-1 (a refined kerosene) with liquid oxygen. The exhaust was mostly water and carbon dioxide."),
+                ScienceChoice(id: "c", text: "Solid rocket boosters", isCorrect: false, explanation: "Solid boosters were used on the Space Shuttle, not the Saturn V. The Saturn V was all-liquid-fueled."),
+                ScienceChoice(id: "d", text: "Nuclear thermal propulsion", isCorrect: false, explanation: "Nuclear rockets were researched (NERVA program) but never flew on a manned mission. Saturn V was entirely chemical.")
+            ],
+            funFact: "The Saturn V first stage consumed 15 tons of fuel per second. At full power, it could drain an Olympic swimming pool in about 10 seconds.",
+            field: "Rocket Engineering"
+        ),
+        ScienceChallenge(
+            id: "space-04",
+            worldId: "space-exploration",
+            era: "1977",
+            question: "Which planets did the Voyager spacecraft visit?",
+            context: "Voyager 1 and 2 launched in 1977 on a 'Grand Tour' of the outer solar system, made possible by a rare planetary alignment that happens once every 176 years.",
+            choices: [
+                ScienceChoice(id: "a", text: "Jupiter and Saturn only", isCorrect: false, explanation: "Voyager 1 visited Jupiter and Saturn. But Voyager 2 went much farther."),
+                ScienceChoice(id: "b", text: "All four gas giants: Jupiter, Saturn, Uranus, and Neptune", isCorrect: true, explanation: "Correct. Voyager 2 is the only spacecraft to visit Uranus (1986) and Neptune (1989). It discovered 10 new moons at Uranus and 6 at Neptune."),
+                ScienceChoice(id: "c", text: "Mars, Jupiter, and Saturn", isCorrect: false, explanation: "Neither Voyager visited Mars. They were designed for the outer solar system beyond the asteroid belt."),
+                ScienceChoice(id: "d", text: "Pluto and the Kuiper Belt", isCorrect: false, explanation: "New Horizons visited Pluto in 2015. Voyager 1 is now in interstellar space, 15+ billion miles from Earth.")
+            ],
+            funFact: "Both Voyagers carry golden records with sounds and images of Earth, intended for any intelligent extraterrestrial life that might find them. They'll outlast the Sun.",
+            field: "Planetary Science"
+        ),
+        ScienceChallenge(
+            id: "space-05",
+            worldId: "space-exploration",
+            era: "1990",
+            question: "Why was the Hubble Space Telescope's first images blurry?",
+            context: "Hubble was launched in 1990 with great fanfare. But its first images were disappointingly fuzzy — a public relations disaster for NASA.",
+            choices: [
+                ScienceChoice(id: "a", text: "The primary mirror was ground to the wrong shape", isCorrect: true, explanation: "Correct. The 2.4-meter mirror was polished perfectly — but to the wrong curvature. It was too flat by 2 micrometers (1/50th the width of a human hair). A corrective optics package was installed in 1993 by astronauts."),
+                ScienceChoice(id: "b", text: "The lens cap was still on", isCorrect: false, explanation: "There is no lens cap on a reflecting telescope. The error was in the mirror's figure, not anything blocking the light."),
+                ScienceChoice(id: "c", text: "Atmospheric turbulence distorted the images", isCorrect: false, explanation: "Hubble orbits above Earth's atmosphere specifically to avoid turbulence. That's its entire advantage over ground telescopes."),
+                ScienceChoice(id: "d", text: "The camera sensor was defective", isCorrect: false, explanation: "The cameras were fine. The problem was optical — the mirror's shape meant light didn't converge to a single focus point.")
+            ],
+            funFact: "Despite the initial flaw, Hubble has made over 1.5 million observations, discovered moons of Pluto, measured the expansion of the universe, and produced some of the most iconic images in science history.",
+            field: "Astronomy"
+        ),
+        ScienceChallenge(
+            id: "space-06",
+            worldId: "space-exploration",
+            era: "2012",
+            question: "How does the Curiosity rover generate power on Mars?",
+            context: "Curiosity landed on Mars in August 2012 and is still operational. Unlike earlier rovers, it doesn't rely on sunlight.",
+            choices: [
+                ScienceChoice(id: "a", text: "Solar panels", isCorrect: false, explanation: "Spirit and Opportunity used solar panels, but Curiosity is much larger and needs more power than panels could provide."),
+                ScienceChoice(id: "b", text: "A radioisotope thermoelectric generator (RTG)", isCorrect: true, explanation: "Correct. Curiosity uses an RTG powered by plutonium-238 decay. It generates about 110 watts continuously — enough to run a bright lightbulb — and works day, night, and during dust storms."),
+                ScienceChoice(id: "c", text: "A small nuclear reactor", isCorrect: false, explanation: "RTGs are not reactors. They use passive radioactive decay heat, not controlled nuclear fission. No Mars rover has used a true reactor."),
+                ScienceChoice(id: "d", text: "Methane fuel cells", isCorrect: false, explanation: "NASA has researched in-situ resource utilization (making fuel from Martian CO2), but Curiosity carries all its power with it from Earth.")
+            ],
+            funFact: "The plutonium-238 in Curiosity's RTG has a half-life of 87.7 years. The rover started with 4.8 kg of Pu-238 and will still produce useful power decades from now.",
+            field: "Engineering"
+        )
+    ]
+    
+    static func challenges(for worldId: String) -> [ScienceChallenge] {
+        switch worldId {
+        case "space-exploration": return spaceExplorationChallenges
+        default: return []
+        }
+    }
+}
+
 // MARK: - Subject Progress
 struct SubjectProgress: Codable, Equatable {
     var currentWorldId: String? = nil

@@ -184,6 +184,9 @@ struct DashboardView: View {
                     } else if store.stats.selectedSubject == .history {
                         HistoryWorldView()
                         HistoryChallengeView()
+                    } else if store.stats.selectedSubject == .science {
+                        ScienceWorldView()
+                        ScienceChallengeView()
                     } else {
                         ComingSoonSubjectView()
                     }
@@ -1159,6 +1162,198 @@ struct HistoryChallengeView: View {
     }
 }
 
+// MARK: - Science World Selection
+struct ScienceWorldView: View {
+    @EnvironmentObject var store: AppStore
+    var body: some View {
+        let worlds = store.stats.selectedSubject.worlds
+        let xp = store.stats.xp
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Worlds", systemImage: "atom")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                ForEach(worlds) { world in
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
+                    let selected = store.currentWorld?.id == world.id
+                    Button {
+                        if !locked {
+                            store.select(worldId: world.id, for: .science)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(world.emoji)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(world.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                Text(world.era)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if locked {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(world.unlockRequirement.xpRequired ?? 0) XP")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if selected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locked)
+                    .accessibilityIdentifier("scienceWorld_\(world.id)")
+                }
+                
+                if let world = store.currentWorld {
+                    Text(world.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                }
+            }
+        }
+        .accessibilityIdentifier("scienceWorldView")
+    }
+}
+
+// MARK: - Science Challenge View
+struct ScienceChallengeView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var selectedChoiceId: String? = nil
+    @State private var showResult = false
+    @State private var currentChallenge: ScienceChallenge? = nil
+    @State private var animateSuccess = false
+    
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Mission", systemImage: "atom")
+                        .font(.headline)
+                    Spacer()
+                    if let challenge = currentChallenge {
+                        Text(challenge.field)
+                            .font(.caption.bold())
+                            .foregroundStyle(.green)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+                
+                if let challenge = currentChallenge {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(challenge.question)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        
+                        Text(challenge.context)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+                        
+                        if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: choice.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                    Text(choice.isCorrect ? "Correct!" : "Not quite")
+                                        .font(.headline)
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                Text(choice.explanation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text(challenge.funFact)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 4)
+                            }
+                            .padding(12)
+                            .background(Color.primary.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        
+                        if !showResult {
+                            ForEach(challenge.choices, id: \.id) { choice in
+                                Button {
+                                    withAnimation {
+                                        selectedChoiceId = choice.id
+                                        showResult = true
+                                        store.submitScienceAnswer(challenge: challenge, choice: choice)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(choice.text)
+                                            .font(.subheadline.bold())
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("scienceChoice_\(choice.id)")
+                            }
+                        } else {
+                            Button("Next Mission") {
+                                withAnimation {
+                                    selectedChoiceId = nil
+                                    showResult = false
+                                    loadNextChallenge()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                            .accessibilityIdentifier("nextScienceChallenge")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Text("🚀 Mission Complete!")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        Text("You've completed all available missions in this world. More science challenges coming soon!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+                }
+            }
+        }
+        .onAppear { loadNextChallenge() }
+        .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
+        .accessibilityIdentifier("scienceChallengeView")
+    }
+    
+    private func loadNextChallenge() {
+        currentChallenge = store.nextScienceChallenge
+    }
+}
+
 // MARK: - Coming Soon for other subjects
 struct ComingSoonSubjectView: View {
     @EnvironmentObject var store: AppStore
@@ -1171,7 +1366,7 @@ struct ComingSoonSubjectView: View {
                 Text("\(store.stats.selectedSubject.displayName) Coming Soon")
                     .font(.title3.bold())
                     .foregroundStyle(.primary)
-                Text("We're building amazing content for this subject. Switch to Languages or History to start learning now!")
+                Text("We're building amazing content for this subject. Switch to Languages, History, or Science to start learning now!")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

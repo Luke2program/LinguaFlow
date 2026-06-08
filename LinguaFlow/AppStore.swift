@@ -293,6 +293,24 @@ final class AppStore: ObservableObject {
         save()
     }
     
+    func submitScienceAnswer(challenge: ScienceChallenge, choice: ScienceChoice) {
+        var progress = stats.progress(for: .science)
+        if !progress.completedChallengeIds.contains(challenge.id) {
+            progress.completedChallengeIds.append(challenge.id)
+            let xpEarned = choice.isCorrect ? 25 : 10
+            progress.totalHistoryXP += xpEarned
+            stats.xp += xpEarned
+            stats.gems += choice.isCorrect ? 2 : 0
+            stats.reviewedToday += 1
+            if choice.isCorrect { stats.correctToday += 1 }
+            progress.worldScores[challenge.worldId, default: 0] += xpEarned
+            feedPet(correctCount: choice.isCorrect ? 2 : 1)
+        }
+        stats.updateProgress(for: .science, progress)
+        refreshPracticeDay()
+        save()
+    }
+    
     var currentWorld: PlayableWorld? {
         guard let worldId = stats.progress(for: stats.selectedSubject).currentWorldId else { return nil }
         return stats.selectedSubject.worlds.first { $0.id == worldId }
@@ -305,6 +323,13 @@ final class AppStore: ObservableObject {
         return challenges.first { !progress.completedChallengeIds.contains($0.id) }
     }
     
+    var nextScienceChallenge: ScienceChallenge? {
+        let progress = stats.progress(for: .science)
+        guard let worldId = progress.currentWorldId else { return nil }
+        let challenges = ScienceData.challenges(for: worldId)
+        return challenges.first { !progress.completedChallengeIds.contains($0.id) }
+    }
+    
     var historyProgressPercent: Double {
         let progress = stats.progress(for: .history)
         guard let worldId = progress.currentWorldId else { return 0 }
@@ -312,6 +337,16 @@ final class AppStore: ObservableObject {
         guard total > 0 else { return 0 }
         return Double(progress.completedChallengeIds.filter { id in
             HistoryData.challenges(for: worldId).contains { $0.id == id }
+        }.count) / Double(total)
+    }
+    
+    var scienceProgressPercent: Double {
+        let progress = stats.progress(for: .science)
+        guard let worldId = progress.currentWorldId else { return 0 }
+        let total = ScienceData.challenges(for: worldId).count
+        guard total > 0 else { return 0 }
+        return Double(progress.completedChallengeIds.filter { id in
+            ScienceData.challenges(for: worldId).contains { $0.id == id }
         }.count) / Double(total)
     }
 
