@@ -173,6 +173,7 @@ struct DashboardView: View {
                     Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    DailyQuestView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
@@ -254,6 +255,58 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct DailyQuestView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let quest = store.dailyQuest
+        GlassCard {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(store.stats.selectedSubject.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.16))
+                            .frame(width: 46, height: 46)
+                        Image(systemName: "flag.checkered")
+                            .font(.title3.bold())
+                            .foregroundStyle(store.stats.selectedSubject.accentColor)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Daily Quest")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                        Text(quest.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyQuestTitle")
+                    }
+                    Spacer()
+                    Text(quest.reward)
+                        .font(.caption.bold())
+                        .foregroundStyle(store.stats.selectedSubject.accentColor)
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [store.stats.selectedSubject.accentColor, .green], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * quest.progress)
+                    }
+                }
+                .frame(height: 10)
+
+                Text(quest.progressText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("dailyQuestProgress")
+            }
+        }
+        .accessibilityIdentifier("dailyQuestPanel")
     }
 }
 

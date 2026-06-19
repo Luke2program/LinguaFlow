@@ -9,6 +9,8 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
     case geography = "geography"
     case math = "math"
     case culture = "culture"
+    case business = "business"
+    case health = "health"
     
     var id: String { rawValue }
     
@@ -20,6 +22,8 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .geography: return "🗺️ Geography"
         case .math: return "🔢 Math"
         case .culture: return "🎭 Culture"
+        case .business: return "📈 Business"
+        case .health: return "💚 Health"
         }
     }
     
@@ -31,6 +35,8 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .geography: return "Know the world, one fact at a time"
         case .math: return "Build number skills with quick challenges"
         case .culture: return "Art, music, food, and traditions worldwide"
+        case .business: return "Strategy, markets, money, and sharper decisions"
+        case .health: return "Sleep, nutrition, movement, and practical wellbeing"
         }
     }
     
@@ -42,6 +48,8 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .geography: return .cyan
         case .math: return .purple
         case .culture: return .pink
+        case .business: return .indigo
+        case .health: return .mint
         }
     }
     
@@ -53,6 +61,8 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .geography: return "map"
         case .math: return "function"
         case .culture: return "theatermasks"
+        case .business: return "chart.line.uptrend.xyaxis"
+        case .health: return "heart.text.square"
         }
     }
     
@@ -74,7 +84,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Know every capital, river, and mountain range.", unlockRequirement: .none),
                 PlayableWorld(id: "african-wonders", name: "African Wonders", emoji: "🌍", era: "Ancient – Modern", description: "From the Sahara to Kilimanjaro. Rivers, deserts, and ecosystems.", unlockRequirement: .xpRequired(300)),
             ]
-        case .languages, .math, .culture:
+        case .languages, .math, .culture, .business, .health:
             return []
         }
     }
@@ -336,6 +346,42 @@ struct SubjectProgress: Codable, Equatable {
     var completedChallengeIds: [String] = []
     var worldScores: [String: Int] = [:]
     var totalHistoryXP: Int = 0
+}
+
+struct DailyQuest: Equatable {
+    let subject: Subject
+    let completed: Int
+    let target: Int
+
+    var title: String {
+        switch subject {
+        case .languages: return "Decode the next phrase"
+        case .history: return "Recover a real timeline"
+        case .science: return "Run a field experiment"
+        case .geography: return "Map the hidden route"
+        case .math: return "Solve the gate pattern"
+        case .culture: return "Unlock a living tradition"
+        case .business: return "Make a sharper decision"
+        case .health: return "Train a better habit"
+        }
+    }
+
+    var rewardName: String {
+        switch subject {
+        case .languages: return "Harbor Key"
+        case .history: return "Archive Seal"
+        case .science: return "Lab Spark"
+        case .geography: return "Compass Shard"
+        case .math: return "Logic Rune"
+        case .culture: return "Festival Token"
+        case .business: return "Guild Coin"
+        case .health: return "Vitality Leaf"
+        }
+    }
+
+    var reward: String { "+\(target * 3) XP · \(rewardName)" }
+    var progressText: String { "\(min(completed, target))/\(target) encounters" }
+    var progress: Double { min(1, Double(completed) / Double(max(1, target))) }
 }
 
 enum AppLanguage: String, Codable, CaseIterable, Identifiable {

@@ -47,6 +47,9 @@ final class AppStore: ObservableObject {
     }
     var goalDailyNeed: Int { max(5, Int(ceil(Double(availableCards.count - masteredCount) / Double(daysUntilGoal)))) }
     var learnedEnoughToday: Bool { stats.reviewedToday >= max(stats.dailyGoal, goalDailyNeed) }
+    var dailyQuest: DailyQuest {
+        DailyQuest(subject: stats.selectedSubject, completed: stats.reviewedToday, target: min(10, max(4, stats.dailyGoal / 2)))
+    }
 
     init() {
         if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") {

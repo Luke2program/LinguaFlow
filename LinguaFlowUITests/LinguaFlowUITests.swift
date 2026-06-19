@@ -74,6 +74,8 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp()
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["dailyQuestTitle"].waitForExistence(timeout: 3))
     }
     
     func testCanSwitchToHistorySubject() throws {

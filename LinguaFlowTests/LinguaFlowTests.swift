@@ -56,13 +56,28 @@ final class LinguaFlowTests: XCTestCase {
     // MARK: - Subject System Tests
     func testSubjectEnumHasAllCases() {
         let subjects = Subject.allCases
-        XCTAssertEqual(subjects.count, 6)
+        XCTAssertEqual(subjects.count, 8)
         XCTAssertTrue(subjects.contains(.languages))
         XCTAssertTrue(subjects.contains(.history))
         XCTAssertTrue(subjects.contains(.science))
         XCTAssertTrue(subjects.contains(.geography))
         XCTAssertTrue(subjects.contains(.math))
         XCTAssertTrue(subjects.contains(.culture))
+        XCTAssertTrue(subjects.contains(.business))
+        XCTAssertTrue(subjects.contains(.health))
+    }
+
+    func testDailyQuestProgressAndRewardScaleWithTarget() {
+        let quest = DailyQuest(subject: .history, completed: 3, target: 6)
+        XCTAssertEqual(quest.title, "Recover a real timeline")
+        XCTAssertEqual(quest.progressText, "3/6 encounters")
+        XCTAssertEqual(quest.reward, "+18 XP · Archive Seal")
+        XCTAssertEqual(quest.progress, 0.5, accuracy: 0.001)
+
+        let completedQuest = DailyQuest(subject: .business, completed: 12, target: 6)
+        XCTAssertEqual(completedQuest.progressText, "6/6 encounters")
+        XCTAssertEqual(completedQuest.progress, 1.0, accuracy: 0.001)
+        XCTAssertEqual(completedQuest.reward, "+18 XP · Guild Coin")
     }
     
     func testHistoryWorldsExist() {
