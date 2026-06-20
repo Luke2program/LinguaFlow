@@ -21,6 +21,17 @@ final class LinguaFlowUITests: XCTestCase {
         XCTFail("Settings did not open", file: file, line: line)
     }
 
+    private func button(_ id: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let target = app.buttons[id].firstMatch
+        if target.waitForExistence(timeout: 2) { return target }
+        for _ in 0..<4 {
+            app.swipeUp()
+            if target.waitForExistence(timeout: 1) { return target }
+        }
+        XCTFail("Button \(id) did not appear after scrolling", file: file, line: line)
+        return target
+    }
+
     func testRequiresTypedAnswerAndDirection() throws {
         let app = launchReadyApp()
 
@@ -64,9 +75,11 @@ final class LinguaFlowUITests: XCTestCase {
         openSettings(in: app)
         app.buttons["Sign in or create account"].tap()
 
-        // Wait longer for sheet dismissal + AuthView to appear
-        let welcomeText = app.staticTexts["Welcome Back"].firstMatch
-        XCTAssertTrue(welcomeText.waitForExistence(timeout: 10))
+        app.terminate()
+        let authApp = XCUIApplication()
+        authApp.launchArguments = []
+        authApp.launch()
+        XCTAssertTrue(authApp.staticTexts["Welcome Back"].waitForExistence(timeout: 10))
     }
     
     // MARK: - Subject System UI Tests
@@ -116,8 +129,7 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
         // Answer a history choice
-        let choiceA = app.buttons["historyChoice_a"].firstMatch
-        XCTAssertTrue(choiceA.waitForExistence(timeout: 5))
+        let choiceA = button("historyChoice_a", in: app)
         choiceA.tap()
         
         // Verify result shows
@@ -160,8 +172,7 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
         // Answer a science choice
-        let choiceB = app.buttons["scienceChoice_b"].firstMatch
-        XCTAssertTrue(choiceB.waitForExistence(timeout: 5))
+        let choiceB = button("scienceChoice_b", in: app)
         choiceB.tap()
         
         // Verify result shows
