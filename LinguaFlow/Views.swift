@@ -802,6 +802,7 @@ struct PetPickerView: View {
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
     @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) private var dismiss
     @Binding var isPresented: Bool
     @State private var showAccountSettings = false
     var body: some View {
@@ -895,6 +896,7 @@ struct SettingsView: View {
                             store.stats = updatedStats
                             store.save()
                             isPresented = false
+                            dismiss()
                         }
                     }
                 }

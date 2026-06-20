@@ -52,17 +52,32 @@ final class AppStore: ObservableObject {
     }
 
     init() {
-        if ProcessInfo.processInfo.arguments.contains("--reset-ui-state") {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--reset-ui-state") {
             UserDefaults.standard.removeObject(forKey: statsKey)
             UserDefaults.standard.removeObject(forKey: schedulesKey)
         }
         load()
-        if ProcessInfo.processInfo.arguments.contains("--ui-testing") {
+        if arguments.contains("--ui-testing") {
             stats.hasSeenTitle = true
             stats.hasSkippedAuth = true
             stats.hasSeenPetPicker = true
             stats.hasSeenSubjectPicker = true
             if stats.selectedLevel == nil { stats.selectedLevel = .a1 }
+            if arguments.contains("--ui-testing-history-world") {
+                stats.selectedSubject = .history
+                var progress = stats.progress(for: .history)
+                progress.currentWorldId = "ancient-rome"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .history, progress)
+            }
+            if arguments.contains("--ui-testing-science-world") {
+                stats.selectedSubject = .science
+                var progress = stats.progress(for: .science)
+                progress.currentWorldId = "space-exploration"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .science, progress)
+            }
             prepareSchedulesForCurrentSelection()
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()

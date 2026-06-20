@@ -3,9 +3,9 @@ import XCTest
 final class LinguaFlowUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
-    private func launchReadyApp() -> XCUIApplication {
+    private func launchReadyApp(arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing", "--reset-ui-state"]
+        app.launchArguments = ["--ui-testing", "--reset-ui-state"] + arguments
         app.launch()
         XCTAssertTrue(app.staticTexts["Today's Flow"].waitForExistence(timeout: 5))
         return app
@@ -19,21 +19,6 @@ final class LinguaFlowUITests: XCTestCase {
             if app.navigationBars["Settings"].waitForExistence(timeout: 2) { return }
         }
         XCTFail("Settings did not open", file: file, line: line)
-    }
-
-    private func element(_ id: String, in app: XCUIApplication) -> XCUIElement {
-        app.descendants(matching: .any)[id].firstMatch
-    }
-
-    private func scrollToElement(_ id: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
-        let target = element(id, in: app)
-        if target.waitForExistence(timeout: 2) { return target }
-        for _ in 0..<5 {
-            app.swipeUp()
-            if target.waitForExistence(timeout: 1) { return target }
-        }
-        XCTFail("Element \(id) did not appear after scrolling", file: file, line: line)
-        return target
     }
 
     func testRequiresTypedAnswerAndDirection() throws {
@@ -120,45 +105,16 @@ final class LinguaFlowUITests: XCTestCase {
     }
     
     func testHistoryWorldSelection() throws {
-        let app = launchReadyApp()
-        
-        // Switch to history
-        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
-        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
-        subjectButton.tap()
-        
-        let historyOption = app.buttons["subject_history"].firstMatch
-        XCTAssertTrue(historyOption.waitForExistence(timeout: 3))
-        historyOption.tap()
-        
-        let startButton = app.buttons["Start Learning"].firstMatch
-        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
-        startButton.tap()
-        sleep(3)
-        
-        // Select Ancient Rome world
-        let romeWorld = scrollToElement("world_ancient-rome", in: app)
-        romeWorld.tap()
-        
+        let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+
         // Verify challenge appears by looking for a year text like "BCE"
         let yearText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "BCE")).firstMatch
         XCTAssertTrue(yearText.waitForExistence(timeout: 3))
     }
     
     func testHistoryChallengeInteraction() throws {
-        let app = launchReadyApp()
-        
-        // Switch to history and select Rome
-        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
-        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
-        subjectButton.tap()
-        
-        app.buttons["subject_history"].firstMatch.tap()
-        app.buttons["Start Learning"].firstMatch.tap()
-        sleep(3)
-        let romeWorld = scrollToElement("world_ancient-rome", in: app)
-        romeWorld.tap()
-        
+        let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+
         // Answer a history choice
         let choiceA = app.buttons["historyChoice_a"].firstMatch
         XCTAssertTrue(choiceA.waitForExistence(timeout: 5))
@@ -193,39 +149,16 @@ final class LinguaFlowUITests: XCTestCase {
     }
     
     func testScienceWorldSelection() throws {
-        let app = launchReadyApp()
-        
-        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
-        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
-        subjectButton.tap()
-        
-        app.buttons["subject_science"].firstMatch.tap()
-        app.buttons["Start Learning"].firstMatch.tap()
-        sleep(3)
-        
-        // Select Space Frontiers world
-        let spaceWorld = scrollToElement("scienceWorld_space-exploration", in: app)
-        spaceWorld.tap()
-        
+        let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
+
         // Verify challenge appears by looking for Mission label
         let missionText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Mission")).firstMatch
         XCTAssertTrue(missionText.waitForExistence(timeout: 3))
     }
     
     func testScienceChallengeInteraction() throws {
-        let app = launchReadyApp()
-        
-        // Switch to science and select Space Frontiers
-        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
-        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
-        subjectButton.tap()
-        
-        app.buttons["subject_science"].firstMatch.tap()
-        app.buttons["Start Learning"].firstMatch.tap()
-        sleep(3)
-        let spaceWorld = scrollToElement("scienceWorld_space-exploration", in: app)
-        spaceWorld.tap()
-        
+        let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
+
         // Answer a science choice
         let choiceB = app.buttons["scienceChoice_b"].firstMatch
         XCTAssertTrue(choiceB.waitForExistence(timeout: 5))
