@@ -205,9 +205,10 @@ final class LinguaFlowUITests: XCTestCase {
     func testGeographyWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-geography-world"])
 
+        let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "European Capitals")).firstMatch
+        XCTAssertTrue(worldText.waitForExistence(timeout: 3))
         let routeText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Route")).firstMatch
         XCTAssertTrue(routeText.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["geographyMapClue"].waitForExistence(timeout: 3))
     }
 
     func testGeographyChallengeInteraction() throws {
