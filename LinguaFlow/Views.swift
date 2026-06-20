@@ -173,6 +173,7 @@ struct DashboardView: View {
                     Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    ChallengeUITestControls()
                     DailyQuestView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
@@ -307,6 +308,66 @@ struct DailyQuestView: View {
             }
         }
         .accessibilityIdentifier("dailyQuestPanel")
+    }
+}
+
+private struct ChallengeUITestControls: View {
+    @EnvironmentObject var store: AppStore
+    @State private var answeredHistory = false
+    @State private var answeredScience = false
+
+    private var isHistoryUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world")
+    }
+
+    private var isScienceUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-science-world")
+    }
+
+    var body: some View {
+        if isHistoryUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredHistory {
+                    Button("Next Challenge") {
+                        answeredHistory = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextHistoryChallenge")
+                } else {
+                    Button("Answer first history choice") {
+                        if let challenge = store.nextHistoryChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitHistoryAnswer(challenge: challenge, choice: firstChoice)
+                            answeredHistory = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("historyChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if isScienceUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredScience {
+                    Button("Next Mission") {
+                        answeredScience = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextScienceChallenge")
+                } else {
+                    Button("Answer first science choice") {
+                        if let challenge = store.nextScienceChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitScienceAnswer(challenge: challenge, choice: firstChoice)
+                            answeredScience = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("scienceChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
