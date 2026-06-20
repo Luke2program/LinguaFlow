@@ -268,6 +268,22 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertLessThanOrEqual(percent, 1.0)
         }
     }
+
+    func testSelectingGeographyStartsFirstWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+
+            store.select(subject: .geography)
+
+            XCTAssertEqual(store.stats.selectedSubject, .geography)
+            XCTAssertEqual(store.currentWorld?.id, "european-capitals")
+            XCTAssertNotNil(store.nextGeographyChallenge)
+        }
+    }
     
     func testSubjectDefaultIsLanguages() {
         let stats = UserStats()

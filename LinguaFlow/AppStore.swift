@@ -288,6 +288,12 @@ final class AppStore: ObservableObject {
         feedbackMessage = "Now learning: \(subject.displayName)"
         if subject == .languages {
             pickNextCard()
+        } else {
+            var progress = stats.progress(for: subject)
+            if progress.currentWorldId == nil, let firstWorld = subject.worlds.first {
+                progress.currentWorldId = firstWorld.id
+                stats.updateProgress(for: subject, progress)
+            }
         }
         save()
         objectWillChange.send()
