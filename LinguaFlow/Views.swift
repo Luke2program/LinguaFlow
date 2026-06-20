@@ -1178,18 +1178,6 @@ struct HistoryChallengeView: View {
                 
                 if let challenge = currentChallenge {
                     VStack(alignment: .leading, spacing: 10) {
-                        if ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world"), !showResult, let firstChoice = challenge.choices.first {
-                            Button("Answer first history choice") {
-                                withAnimation {
-                                    selectedChoiceId = firstChoice.id
-                                    showResult = true
-                                    store.submitHistoryAnswer(challenge: challenge, choice: firstChoice)
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("historyChoiceTestAction")
-                        }
-
                         Text(challenge.question)
                             .font(.title3.bold())
                             .foregroundStyle(.primary)
@@ -1386,18 +1374,6 @@ struct ScienceChallengeView: View {
                 
                 if let challenge = currentChallenge {
                     VStack(alignment: .leading, spacing: 10) {
-                        if ProcessInfo.processInfo.arguments.contains("--ui-testing-science-world"), !showResult, let firstChoice = challenge.choices.first {
-                            Button("Answer first science choice") {
-                                withAnimation {
-                                    selectedChoiceId = firstChoice.id
-                                    showResult = true
-                                    store.submitScienceAnswer(challenge: challenge, choice: firstChoice)
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("scienceChoiceTestAction")
-                        }
-
                         Text(challenge.question)
                             .font(.title3.bold())
                             .foregroundStyle(.primary)
