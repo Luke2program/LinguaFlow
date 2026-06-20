@@ -117,11 +117,12 @@ final class LinguaFlowTests: XCTestCase {
             let challenge = HistoryData.challenges(for: "ancient-rome")[0]
             let correctChoice = challenge.choices.first { $0.isCorrect }!
             let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
             
             store.submitHistoryAnswer(challenge: challenge, choice: correctChoice)
             
             XCTAssertEqual(store.stats.xp, initialXP + 25)
-            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
             let progress = store.stats.progress(for: .history)
             XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
         }
@@ -172,11 +173,12 @@ final class LinguaFlowTests: XCTestCase {
             let challenge = ScienceData.challenges(for: "space-exploration")[0]
             let correctChoice = challenge.choices.first { $0.isCorrect }!
             let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
             
             store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
             
             XCTAssertEqual(store.stats.xp, initialXP + 25)
-            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
             let progress = store.stats.progress(for: .science)
             XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
         }
