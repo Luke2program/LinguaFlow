@@ -21,14 +21,14 @@ final class LinguaFlowUITests: XCTestCase {
         XCTFail("Settings did not open", file: file, line: line)
     }
 
-    private func text(containing value: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
-        let target = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", value)).firstMatch
+    private func button(_ id: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let target = app.buttons[id].firstMatch
         if target.waitForExistence(timeout: 2) { return target }
-        for _ in 0..<4 {
+        for _ in 0..<6 {
             app.swipeUp()
             if target.waitForExistence(timeout: 1) { return target }
         }
-        XCTFail("Text containing \(value) did not appear after scrolling", file: file, line: line)
+        XCTFail("Button \(id) did not appear after scrolling", file: file, line: line)
         return target
     }
 
@@ -129,7 +129,7 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
         // Answer a history choice
-        let choiceA = text(containing: "Cross the Rubicon", in: app)
+        let choiceA = button("historyChoiceTestAction", in: app)
         choiceA.tap()
         
         // Verify result shows
@@ -172,7 +172,7 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
         // Answer a science choice
-        let choiceB = text(containing: "Sputnik 1", in: app)
+        let choiceB = button("scienceChoiceTestAction", in: app)
         choiceB.tap()
         
         // Verify result shows
