@@ -207,6 +207,67 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertLessThanOrEqual(percent, 1.0)
         }
     }
+
+    func testGeographyWorldsExist() {
+        let geographyWorlds = Subject.geography.worlds
+        XCTAssertGreaterThanOrEqual(geographyWorlds.count, 2)
+        XCTAssertTrue(geographyWorlds.contains { $0.id == "european-capitals" })
+        XCTAssertTrue(geographyWorlds.contains { $0.id == "african-wonders" })
+    }
+
+    func testEuropeanCapitalsChallengesLoaded() {
+        let challenges = GeographyData.challenges(for: "european-capitals")
+        XCTAssertGreaterThanOrEqual(challenges.count, 4)
+        let vienna = challenges.first { $0.id == "geo-eu-01" }
+        XCTAssertNotNil(vienna)
+        XCTAssertEqual(vienna?.region, "Central Europe")
+        XCTAssertEqual(vienna?.choices.count, 4)
+        XCTAssertTrue(vienna?.choices.contains { $0.isCorrect && $0.text == "Vienna" } ?? false)
+    }
+
+    func testGeographyChallengeScoring() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .geography
+            store.select(worldId: "european-capitals", for: .geography)
+
+            let challenge = GeographyData.challenges(for: "european-capitals")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+
+            store.submitGeographyAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
+            let progress = store.stats.progress(for: .geography)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
+        }
+    }
+
+    func testGeographyProgressPercent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .geography
+            store.select(worldId: "european-capitals", for: .geography)
+
+            let challenge = GeographyData.challenges(for: "european-capitals")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitGeographyAnswer(challenge: challenge, choice: correctChoice)
+
+            let percent = store.geographyProgressPercent
+            XCTAssertGreaterThan(percent, 0)
+            XCTAssertLessThanOrEqual(percent, 1.0)
+        }
+    }
     
     func testSubjectDefaultIsLanguages() {
         let stats = UserStats()

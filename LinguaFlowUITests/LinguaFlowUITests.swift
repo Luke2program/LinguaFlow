@@ -179,4 +179,44 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextScienceChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+
+    // MARK: - Geography Subject UI Tests
+    func testCanSwitchToGeographySubject() throws {
+        let app = launchReadyApp()
+
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+
+        let geographyOption = app.buttons["subject_geography"].firstMatch
+        XCTAssertTrue(geographyOption.waitForExistence(timeout: 3))
+        geographyOption.tap()
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+
+        sleep(3)
+
+        let capitalsText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "European Capitals")).firstMatch
+        XCTAssertTrue(capitalsText.waitForExistence(timeout: 5))
+    }
+
+    func testGeographyWorldSelection() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-geography-world"])
+
+        let routeText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Route")).firstMatch
+        XCTAssertTrue(routeText.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["geographyMapClue"].waitForExistence(timeout: 3))
+    }
+
+    func testGeographyChallengeInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-geography-world"])
+
+        let choice = button("geographyChoiceTestAction", in: app)
+        choice.tap()
+
+        let nextButton = app.buttons["nextGeographyChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }

@@ -189,6 +189,9 @@ struct DashboardView: View {
                     } else if store.stats.selectedSubject == .science {
                         ScienceWorldView()
                         ScienceChallengeView()
+                    } else if store.stats.selectedSubject == .geography {
+                        GeographyWorldView()
+                        GeographyChallengeView()
                     } else {
                         ComingSoonSubjectView()
                     }
@@ -315,6 +318,7 @@ private struct ChallengeUITestControls: View {
     @EnvironmentObject var store: AppStore
     @State private var answeredHistory = false
     @State private var answeredScience = false
+    @State private var answeredGeography = false
 
     private var isHistoryUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world")
@@ -322,6 +326,10 @@ private struct ChallengeUITestControls: View {
 
     private var isScienceUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-science-world")
+    }
+
+    private var isGeographyUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-geography-world")
     }
 
     var body: some View {
@@ -364,6 +372,27 @@ private struct ChallengeUITestControls: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("scienceChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if isGeographyUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredGeography {
+                    Button("Next Route") {
+                        answeredGeography = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextGeographyChallenge")
+                } else {
+                    Button("Answer first geography choice") {
+                        if let challenge = store.nextGeographyChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitGeographyAnswer(challenge: challenge, choice: firstChoice)
+                            answeredGeography = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("geographyChoiceTestAction")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1467,6 +1496,217 @@ struct ScienceChallengeView: View {
     
     private func loadNextChallenge() {
         currentChallenge = store.nextScienceChallenge
+    }
+}
+
+// MARK: - Geography World Selection
+struct GeographyWorldView: View {
+    @EnvironmentObject var store: AppStore
+    var body: some View {
+        let worlds = store.stats.selectedSubject.worlds
+        let xp = store.stats.xp
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Map Worlds", systemImage: "map")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(worlds) { world in
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
+                    let selected = store.currentWorld?.id == world.id
+                    Button {
+                        if !locked {
+                            store.select(worldId: world.id, for: .geography)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(world.emoji)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(world.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                Text(world.era)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if locked {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(world.unlockRequirement.xpRequired ?? 0) XP")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if selected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.cyan)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locked)
+                    .accessibilityIdentifier("geographyWorld_\(world.id)")
+                }
+
+                if let world = store.currentWorld {
+                    Text(world.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                }
+            }
+        }
+        .accessibilityIdentifier("geographyWorldView")
+    }
+}
+
+// MARK: - Geography Challenge View
+struct GeographyChallengeView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var selectedChoiceId: String? = nil
+    @State private var showResult = false
+    @State private var currentChallenge: GeographyChallenge? = nil
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Route", systemImage: "location.north.line")
+                        .font(.headline)
+                    Spacer()
+                    if let challenge = currentChallenge {
+                        Text(challenge.region)
+                            .font(.caption.bold())
+                            .foregroundStyle(.cyan)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.cyan.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if let challenge = currentChallenge {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "map.fill")
+                                .font(.title2)
+                                .foregroundStyle(.cyan)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Map clue")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.secondary)
+                                Text(challenge.mapClue)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.cyan.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .accessibilityIdentifier("geographyMapClue")
+
+                        Text(challenge.question)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+
+                        Text(challenge.context)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+
+                        if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: choice.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                    Text(choice.isCorrect ? "Route found!" : "Wrong turn")
+                                        .font(.headline)
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                Text(choice.explanation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text(challenge.fieldNote)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 4)
+                            }
+                            .padding(12)
+                            .background(Color.primary.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                            .accessibilityIdentifier("geographyResult")
+                        }
+
+                        if !showResult {
+                            ForEach(challenge.choices, id: \.id) { choice in
+                                Button {
+                                    withAnimation {
+                                        selectedChoiceId = choice.id
+                                        showResult = true
+                                        store.submitGeographyAnswer(challenge: challenge, choice: choice)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(choice.text)
+                                            .font(.subheadline.bold())
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("geographyChoice_\(choice.id)")
+                            }
+                        } else {
+                            Button("Next Route") {
+                                withAnimation {
+                                    selectedChoiceId = nil
+                                    showResult = false
+                                    loadNextChallenge()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.cyan)
+                            .accessibilityIdentifier("nextGeographyChallenge")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Text("🗺️ Route Complete!")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        Text("You've mapped every available stop in this world. More geography routes coming soon!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+                }
+            }
+        }
+        .onAppear { loadNextChallenge() }
+        .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
+        .accessibilityIdentifier("geographyChallengeView")
+    }
+
+    private func loadNextChallenge() {
+        currentChallenge = store.nextGeographyChallenge
     }
 }
 

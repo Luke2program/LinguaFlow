@@ -81,7 +81,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             ]
         case .geography:
             return [
-                PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Know every capital, river, and mountain range.", unlockRequirement: .none),
+                PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Navigate Europe by capital cities, rivers, mountains, and borders.", unlockRequirement: .none),
                 PlayableWorld(id: "african-wonders", name: "African Wonders", emoji: "🌍", era: "Ancient – Modern", description: "From the Sahara to Kilimanjaro. Rivers, deserts, and ecosystems.", unlockRequirement: .xpRequired(300)),
             ]
         case .languages, .math, .culture, .business, .health:
@@ -335,6 +335,97 @@ enum ScienceData {
     static func challenges(for worldId: String) -> [ScienceChallenge] {
         switch worldId {
         case "space-exploration": return spaceExplorationChallenges
+        default: return []
+        }
+    }
+}
+
+// MARK: - Geography Challenge (map-based multiple choice)
+struct GeographyChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let region: String
+    let question: String
+    let context: String
+    let choices: [GeographyChoice]
+    let mapClue: String
+    let fieldNote: String
+}
+
+struct GeographyChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum GeographyData {
+    static let europeanCapitalsChallenges: [GeographyChallenge] = [
+        GeographyChallenge(
+            id: "geo-eu-01",
+            worldId: "european-capitals",
+            region: "Central Europe",
+            question: "Which capital city sits on the Danube and is closest to the eastern edge of the Alps?",
+            context: "Your route follows the Danube from Bavaria toward the Pannonian Basin. The city you need was the imperial seat of the Habsburgs.",
+            choices: [
+                GeographyChoice(id: "a", text: "Vienna", isCorrect: true, explanation: "Vienna is Austria's capital, lies on the Danube, and sits near the Vienna Woods at the eastern edge of the Alps."),
+                GeographyChoice(id: "b", text: "Prague", isCorrect: false, explanation: "Prague is inland on the Vltava River, not the Danube."),
+                GeographyChoice(id: "c", text: "Warsaw", isCorrect: false, explanation: "Warsaw is on the Vistula River in Poland and is far north of the Alps."),
+                GeographyChoice(id: "d", text: "Zagreb", isCorrect: false, explanation: "Zagreb is Croatia's capital, but it is not on the Danube.")
+            ],
+            mapClue: "Follow the Danube east until the Alps fade into the Vienna Basin.",
+            fieldNote: "Vienna's position helped it become a crossroads between western, central, and southeastern Europe."
+        ),
+        GeographyChallenge(
+            id: "geo-eu-02",
+            worldId: "european-capitals",
+            region: "Iberian Peninsula",
+            question: "Which European capital is farther west than Madrid and sits near the Atlantic Ocean?",
+            context: "The route bends to the western edge of the continent. The city faces the Tagus estuary and opened sea routes during the Age of Discovery.",
+            choices: [
+                GeographyChoice(id: "a", text: "Lisbon", isCorrect: true, explanation: "Lisbon is Portugal's capital, sits on the Tagus near the Atlantic, and is west of Madrid."),
+                GeographyChoice(id: "b", text: "Barcelona", isCorrect: false, explanation: "Barcelona is on the Mediterranean and is not Spain's capital."),
+                GeographyChoice(id: "c", text: "Paris", isCorrect: false, explanation: "Paris is much farther north and east than Lisbon."),
+                GeographyChoice(id: "d", text: "Rome", isCorrect: false, explanation: "Rome is in Italy and faces the Tyrrhenian Sea, not the Atlantic.")
+            ],
+            mapClue: "Look for the capital at the mouth of the Tagus, where river traffic meets the Atlantic.",
+            fieldNote: "Lisbon is one of mainland Europe's westernmost capitals."
+        ),
+        GeographyChallenge(
+            id: "geo-eu-03",
+            worldId: "european-capitals",
+            region: "Nordic Europe",
+            question: "Which capital is built across islands between Lake Mälaren and the Baltic Sea?",
+            context: "Your map shows bridges, waterways, and a city spread across an archipelago. It controls the gateway between inland Sweden and the Baltic.",
+            choices: [
+                GeographyChoice(id: "a", text: "Stockholm", isCorrect: true, explanation: "Stockholm spans many islands where Lake Mälaren meets the Baltic Sea."),
+                GeographyChoice(id: "b", text: "Oslo", isCorrect: false, explanation: "Oslo sits at the head of Oslofjord in Norway, not on the Baltic."),
+                GeographyChoice(id: "c", text: "Copenhagen", isCorrect: false, explanation: "Copenhagen is on Zealand and Amager, near the Øresund strait."),
+                GeographyChoice(id: "d", text: "Helsinki", isCorrect: false, explanation: "Helsinki is coastal and archipelagic, but it is not between Lake Mälaren and the Baltic.")
+            ],
+            mapClue: "Find the island capital guarding Sweden's freshwater-to-sea passage.",
+            fieldNote: "Stockholm's waterways shaped its trade, defense, and distinctive city plan."
+        ),
+        GeographyChallenge(
+            id: "geo-eu-04",
+            worldId: "european-capitals",
+            region: "Balkan Peninsula",
+            question: "Which capital lies at the meeting point of the Sava and Danube rivers?",
+            context: "Two major rivers form a strategic junction. Empires fought over this city because it controlled routes between central Europe and the Balkans.",
+            choices: [
+                GeographyChoice(id: "a", text: "Belgrade", isCorrect: true, explanation: "Belgrade, Serbia's capital, sits at the confluence of the Sava and Danube."),
+                GeographyChoice(id: "b", text: "Sofia", isCorrect: false, explanation: "Sofia is inland in western Bulgaria and is not on either river."),
+                GeographyChoice(id: "c", text: "Sarajevo", isCorrect: false, explanation: "Sarajevo lies in a mountain valley on the Miljacka River."),
+                GeographyChoice(id: "d", text: "Skopje", isCorrect: false, explanation: "Skopje is on the Vardar River, not at the Sava-Danube junction.")
+            ],
+            mapClue: "Trace the Sava east until it flows into the Danube.",
+            fieldNote: "Belgrade's river junction made it a key fortress city for Roman, Byzantine, Ottoman, and Habsburg power."
+        )
+    ]
+
+    static func challenges(for worldId: String) -> [GeographyChallenge] {
+        switch worldId {
+        case "european-capitals": return europeanCapitalsChallenges
         default: return []
         }
     }
