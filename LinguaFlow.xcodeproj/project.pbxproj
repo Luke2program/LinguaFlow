@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		10D85B139348FB833B7CBE83 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C538C729E4A25DA5E51339E /* AuthService.swift */; };
+		1A5C7F6E4D3B2A1908172635 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F8A2B1C7D9E60534182716A /* Assets.xcassets */; };
 		2B5E803B61BA4168160ADB59 /* LinguaFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96A2C8773E130F7EB1973166 /* LinguaFlowTests.swift */; };
 		2CEE737443E210471948D332 /* AppModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A1F8B46287CCED9041DFF0 /* AppModels.swift */; };
 		3673F73EDC35E5DF64D20690 /* CloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72541B56C4F6EE9D87DE3CB /* CloudSyncService.swift */; };
@@ -41,6 +42,7 @@
 		21F6BE6ABF0D7C1C1E21862A /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
 		261FF2D3C425C8D99D19BDD0 /* LinguaFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinguaFlowUITests.swift; sourceTree = "<group>"; };
 		47AAEB26C57D21FA5D328263 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		4F8A2B1C7D9E60534182716A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4D6608697A8D41BED440E504 /* LinguaFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguaFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		54F31AF3176813E02EA68EF7 /* LinguaFlowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguaFlowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F5DA2CEC255404E4FB44003 /* LinguaFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinguaFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -106,6 +108,7 @@
 				93F57FD14C1604D115CEA325 /* VocabularyData.swift */,
 				21F6BE6ABF0D7C1C1E21862A /* AppStore.swift */,
 				47AAEB26C57D21FA5D328263 /* Views.swift */,
+				4F8A2B1C7D9E60534182716A /* Assets.xcassets */,
 				9C538C729E4A25DA5E51339E /* AuthService.swift */,
 				6FAF704CA399E237725305F5 /* AuthView.swift */,
 				C72541B56C4F6EE9D87DE3CB /* CloudSyncService.swift */,
@@ -235,6 +238,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A5C7F6E4D3B2A1908172635 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
