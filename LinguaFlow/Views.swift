@@ -1603,6 +1603,7 @@ struct GeographyChallengeView: View {
                                 Text("Map clue")
                                     .font(.caption.bold())
                                     .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("geographyMapClue")
                                 Text(challenge.mapClue)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
@@ -1611,7 +1612,6 @@ struct GeographyChallengeView: View {
                         .padding(12)
                         .background(Color.cyan.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .accessibilityIdentifier("geographyMapClue")
 
                         Text(challenge.question)
                             .font(.title3.bold())
