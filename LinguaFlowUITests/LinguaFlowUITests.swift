@@ -7,7 +7,7 @@ final class LinguaFlowUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing", "--reset-ui-state"] + arguments
         app.launch()
-        XCTAssertTrue(app.staticTexts["Today's Flow"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Today's Quest"].waitForExistence(timeout: 5))
         return app
     }
 
@@ -65,7 +65,7 @@ final class LinguaFlowUITests: XCTestCase {
         doneButton.tap()
 
         // Verify settings dismissed by checking dashboard is visible
-        let dashboard = app.staticTexts["Today's Flow"].firstMatch
+        let dashboard = app.staticTexts["Today's Quest"].firstMatch
         XCTAssertTrue(dashboard.waitForExistence(timeout: 3))
     }
 

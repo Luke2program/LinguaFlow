@@ -1,8 +1,8 @@
 #!/bin/zsh
-# ci_post_xcodebuild.sh - Xcode Cloud Post-Build Script for LinguaFlow
+# ci_post_xcodebuild.sh - Xcode Cloud Post-Build Script for QuestFlow
 # This script runs after the build completes
 
-echo "🎯 LinguaFlow - Post Build"
+echo "🎯 QuestFlow - Post Build"
 echo "==========================="
 
 # Check build result

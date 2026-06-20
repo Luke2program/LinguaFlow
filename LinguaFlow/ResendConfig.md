@@ -1,4 +1,4 @@
-# Resend Email Setup for LinguaFlow
+# Resend Email Setup for QuestFlow
 
 ## 1. Create Account
 - Go to https://resend.com
@@ -22,7 +22,7 @@ UserDefaults.standard.set("your-resend-api-key", forKey: "resend_api_key")
 Or store securely in Keychain (recommended for production).
 
 ## 5. Sender Email
-Default: `LinguaFlow <linguaflow@lukaskoprolin.com>`
+Default: `QuestFlow <linguaflow@lukaskoprolin.com>`
 
 ## DNS Records Needed (Resend provides these):
 Type | Name | Value

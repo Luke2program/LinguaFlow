@@ -338,9 +338,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2BHCGR3DXF;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = LinguaFlow;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LinguaFlow checks your spoken vocabulary answers.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "LinguaFlow transcribes your answer to check pronunciation.";
+				INFOPLIST_KEY_CFBundleDisplayName = QuestFlow;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "QuestFlow checks your spoken answers.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "QuestFlow transcribes your answer to check pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				MARKETING_VERSION = 1.0;
@@ -363,9 +363,9 @@
 				DEVELOPMENT_TEAM = 2BHCGR3DXF;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = LinguaFlow;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LinguaFlow checks your spoken vocabulary answers.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "LinguaFlow transcribes your answer to check pronunciation.";
+				INFOPLIST_KEY_CFBundleDisplayName = QuestFlow;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "QuestFlow checks your spoken answers.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "QuestFlow transcribes your answer to check pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				MARKETING_VERSION = 1.0;

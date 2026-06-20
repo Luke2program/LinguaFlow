@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to LinguaFlow are documented in this file.
+All notable changes to QuestFlow are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 

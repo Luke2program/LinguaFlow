@@ -1,4 +1,4 @@
-# Resend Setup Guide for LinguaFlow
+# Resend Setup Guide for QuestFlow
 
 ## Step 1: Create Account
 1. Go to **https://resend.com**
@@ -31,7 +31,7 @@ Value: [Resend will give you this DKIM key]
 
 ## Step 4: Get API Key
 1. Go to "API Keys" → "Create API Key"
-2. Name: "LinguaFlow App"
+2. Name: "QuestFlow App"
 3. Copy the key (starts with `re_`)
 
 ## Step 5: Add to App

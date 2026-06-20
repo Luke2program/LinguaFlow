@@ -18,7 +18,7 @@ final class EmailService {
     var hasAPIKey: Bool { !apiKey.isEmpty }
     var verifiedDomain: String? { hasAPIKey ? "lukaskoprolin.com" : nil }
     
-    private let fromEmail = "LinguaFlow <linguaflow@lukaskoprolin.com>"
+    private let fromEmail = "QuestFlow <linguaflow@lukaskoprolin.com>"
     private let replyTo = "support@lukaskoprolin.com"
     
     private init() {}
@@ -80,12 +80,12 @@ final class EmailService {
         <body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
                 <span style="font-size: 48px;">🦉</span>
-                <h1 style="color: #00D4AA; margin-top: 10px;">LinguaFlow</h1>
+                <h1 style="color: #00D4AA; margin-top: 10px;">QuestFlow</h1>
             </div>
             <div style="background: #f8f9fa; border-radius: 16px; padding: 32px;">
                 <h2 style="margin-top: 0;">Reset Your Password</h2>
                 <p>Hi there,</p>
-                <p>We received a request to reset your LinguaFlow password. Click the button below to choose a new one:</p>
+                <p>We received a request to reset your QuestFlow password. Click the button below to choose a new one:</p>
                 <div style="text-align: center; margin: 32px 0;">
                     <a href="\(resetURL)" style="background: #00D4AA; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Reset Password</a>
                 </div>
@@ -93,14 +93,14 @@ final class EmailService {
                 <p style="color: #6c757d; font-size: 14px; margin-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
             </div>
             <p style="text-align: center; color: #adb5bd; font-size: 12px; margin-top: 24px;">
-                LinguaFlow by Lukas Koprolin<br>
+                QuestFlow by Lukas Koprolin<br>
                 <a href="https://lukaskoprolin.com/linguaflow/privacy" style="color: #adb5bd;">Privacy Policy</a>
             </p>
         </body>
         </html>
         """
         
-        sendEmail(to: email, subject: "Reset your LinguaFlow password", html: html, completion: completion)
+        sendEmail(to: email, subject: "Reset your QuestFlow password", html: html, completion: completion)
     }
     
     // MARK: - Welcome Email
@@ -108,11 +108,11 @@ final class EmailService {
         let html = """
         <!DOCTYPE html>
         <html>
-        <head><meta charset="UTF-8"><title>Welcome to LinguaFlow</title></head>
+        <head><meta charset="UTF-8"><title>Welcome to QuestFlow</title></head>
         <body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
                 <span style="font-size: 48px;">🦉</span>
-                <h1 style="color: #00D4AA; margin-top: 10px;">Welcome to LinguaFlow!</h1>
+                <h1 style="color: #00D4AA; margin-top: 10px;">Welcome to QuestFlow!</h1>
             </div>
             <div style="background: #f8f9fa; border-radius: 16px; padding: 32px;">
                 <h2 style="margin-top: 0;">Hi \(name),</h2>
@@ -124,19 +124,19 @@ final class EmailService {
                     <li>🐾 Keep your pet happy by learning daily</li>
                 </ul>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="https://lukaskoprolin.com/linguaflow" style="background: #00D4AA; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Open LinguaFlow</a>
+                    <a href="https://lukaskoprolin.com/linguaflow" style="background: #00D4AA; color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; display: inline-block;">Open QuestFlow</a>
                 </div>
                 <p style="color: #6c757d; font-size: 14px;">Your account is synced across all devices. Sign in on any iPhone or iPad to continue learning.</p>
             </div>
             <p style="text-align: center; color: #adb5bd; font-size: 12px; margin-top: 24px;">
-                LinguaFlow by Lukas Koprolin<br>
+                QuestFlow by Lukas Koprolin<br>
                 <a href="https://lukaskoprolin.com/linguaflow/privacy" style="color: #adb5bd;">Privacy Policy</a>
             </p>
         </body>
         </html>
         """
         
-        sendEmail(to: email, subject: "Welcome to LinguaFlow, \(name)!", html: html, completion: completion)
+        sendEmail(to: email, subject: "Welcome to QuestFlow, \(name)!", html: html, completion: completion)
     }
     
     // MARK: - Study Reminder

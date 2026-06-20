@@ -1,8 +1,8 @@
 #!/bin/zsh
-# ci_post_clone.sh - Xcode Cloud Post Clone Script for LinguaFlow
+# ci_post_clone.sh - Xcode Cloud Post Clone Script for QuestFlow
 # This script runs after the repository is cloned
 
-echo "🚀 LinguaFlow - Xcode Cloud Post Clone"
+echo "🚀 QuestFlow - Xcode Cloud Post Clone"
 echo "========================================"
 
 # Show environment info

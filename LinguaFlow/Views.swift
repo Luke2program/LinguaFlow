@@ -82,8 +82,8 @@ struct TitleScreenView: View {
             Spacer()
             AppLogoView()
             VStack(spacing: 10) {
-                Text("LinguaFlow").font(.system(size: 48, weight: .black, design: .rounded)).foregroundStyle(.primary)
-                Text("Master German ↔ Spanish").font(.title3).foregroundStyle(.secondary)
+                Text("QuestFlow").font(.system(size: 48, weight: .black, design: .rounded)).foregroundStyle(.primary)
+                Text("Learn through playable worlds").font(.title3).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 14) {
                 FeatureRow(icon: "keyboard", text: "Type or speak every answer")
@@ -217,7 +217,7 @@ struct DashboardView: View {
     var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Today's Flow").font(.largeTitle.bold()).foregroundStyle(.primary)
+                Text("Today's Quest").font(.largeTitle.bold()).foregroundStyle(.primary)
                 Text("\(store.stats.selectedSubject.displayName) · \(store.stats.streak > 1 ? "🔥 \(store.stats.streak)-day streak" : "Start a streak today.")")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
@@ -1885,7 +1885,7 @@ struct FeaturesStep: View {
                 .font(.system(size: 40, weight: .black, design: .rounded))
                 .foregroundStyle(.primary)
             
-            Text("Meet LinguaFlow")
+            Text("Meet QuestFlow")
                 .font(.title2)
                 .foregroundStyle(Color.blue)
             

@@ -1,6 +1,6 @@
-# LinguaFlow
+# QuestFlow
 
-A native iOS German ↔ Spanish vocabulary trainer with CEFR level onboarding, Anki-style spaced repetition, offline speech audio, streaks, XP, and a fluid fluency indicator.
+A native iOS learning adventure with playable subjects, world-based challenges, spaced repetition for languages, streaks, XP, gems, and pet progression.
 
 ## Core features
 - German → Spanish and Spanish → German review directions

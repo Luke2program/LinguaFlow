@@ -1,8 +1,8 @@
 #!/bin/zsh
-# ci_pre_xcodebuild.sh - Xcode Cloud Pre-Build Script for LinguaFlow
+# ci_pre_xcodebuild.sh - Xcode Cloud Pre-Build Script for QuestFlow
 # This script runs before the build starts
 
-echo "🔧 LinguaFlow - Pre Build Setup"
+echo "🔧 QuestFlow - Pre Build Setup"
 echo "=================================="
 
 # Set build number based on CI build number if available
