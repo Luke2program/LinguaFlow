@@ -85,6 +85,13 @@ final class AppStore: ObservableObject {
                 progress.completedChallengeIds = []
                 stats.updateProgress(for: .geography, progress)
             }
+            if arguments.contains("--ui-testing-math-world") {
+                stats.selectedSubject = .math
+                var progress = stats.progress(for: .math)
+                progress.currentWorldId = "logic-gates"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .math, progress)
+            }
             prepareSchedulesForCurrentSelection()
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
@@ -359,6 +366,24 @@ final class AppStore: ObservableObject {
         refreshPracticeDay()
         save()
     }
+
+    func submitMathAnswer(challenge: MathChallenge, choice: MathChoice) {
+        var progress = stats.progress(for: .math)
+        if !progress.completedChallengeIds.contains(challenge.id) {
+            progress.completedChallengeIds.append(challenge.id)
+            let xpEarned = choice.isCorrect ? 25 : 10
+            progress.totalHistoryXP += xpEarned
+            stats.xp += xpEarned
+            stats.gems += choice.isCorrect ? 2 : 0
+            stats.reviewedToday += 1
+            if choice.isCorrect { stats.correctToday += 1 }
+            progress.worldScores[challenge.worldId, default: 0] += xpEarned
+            feedPet(correctCount: choice.isCorrect ? 2 : 1)
+        }
+        stats.updateProgress(for: .math, progress)
+        refreshPracticeDay()
+        save()
+    }
     
     var currentWorld: PlayableWorld? {
         guard let worldId = stats.progress(for: stats.selectedSubject).currentWorldId else { return nil }
@@ -383,6 +408,13 @@ final class AppStore: ObservableObject {
         let progress = stats.progress(for: .geography)
         guard let worldId = progress.currentWorldId else { return nil }
         let challenges = GeographyData.challenges(for: worldId)
+        return challenges.first { !progress.completedChallengeIds.contains($0.id) }
+    }
+
+    var nextMathChallenge: MathChallenge? {
+        let progress = stats.progress(for: .math)
+        guard let worldId = progress.currentWorldId else { return nil }
+        let challenges = MathData.challenges(for: worldId)
         return challenges.first { !progress.completedChallengeIds.contains($0.id) }
     }
     
@@ -413,6 +445,16 @@ final class AppStore: ObservableObject {
         guard total > 0 else { return 0 }
         return Double(progress.completedChallengeIds.filter { id in
             GeographyData.challenges(for: worldId).contains { $0.id == id }
+        }.count) / Double(total)
+    }
+
+    var mathProgressPercent: Double {
+        let progress = stats.progress(for: .math)
+        guard let worldId = progress.currentWorldId else { return 0 }
+        let total = MathData.challenges(for: worldId).count
+        guard total > 0 else { return 0 }
+        return Double(progress.completedChallengeIds.filter { id in
+            MathData.challenges(for: worldId).contains { $0.id == id }
         }.count) / Double(total)
     }
 

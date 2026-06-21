@@ -220,4 +220,45 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextGeographyChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+
+    // MARK: - Math Subject UI Tests
+    func testCanSwitchToMathSubject() throws {
+        let app = launchReadyApp()
+
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+
+        let mathOption = app.buttons["subject_math"].firstMatch
+        XCTAssertTrue(mathOption.waitForExistence(timeout: 3))
+        mathOption.tap()
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+
+        sleep(3)
+
+        let logicText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Logic Gates")).firstMatch
+        XCTAssertTrue(logicText.waitForExistence(timeout: 5))
+    }
+
+    func testMathWorldSelection() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-math-world"])
+
+        let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Logic Gates")).firstMatch
+        XCTAssertTrue(worldText.waitForExistence(timeout: 3))
+        let puzzleText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Puzzle")).firstMatch
+        XCTAssertTrue(puzzleText.waitForExistence(timeout: 3))
+    }
+
+    func testMathChallengeInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-math-world"])
+
+        let choice = button("mathChoiceTestAction", in: app)
+        choice.tap()
+
+        let nextButton = app.buttons["nextMathChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }

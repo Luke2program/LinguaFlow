@@ -84,7 +84,12 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Navigate Europe by capital cities, rivers, mountains, and borders.", unlockRequirement: .none),
                 PlayableWorld(id: "african-wonders", name: "African Wonders", emoji: "🌍", era: "Ancient – Modern", description: "From the Sahara to Kilimanjaro. Rivers, deserts, and ecosystems.", unlockRequirement: .xpRequired(300)),
             ]
-        case .languages, .math, .culture, .business, .health:
+        case .math:
+            return [
+                PlayableWorld(id: "logic-gates", name: "Logic Gates", emoji: "🔢", era: "Foundations", description: "Crack pattern locks, ratios, and number rules in a neon puzzle vault.", unlockRequirement: .none),
+                PlayableWorld(id: "probability-casino", name: "Probability Casino", emoji: "🎲", era: "Chance", description: "Read odds, avoid traps, and make smarter bets with probability.", unlockRequirement: .xpRequired(400)),
+            ]
+        case .languages, .culture, .business, .health:
             return []
         }
     }
@@ -426,6 +431,97 @@ enum GeographyData {
     static func challenges(for worldId: String) -> [GeographyChallenge] {
         switch worldId {
         case "european-capitals": return europeanCapitalsChallenges
+        default: return []
+        }
+    }
+}
+
+// MARK: - Math Challenge (pattern-based puzzle)
+struct MathChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let domain: String
+    let question: String
+    let context: String
+    let choices: [MathChoice]
+    let patternClue: String
+    let ruleExplanation: String
+}
+
+struct MathChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum MathData {
+    static let logicGateChallenges: [MathChallenge] = [
+        MathChallenge(
+            id: "math-logic-01",
+            worldId: "logic-gates",
+            domain: "Sequences",
+            question: "The gate shows 3, 6, 12, 24, ?. Which number opens it?",
+            context: "A vault door doubles its signal strength at every step. Pick the next output before the timer resets.",
+            choices: [
+                MathChoice(id: "a", text: "30", isCorrect: false, explanation: "Adding 6 only works once. The pattern multiplies each term by 2."),
+                MathChoice(id: "b", text: "36", isCorrect: false, explanation: "That would add 12, but the earlier steps are not using a steady addition."),
+                MathChoice(id: "c", text: "48", isCorrect: true, explanation: "Correct. Each number doubles: 3, 6, 12, 24, 48."),
+                MathChoice(id: "d", text: "72", isCorrect: false, explanation: "72 triples 24. The gate has been doubling, not tripling.")
+            ],
+            patternClue: "Look at the multiplier between neighboring numbers.",
+            ruleExplanation: "Geometric sequences grow by multiplying by the same factor each step. Here the common ratio is 2."
+        ),
+        MathChallenge(
+            id: "math-logic-02",
+            worldId: "logic-gates",
+            domain: "Ratios",
+            question: "A potion mix uses 2 blue drops for every 5 gold drops. How many blue drops are needed for 20 gold drops?",
+            context: "The alchemy lock only accepts equivalent ratios. Scale the recipe without changing its balance.",
+            choices: [
+                MathChoice(id: "a", text: "4", isCorrect: false, explanation: "That scales gold from 5 to 10, not 20."),
+                MathChoice(id: "b", text: "8", isCorrect: true, explanation: "Correct. Gold is multiplied by 4, so blue must also be multiplied by 4: 2 x 4 = 8."),
+                MathChoice(id: "c", text: "10", isCorrect: false, explanation: "10 blue drops would make the ratio 10:20, which simplifies to 1:2 instead of 2:5."),
+                MathChoice(id: "d", text: "15", isCorrect: false, explanation: "15 blue drops makes the mixture far too blue for the 2:5 ratio.")
+            ],
+            patternClue: "Find how 5 becomes 20, then apply the same scale to 2.",
+            ruleExplanation: "Equivalent ratios keep the same relationship by multiplying both parts by the same factor."
+        ),
+        MathChallenge(
+            id: "math-logic-03",
+            worldId: "logic-gates",
+            domain: "Algebra",
+            question: "The console says 4x + 7 = 31. What is x?",
+            context: "A power bridge will activate only when you isolate the hidden variable.",
+            choices: [
+                MathChoice(id: "a", text: "5", isCorrect: false, explanation: "4 x 5 + 7 = 27, which is too low."),
+                MathChoice(id: "b", text: "6", isCorrect: true, explanation: "Correct. Subtract 7 to get 24, then divide by 4 to get 6."),
+                MathChoice(id: "c", text: "7", isCorrect: false, explanation: "4 x 7 + 7 = 35, which is too high."),
+                MathChoice(id: "d", text: "8", isCorrect: false, explanation: "4 x 8 + 7 = 39, farther from 31.")
+            ],
+            patternClue: "Undo the +7 first, then undo the x4.",
+            ruleExplanation: "Solving an equation means applying inverse operations in reverse order while keeping both sides balanced."
+        ),
+        MathChallenge(
+            id: "math-logic-04",
+            worldId: "logic-gates",
+            domain: "Percent",
+            question: "A shield has 80 energy. It loses 25%. How much energy remains?",
+            context: "The arena shield drains by a fraction of its current charge. Calculate what survives the hit.",
+            choices: [
+                MathChoice(id: "a", text: "20", isCorrect: false, explanation: "20 is the amount lost, not the amount remaining."),
+                MathChoice(id: "b", text: "55", isCorrect: false, explanation: "25% of 80 is 20, so the remaining energy is not 55."),
+                MathChoice(id: "c", text: "60", isCorrect: true, explanation: "Correct. 25% of 80 is 20, and 80 - 20 = 60."),
+                MathChoice(id: "d", text: "75", isCorrect: false, explanation: "That subtracts 5 instead of 25% of the total.")
+            ],
+            patternClue: "25% is one quarter. First find one quarter of 80.",
+            ruleExplanation: "A percentage is a part per hundred. Losing 25% means keeping 75%, so 0.75 x 80 = 60."
+        )
+    ]
+
+    static func challenges(for worldId: String) -> [MathChallenge] {
+        switch worldId {
+        case "logic-gates": return logicGateChallenges
         default: return []
         }
     }
