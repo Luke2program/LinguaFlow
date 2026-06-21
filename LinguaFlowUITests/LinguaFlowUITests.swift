@@ -69,6 +69,27 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(dashboard.waitForExistence(timeout: 3))
     }
 
+    func testCanChangeSubjectFromSettings() throws {
+        let app = launchReadyApp()
+
+        openSettings(in: app)
+
+        let subjectPicker = app.descendants(matching: .any)["subjectSettingsPicker"].firstMatch
+        XCTAssertTrue(subjectPicker.waitForExistence(timeout: 3))
+        subjectPicker.tap()
+
+        let historyOption = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "History")).firstMatch
+        XCTAssertTrue(historyOption.waitForExistence(timeout: 3))
+        historyOption.tap()
+
+        let doneButton = app.buttons["settingsDoneButton"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 5))
+        doneButton.tap()
+
+        let historyHeader = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "History")).firstMatch
+        XCTAssertTrue(historyHeader.waitForExistence(timeout: 3))
+    }
+
     func testCanOpenLoginAgainAfterSkippingAccount() throws {
         let app = launchReadyApp()
 

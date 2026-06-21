@@ -938,6 +938,25 @@ struct SettingsView: View {
                 }
                 .listRowBackground(Color.clear)
 
+                Section("Subject") {
+                    Picker("Subject", selection: Binding(
+                        get: { store.stats.selectedSubject },
+                        set: { subject in
+                            store.select(subject: subject)
+                        }
+                    )) {
+                        ForEach(Subject.allCases) { subject in
+                            Text(subject.displayName).tag(subject)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("subjectSettingsPicker")
+
+                    Text(store.stats.selectedSubject.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Learning Language") {
                     Picker("I speak", selection: Binding(
                         get: { store.stats.selectedLanguagePair.source },
