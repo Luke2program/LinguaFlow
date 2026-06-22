@@ -170,7 +170,7 @@ struct DashboardView: View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 14) {
-                    Text("dashboardReady").font(.caption2).opacity(0.01).accessibilityIdentifier("dashboardReady")
+                    Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
                     ChallengeUITestControls()
@@ -2101,7 +2101,7 @@ struct CultureChallengeView: View {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("Tradition clue")
                                     .font(.caption.bold())
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.primary.opacity(0.65))
                                     .accessibilityIdentifier("cultureTraditionClue")
                                 Text(challenge.traditionClue)
                                     .font(.subheadline)
