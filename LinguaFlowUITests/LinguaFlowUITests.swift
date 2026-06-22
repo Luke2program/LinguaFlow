@@ -141,6 +141,9 @@ final class LinguaFlowUITests: XCTestCase {
     func testHistoryWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
+        XCTAssertTrue(app.descendants(matching: .any)["historyMapPreview"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["historyMapPin_ancient-rome"].waitForExistence(timeout: 3))
+
         // Verify challenge appears by looking for a year text like "BCE"
         let yearText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "BCE")).firstMatch
         XCTAssertTrue(yearText.waitForExistence(timeout: 3))
@@ -184,6 +187,9 @@ final class LinguaFlowUITests: XCTestCase {
     func testScienceWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
+        XCTAssertTrue(app.descendants(matching: .any)["scienceMapPreview"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["scienceMapPin_space-exploration"].waitForExistence(timeout: 3))
+
         // Verify challenge appears by looking for Mission label
         let missionText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Mission")).firstMatch
         XCTAssertTrue(missionText.waitForExistence(timeout: 3))
@@ -226,6 +232,9 @@ final class LinguaFlowUITests: XCTestCase {
     func testGeographyWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-geography-world"])
 
+        XCTAssertTrue(app.descendants(matching: .any)["geographyMapPreview"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["geographyMapPin_european-capitals"].waitForExistence(timeout: 3))
+
         let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "European Capitals")).firstMatch
         XCTAssertTrue(worldText.waitForExistence(timeout: 3))
         let routeText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Route")).firstMatch
@@ -267,6 +276,9 @@ final class LinguaFlowUITests: XCTestCase {
     func testMathWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-math-world"])
 
+        XCTAssertTrue(app.descendants(matching: .any)["mathMapPreview"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["mathMapPin_logic-gates"].waitForExistence(timeout: 3))
+
         let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Logic Gates")).firstMatch
         XCTAssertTrue(worldText.waitForExistence(timeout: 3))
         let puzzleText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Puzzle")).firstMatch
@@ -307,6 +319,9 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCultureWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-culture-world"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["cultureMapPreview"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["cultureMapPin_heritage-kitchens"].waitForExistence(timeout: 3))
 
         let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Heritage Kitchens")).firstMatch
         XCTAssertTrue(worldText.waitForExistence(timeout: 3))

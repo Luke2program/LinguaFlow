@@ -65,6 +65,30 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .health: return "heart.text.square"
         }
     }
+
+    var mapTitle: String {
+        switch self {
+        case .languages: return "Language Route"
+        case .history: return "History Map"
+        case .science: return "Discovery Map"
+        case .geography: return "Atlas Map"
+        case .math: return "Puzzle Map"
+        case .culture: return "Culture Map"
+        case .business: return "Market Map"
+        case .health: return "Wellbeing Map"
+        }
+    }
+
+    var mapSystemImage: String {
+        switch self {
+        case .history: return "map.fill"
+        case .science: return "sparkles"
+        case .geography: return "map"
+        case .math: return "point.3.connected.trianglepath.dotted"
+        case .culture: return "figure.socialdance"
+        default: return icon
+        }
+    }
     
     var worlds: [PlayableWorld] {
         switch self {

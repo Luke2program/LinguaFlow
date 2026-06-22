@@ -1189,6 +1189,105 @@ struct SubjectPickerView: View {
     }
 }
 
+// MARK: - Generated Subject Map
+struct SubjectMapPreview: View {
+    let subject: Subject
+    let worlds: [PlayableWorld]
+    let selectedWorldId: String?
+    let xp: Int
+    let onSelect: (PlayableWorld) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(subject.mapTitle, systemImage: subject.mapSystemImage)
+                .font(.caption.bold())
+                .foregroundStyle(subject.accentColor)
+
+            GeometryReader { proxy in
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    subject.accentColor.opacity(0.16),
+                                    Color.primary.opacity(0.04),
+                                    subject.accentColor.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(subject.accentColor.opacity(0.22), lineWidth: 1)
+                        )
+
+                    Path { path in
+                        let points = mapPoints(in: proxy.size)
+                        guard let first = points.first else { return }
+                        path.move(to: first)
+                        for point in points.dropFirst() {
+                            path.addLine(to: point)
+                        }
+                    }
+                    .stroke(subject.accentColor.opacity(0.42), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [7, 5]))
+
+                    ForEach(Array(worlds.enumerated()), id: \.element.id) { index, world in
+                        let point = mapPoint(index: index, count: worlds.count, size: proxy.size)
+                        let locked = world.unlockRequirement.xpRequired.map { xp < $0 } ?? false
+                        let selected = selectedWorldId == world.id
+
+                        Button {
+                            if !locked {
+                                onSelect(world)
+                            }
+                        } label: {
+                            VStack(spacing: 3) {
+                                ZStack {
+                                    Circle()
+                                        .fill(selected ? subject.accentColor : Color(.systemBackground))
+                                        .frame(width: selected ? 38 : 32, height: selected ? 38 : 32)
+                                        .overlay(Circle().stroke(subject.accentColor.opacity(locked ? 0.25 : 0.75), lineWidth: 2))
+                                    Text(locked ? "🔒" : world.emoji)
+                                        .font(.system(size: selected ? 19 : 16))
+                                }
+                                Text(world.name)
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.center)
+                                    .frame(width: 76)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(locked)
+                        .position(point)
+                        .accessibilityIdentifier("\(subject.rawValue)MapPin_\(world.id)")
+                    }
+                }
+            }
+            .frame(height: 148)
+        }
+        .accessibilityIdentifier("\(subject.rawValue)MapPreview")
+    }
+
+    private func mapPoints(in size: CGSize) -> [CGPoint] {
+        worlds.indices.map { mapPoint(index: $0, count: worlds.count, size: size) }
+    }
+
+    private func mapPoint(index: Int, count: Int, size: CGSize) -> CGPoint {
+        guard count > 1 else {
+            return CGPoint(x: size.width * 0.5, y: size.height * 0.5)
+        }
+
+        let fraction = CGFloat(index) / CGFloat(count - 1)
+        let x = size.width * (0.16 + fraction * 0.68)
+        let wave = CGFloat(sin(Double(fraction) * Double.pi * 1.35))
+        let y = size.height * (0.64 - wave * 0.34)
+        return CGPoint(x: x, y: min(max(y, size.height * 0.23), size.height * 0.74))
+    }
+}
+
 // MARK: - History World Selection
 struct HistoryWorldView: View {
     @EnvironmentObject var store: AppStore
@@ -1204,6 +1303,10 @@ struct HistoryWorldView: View {
                     Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                SubjectMapPreview(subject: .history, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .history)
                 }
                 
                 ForEach(worlds) { world in
@@ -1400,6 +1503,10 @@ struct ScienceWorldView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+
+                SubjectMapPreview(subject: .science, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .science)
+                }
                 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -1591,6 +1698,10 @@ struct GeographyWorldView: View {
                     Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                SubjectMapPreview(subject: .geography, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .geography)
                 }
 
                 ForEach(worlds) { world in
@@ -1804,6 +1915,10 @@ struct MathWorldView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                SubjectMapPreview(subject: .math, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .math)
+                }
+
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
                     let selected = store.currentWorld?.id == world.id
@@ -2013,6 +2128,10 @@ struct CultureWorldView: View {
                     Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                SubjectMapPreview(subject: .culture, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .culture)
                 }
 
                 ForEach(worlds) { world in

@@ -79,6 +79,14 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(completedQuest.progress, 1.0, accuracy: 0.001)
         XCTAssertEqual(completedQuest.reward, "+18 XP · Guild Coin")
     }
+
+    func testPlayableSubjectsHaveGeneratedMapMetadata() {
+        XCTAssertEqual(Subject.history.mapTitle, "History Map")
+        XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")
+        XCTAssertEqual(Subject.math.mapTitle, "Puzzle Map")
+        XCTAssertFalse(Subject.history.mapSystemImage.isEmpty)
+        XCTAssertFalse(Subject.culture.mapSystemImage.isEmpty)
+    }
     
     func testHistoryWorldsExist() {
         let historyWorlds = Subject.history.worlds
