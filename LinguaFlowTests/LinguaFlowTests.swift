@@ -2,6 +2,12 @@ import XCTest
 @testable import LinguaFlow
 
 final class LinguaFlowTests: XCTestCase {
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        UserDefaults.standard.removeObject(forKey: "linguaflow.stats.v2")
+        UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
+    }
+
     func testSchedulerGraduatesLikeAnki() {
         let scheduler = SpacedRepetitionScheduler(calendar: Calendar(identifier: .gregorian))
         let now = Date(timeIntervalSince1970: 1_700_000_000)
