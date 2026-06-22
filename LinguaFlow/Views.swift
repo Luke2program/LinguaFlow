@@ -1202,6 +1202,7 @@ struct SubjectMapPreview: View {
             Label(subject.mapTitle, systemImage: subject.mapSystemImage)
                 .font(.caption.bold())
                 .foregroundStyle(subject.accentColor)
+                .accessibilityIdentifier("\(subject.rawValue)MapPreview")
 
             GeometryReader { proxy in
                 ZStack {
