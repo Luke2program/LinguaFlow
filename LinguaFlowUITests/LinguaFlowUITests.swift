@@ -282,4 +282,45 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextMathChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+
+    // MARK: - Culture Subject UI Tests
+    func testCanSwitchToCultureSubject() throws {
+        let app = launchReadyApp()
+
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+
+        let cultureOption = app.buttons["subject_culture"].firstMatch
+        XCTAssertTrue(cultureOption.waitForExistence(timeout: 3))
+        cultureOption.tap()
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+
+        sleep(3)
+
+        let kitchenText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Heritage Kitchens")).firstMatch
+        XCTAssertTrue(kitchenText.waitForExistence(timeout: 5))
+    }
+
+    func testCultureWorldSelection() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-culture-world"])
+
+        let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Heritage Kitchens")).firstMatch
+        XCTAssertTrue(worldText.waitForExistence(timeout: 3))
+        let storyText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Story")).firstMatch
+        XCTAssertTrue(storyText.waitForExistence(timeout: 3))
+    }
+
+    func testCultureChallengeInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-culture-world"])
+
+        let choice = button("cultureChoiceTestAction", in: app)
+        choice.tap()
+
+        let nextButton = app.buttons["nextCultureChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }

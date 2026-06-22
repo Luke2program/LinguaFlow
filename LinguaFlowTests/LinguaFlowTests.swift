@@ -330,6 +330,67 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testCultureWorldsExist() {
+        let cultureWorlds = Subject.culture.worlds
+        XCTAssertGreaterThanOrEqual(cultureWorlds.count, 2)
+        XCTAssertTrue(cultureWorlds.contains { $0.id == "heritage-kitchens" })
+        XCTAssertTrue(cultureWorlds.contains { $0.id == "festival-roads" })
+    }
+
+    func testHeritageKitchenChallengesLoaded() {
+        let challenges = CultureData.challenges(for: "heritage-kitchens")
+        XCTAssertGreaterThanOrEqual(challenges.count, 4)
+        let ramen = challenges.first { $0.id == "culture-kitchen-01" }
+        XCTAssertNotNil(ramen)
+        XCTAssertEqual(ramen?.region, "Japan")
+        XCTAssertEqual(ramen?.choices.count, 4)
+        XCTAssertTrue(ramen?.choices.contains { $0.isCorrect && $0.text.contains("Slurp") } ?? false)
+    }
+
+    func testCultureChallengeScoring() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .culture
+            store.select(worldId: "heritage-kitchens", for: .culture)
+
+            let challenge = CultureData.challenges(for: "heritage-kitchens")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+
+            store.submitCultureAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
+            let progress = store.stats.progress(for: .culture)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
+        }
+    }
+
+    func testCultureProgressPercent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .culture
+            store.select(worldId: "heritage-kitchens", for: .culture)
+
+            let challenge = CultureData.challenges(for: "heritage-kitchens")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitCultureAnswer(challenge: challenge, choice: correctChoice)
+
+            let percent = store.cultureProgressPercent
+            XCTAssertGreaterThan(percent, 0)
+            XCTAssertLessThanOrEqual(percent, 1.0)
+        }
+    }
+
     func testSelectingGeographyStartsFirstWorld() async {
         await MainActor.run {
             let store = AppStore()
@@ -359,6 +420,22 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.stats.selectedSubject, .math)
             XCTAssertEqual(store.currentWorld?.id, "logic-gates")
             XCTAssertNotNil(store.nextMathChallenge)
+        }
+    }
+
+    func testSelectingCultureStartsFirstWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+
+            store.select(subject: .culture)
+
+            XCTAssertEqual(store.stats.selectedSubject, .culture)
+            XCTAssertEqual(store.currentWorld?.id, "heritage-kitchens")
+            XCTAssertNotNil(store.nextCultureChallenge)
         }
     }
     

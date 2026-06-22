@@ -89,7 +89,12 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "logic-gates", name: "Logic Gates", emoji: "🔢", era: "Foundations", description: "Crack pattern locks, ratios, and number rules in a neon puzzle vault.", unlockRequirement: .none),
                 PlayableWorld(id: "probability-casino", name: "Probability Casino", emoji: "🎲", era: "Chance", description: "Read odds, avoid traps, and make smarter bets with probability.", unlockRequirement: .xpRequired(400)),
             ]
-        case .languages, .culture, .business, .health:
+        case .culture:
+            return [
+                PlayableWorld(id: "heritage-kitchens", name: "Heritage Kitchens", emoji: "🍜", era: "Living traditions", description: "Travel through food rituals, etiquette, markets, and everyday meanings behind iconic dishes.", unlockRequirement: .none),
+                PlayableWorld(id: "festival-roads", name: "Festival Roads", emoji: "🎊", era: "Seasonal cycles", description: "Follow real festivals through music, symbols, calendars, and community traditions.", unlockRequirement: .xpRequired(450)),
+            ]
+        case .languages, .business, .health:
             return []
         }
     }
@@ -522,6 +527,97 @@ enum MathData {
     static func challenges(for worldId: String) -> [MathChallenge] {
         switch worldId {
         case "logic-gates": return logicGateChallenges
+        default: return []
+        }
+    }
+}
+
+// MARK: - Culture Challenge (tradition-based scenario)
+struct CultureChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let region: String
+    let question: String
+    let context: String
+    let choices: [CultureChoice]
+    let traditionClue: String
+    let culturalNote: String
+}
+
+struct CultureChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum CultureData {
+    static let heritageKitchenChallenges: [CultureChallenge] = [
+        CultureChallenge(
+            id: "culture-kitchen-01",
+            worldId: "heritage-kitchens",
+            region: "Japan",
+            question: "At a small ramen shop in Tokyo, what is the most culturally normal way to show you enjoyed the noodles?",
+            context: "You are seated at a counter during a busy lunch rush. The cook serves ramen hot, and other customers are eating quickly before returning to work.",
+            choices: [
+                CultureChoice(id: "a", text: "Slurp the noodles while eating", isCorrect: true, explanation: "Correct. Slurping noodles is common in Japan. It cools the noodles and signals enjoyment, especially in casual ramen and soba settings."),
+                CultureChoice(id: "b", text: "Cut every noodle with a spoon", isCorrect: false, explanation: "That is not the usual eating style. Noodles are lifted with chopsticks and eaten directly."),
+                CultureChoice(id: "c", text: "Leave the bowl untouched for five minutes", isCorrect: false, explanation: "Ramen is meant to be eaten while hot. Waiting too long changes the texture."),
+                CultureChoice(id: "d", text: "Ask for bread to dip in the broth", isCorrect: false, explanation: "Bread is not a typical ramen accompaniment in Japan.")
+            ],
+            traditionClue: "Listen to the counter. Sound can be a social signal, not only noise.",
+            culturalNote: "Etiquette changes by setting: slurping noodles can be polite in a ramen shop, but loud chewing would still be rude in many contexts."
+        ),
+        CultureChallenge(
+            id: "culture-kitchen-02",
+            worldId: "heritage-kitchens",
+            region: "Morocco",
+            question: "A family serves couscous from one shared dish. Which choice best fits traditional hospitality?",
+            context: "You are invited to Friday couscous. Everyone gathers around a large plate, and the host offers the best vegetables and meat first.",
+            choices: [
+                CultureChoice(id: "a", text: "Eat from the section of the dish closest to you", isCorrect: true, explanation: "Correct. In shared-dish meals, it is polite to eat from your own area rather than reaching across the platter."),
+                CultureChoice(id: "b", text: "Reach across to take food from the opposite side", isCorrect: false, explanation: "Reaching across the shared dish can feel disrespectful because it crosses into another person's eating space."),
+                CultureChoice(id: "c", text: "Refuse the host's first offer without explanation", isCorrect: false, explanation: "Refusing hospitality abruptly can feel cold. If needed, decline gently and thank the host."),
+                CultureChoice(id: "d", text: "Start before elders or hosts begin", isCorrect: false, explanation: "Waiting for hosts or elders is a respectful habit in many Moroccan homes.")
+            ],
+            traditionClue: "Shared food often has invisible borders shaped by respect.",
+            culturalNote: "Moroccan hospitality is strongly tied to generosity, family gathering, and making guests feel honored."
+        ),
+        CultureChallenge(
+            id: "culture-kitchen-03",
+            worldId: "heritage-kitchens",
+            region: "Mexico",
+            question: "You are eating tacos at a street stand. What does the tortilla mainly function as?",
+            context: "The taquero hands you small corn tortillas filled with meat, onion, cilantro, and salsa. There are no forks on the counter.",
+            choices: [
+                CultureChoice(id: "a", text: "A practical edible wrapper for hot fillings", isCorrect: true, explanation: "Correct. The tortilla works as both staple food and utensil, holding fillings while adding flavor and texture."),
+                CultureChoice(id: "b", text: "A decorative plate that should not be eaten", isCorrect: false, explanation: "The tortilla is central to the meal and is meant to be eaten."),
+                CultureChoice(id: "c", text: "A dessert layer served after the filling", isCorrect: false, explanation: "Tortillas are usually savory staples in tacos, not dessert layers."),
+                CultureChoice(id: "d", text: "A symbol that replaces all sauces", isCorrect: false, explanation: "Salsas, lime, onion, and cilantro are important companions and vary by region.")
+            ],
+            traditionClue: "A staple can also be a tool.",
+            culturalNote: "Maize has deep Indigenous roots in Mexico, and tortillas remain a daily foundation across regional cuisines."
+        ),
+        CultureChallenge(
+            id: "culture-kitchen-04",
+            worldId: "heritage-kitchens",
+            region: "Ethiopia",
+            question: "In an Ethiopian meal, why is injera placed under stews and also torn by hand?",
+            context: "Several stews are served on a wide layer of injera. Diners tear extra pieces and use them to scoop bites from the shared platter.",
+            choices: [
+                CultureChoice(id: "a", text: "It is both plate and utensil", isCorrect: true, explanation: "Correct. Injera holds the stews and is torn to scoop them, absorbing flavors as the meal continues."),
+                CultureChoice(id: "b", text: "It is only decoration", isCorrect: false, explanation: "Injera is eaten throughout the meal and is central to the dining experience."),
+                CultureChoice(id: "c", text: "It is used to cool tea", isCorrect: false, explanation: "Injera is paired with stews, not used for tea."),
+                CultureChoice(id: "d", text: "It is left for the server", isCorrect: false, explanation: "The base injera is often the most flavorful part because it absorbs sauces.")
+            ],
+            traditionClue: "The tableware is edible.",
+            culturalNote: "Sharing injera and stews supports a communal style of eating, with attention to generosity and togetherness."
+        )
+    ]
+
+    static func challenges(for worldId: String) -> [CultureChallenge] {
+        switch worldId {
+        case "heritage-kitchens": return heritageKitchenChallenges
         default: return []
         }
     }

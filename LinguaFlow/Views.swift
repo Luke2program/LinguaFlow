@@ -195,6 +195,9 @@ struct DashboardView: View {
                     } else if store.stats.selectedSubject == .math {
                         MathWorldView()
                         MathChallengeView()
+                    } else if store.stats.selectedSubject == .culture {
+                        CultureWorldView()
+                        CultureChallengeView()
                     } else {
                         ComingSoonSubjectView()
                     }
@@ -323,6 +326,7 @@ private struct ChallengeUITestControls: View {
     @State private var answeredScience = false
     @State private var answeredGeography = false
     @State private var answeredMath = false
+    @State private var answeredCulture = false
 
     private var isHistoryUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world")
@@ -338,6 +342,10 @@ private struct ChallengeUITestControls: View {
 
     private var isMathUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-math-world")
+    }
+
+    private var isCultureUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-culture-world")
     }
 
     var body: some View {
@@ -422,6 +430,27 @@ private struct ChallengeUITestControls: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("mathChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if isCultureUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredCulture {
+                    Button("Next Story") {
+                        answeredCulture = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextCultureChallenge")
+                } else {
+                    Button("Answer first culture choice") {
+                        if let challenge = store.nextCultureChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitCultureAnswer(challenge: challenge, choice: firstChoice)
+                            answeredCulture = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("cultureChoiceTestAction")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1966,6 +1995,217 @@ struct MathChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextMathChallenge
+    }
+}
+
+// MARK: - Culture World Selection
+struct CultureWorldView: View {
+    @EnvironmentObject var store: AppStore
+    var body: some View {
+        let worlds = store.stats.selectedSubject.worlds
+        let xp = store.stats.xp
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Culture Worlds", systemImage: "theatermasks")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(worlds) { world in
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
+                    let selected = store.currentWorld?.id == world.id
+                    Button {
+                        if !locked {
+                            store.select(worldId: world.id, for: .culture)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(world.emoji)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(world.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                Text(world.era)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if locked {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(world.unlockRequirement.xpRequired ?? 0) XP")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if selected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.pink)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locked)
+                    .accessibilityIdentifier("cultureWorld_\(world.id)")
+                }
+
+                if let world = store.currentWorld {
+                    Text(world.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                }
+            }
+        }
+        .accessibilityIdentifier("cultureWorldView")
+    }
+}
+
+// MARK: - Culture Challenge View
+struct CultureChallengeView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var selectedChoiceId: String? = nil
+    @State private var showResult = false
+    @State private var currentChallenge: CultureChallenge? = nil
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Story", systemImage: "fork.knife.circle")
+                        .font(.headline)
+                    Spacer()
+                    if let challenge = currentChallenge {
+                        Text(challenge.region)
+                            .font(.caption.bold())
+                            .foregroundStyle(.pink)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.pink.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if let challenge = currentChallenge {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "quote.bubble.fill")
+                                .font(.title2)
+                                .foregroundStyle(.pink)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Tradition clue")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("cultureTraditionClue")
+                                Text(challenge.traditionClue)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.pink.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        Text(challenge.question)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+
+                        Text(challenge.context)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+
+                        if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: choice.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                    Text(choice.isCorrect ? "Tradition unlocked!" : "Context missed")
+                                        .font(.headline)
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                Text(choice.explanation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text(challenge.culturalNote)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 4)
+                            }
+                            .padding(12)
+                            .background(Color.primary.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                            .accessibilityIdentifier("cultureResult")
+                        }
+
+                        if !showResult {
+                            ForEach(challenge.choices, id: \.id) { choice in
+                                Button {
+                                    withAnimation {
+                                        selectedChoiceId = choice.id
+                                        showResult = true
+                                        store.submitCultureAnswer(challenge: challenge, choice: choice)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(choice.text)
+                                            .font(.subheadline.bold())
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("cultureChoice_\(choice.id)")
+                            }
+                        } else {
+                            Button("Next Story") {
+                                withAnimation {
+                                    selectedChoiceId = nil
+                                    showResult = false
+                                    loadNextChallenge()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.pink)
+                            .accessibilityIdentifier("nextCultureChallenge")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Text("🎭 Journey Complete!")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        Text("You've explored every available tradition in this world. More culture stories coming soon!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+                }
+            }
+        }
+        .onAppear { loadNextChallenge() }
+        .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
+        .accessibilityIdentifier("cultureChallengeView")
+    }
+
+    private func loadNextChallenge() {
+        currentChallenge = store.nextCultureChallenge
     }
 }
 

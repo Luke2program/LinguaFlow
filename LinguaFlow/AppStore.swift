@@ -92,6 +92,13 @@ final class AppStore: ObservableObject {
                 progress.completedChallengeIds = []
                 stats.updateProgress(for: .math, progress)
             }
+            if arguments.contains("--ui-testing-culture-world") {
+                stats.selectedSubject = .culture
+                var progress = stats.progress(for: .culture)
+                progress.currentWorldId = "heritage-kitchens"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .culture, progress)
+            }
             prepareSchedulesForCurrentSelection()
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
@@ -384,6 +391,24 @@ final class AppStore: ObservableObject {
         refreshPracticeDay()
         save()
     }
+
+    func submitCultureAnswer(challenge: CultureChallenge, choice: CultureChoice) {
+        var progress = stats.progress(for: .culture)
+        if !progress.completedChallengeIds.contains(challenge.id) {
+            progress.completedChallengeIds.append(challenge.id)
+            let xpEarned = choice.isCorrect ? 25 : 10
+            progress.totalHistoryXP += xpEarned
+            stats.xp += xpEarned
+            stats.gems += choice.isCorrect ? 2 : 0
+            stats.reviewedToday += 1
+            if choice.isCorrect { stats.correctToday += 1 }
+            progress.worldScores[challenge.worldId, default: 0] += xpEarned
+            feedPet(correctCount: choice.isCorrect ? 2 : 1)
+        }
+        stats.updateProgress(for: .culture, progress)
+        refreshPracticeDay()
+        save()
+    }
     
     var currentWorld: PlayableWorld? {
         guard let worldId = stats.progress(for: stats.selectedSubject).currentWorldId else { return nil }
@@ -415,6 +440,13 @@ final class AppStore: ObservableObject {
         let progress = stats.progress(for: .math)
         guard let worldId = progress.currentWorldId else { return nil }
         let challenges = MathData.challenges(for: worldId)
+        return challenges.first { !progress.completedChallengeIds.contains($0.id) }
+    }
+
+    var nextCultureChallenge: CultureChallenge? {
+        let progress = stats.progress(for: .culture)
+        guard let worldId = progress.currentWorldId else { return nil }
+        let challenges = CultureData.challenges(for: worldId)
         return challenges.first { !progress.completedChallengeIds.contains($0.id) }
     }
     
@@ -455,6 +487,16 @@ final class AppStore: ObservableObject {
         guard total > 0 else { return 0 }
         return Double(progress.completedChallengeIds.filter { id in
             MathData.challenges(for: worldId).contains { $0.id == id }
+        }.count) / Double(total)
+    }
+
+    var cultureProgressPercent: Double {
+        let progress = stats.progress(for: .culture)
+        guard let worldId = progress.currentWorldId else { return 0 }
+        let total = CultureData.challenges(for: worldId).count
+        guard total > 0 else { return 0 }
+        return Double(progress.completedChallengeIds.filter { id in
+            CultureData.challenges(for: worldId).contains { $0.id == id }
         }.count) / Double(total)
     }
 
