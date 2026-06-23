@@ -1199,10 +1199,13 @@ struct SubjectMapPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(subject.mapTitle, systemImage: subject.mapSystemImage)
-                .font(.caption.bold())
-                .foregroundStyle(subject.accentColor)
-                .accessibilityIdentifier("\(subject.rawValue)MapPreview")
+            HStack(spacing: 6) {
+                Image(systemName: subject.mapSystemImage)
+                Text(subject.mapTitle)
+                    .accessibilityIdentifier("\(subject.rawValue)MapPreview")
+            }
+            .font(.caption.bold())
+            .foregroundStyle(subject.accentColor)
 
             GeometryReader { proxy in
                 ZStack {
