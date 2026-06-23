@@ -1202,10 +1202,12 @@ struct SubjectMapPreview: View {
             HStack(spacing: 6) {
                 Image(systemName: subject.mapSystemImage)
                 Text(subject.mapTitle)
-                    .accessibilityIdentifier("\(subject.rawValue)MapPreview")
             }
             .font(.caption.bold())
             .foregroundStyle(subject.accentColor)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(subject.mapTitle)
+            .accessibilityIdentifier("\(subject.rawValue)MapPreview")
 
             GeometryReader { proxy in
                 ZStack {
@@ -1272,7 +1274,6 @@ struct SubjectMapPreview: View {
             }
             .frame(height: 148)
         }
-        .accessibilityIdentifier("\(subject.rawValue)MapPreview")
     }
 
     private func mapPoints(in size: CGSize) -> [CGPoint] {
