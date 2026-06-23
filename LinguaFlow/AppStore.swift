@@ -99,6 +99,13 @@ final class AppStore: ObservableObject {
                 progress.completedChallengeIds = []
                 stats.updateProgress(for: .culture, progress)
             }
+            if arguments.contains("--ui-testing-business-world") {
+                stats.selectedSubject = .business
+                var progress = stats.progress(for: .business)
+                progress.currentWorldId = "founder-guild"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .business, progress)
+            }
             prepareSchedulesForCurrentSelection()
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
@@ -409,6 +416,24 @@ final class AppStore: ObservableObject {
         refreshPracticeDay()
         save()
     }
+
+    func submitBusinessAnswer(challenge: BusinessChallenge, choice: BusinessChoice) {
+        var progress = stats.progress(for: .business)
+        if !progress.completedChallengeIds.contains(challenge.id) {
+            progress.completedChallengeIds.append(challenge.id)
+            let xpEarned = choice.isCorrect ? 25 : 10
+            progress.totalHistoryXP += xpEarned
+            stats.xp += xpEarned
+            stats.gems += choice.isCorrect ? 2 : 0
+            stats.reviewedToday += 1
+            if choice.isCorrect { stats.correctToday += 1 }
+            progress.worldScores[challenge.worldId, default: 0] += xpEarned
+            feedPet(correctCount: choice.isCorrect ? 2 : 1)
+        }
+        stats.updateProgress(for: .business, progress)
+        refreshPracticeDay()
+        save()
+    }
     
     var currentWorld: PlayableWorld? {
         guard let worldId = stats.progress(for: stats.selectedSubject).currentWorldId else { return nil }
@@ -447,6 +472,13 @@ final class AppStore: ObservableObject {
         let progress = stats.progress(for: .culture)
         guard let worldId = progress.currentWorldId else { return nil }
         let challenges = CultureData.challenges(for: worldId)
+        return challenges.first { !progress.completedChallengeIds.contains($0.id) }
+    }
+
+    var nextBusinessChallenge: BusinessChallenge? {
+        let progress = stats.progress(for: .business)
+        guard let worldId = progress.currentWorldId else { return nil }
+        let challenges = BusinessData.challenges(for: worldId)
         return challenges.first { !progress.completedChallengeIds.contains($0.id) }
     }
     
@@ -497,6 +529,16 @@ final class AppStore: ObservableObject {
         guard total > 0 else { return 0 }
         return Double(progress.completedChallengeIds.filter { id in
             CultureData.challenges(for: worldId).contains { $0.id == id }
+        }.count) / Double(total)
+    }
+
+    var businessProgressPercent: Double {
+        let progress = stats.progress(for: .business)
+        guard let worldId = progress.currentWorldId else { return 0 }
+        let total = BusinessData.challenges(for: worldId).count
+        guard total > 0 else { return 0 }
+        return Double(progress.completedChallengeIds.filter { id in
+            BusinessData.challenges(for: worldId).contains { $0.id == id }
         }.count) / Double(total)
     }
 

@@ -198,6 +198,9 @@ struct DashboardView: View {
                     } else if store.stats.selectedSubject == .culture {
                         CultureWorldView()
                         CultureChallengeView()
+                    } else if store.stats.selectedSubject == .business {
+                        BusinessWorldView()
+                        BusinessChallengeView()
                     } else {
                         ComingSoonSubjectView()
                     }
@@ -327,6 +330,7 @@ private struct ChallengeUITestControls: View {
     @State private var answeredGeography = false
     @State private var answeredMath = false
     @State private var answeredCulture = false
+    @State private var answeredBusiness = false
 
     private var isHistoryUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world")
@@ -346,6 +350,10 @@ private struct ChallengeUITestControls: View {
 
     private var isCultureUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-culture-world")
+    }
+
+    private var isBusinessUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-business-world")
     }
 
     var body: some View {
@@ -451,6 +459,27 @@ private struct ChallengeUITestControls: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("cultureChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if isBusinessUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredBusiness {
+                    Button("Next Deal") {
+                        answeredBusiness = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextBusinessChallenge")
+                } else {
+                    Button("Answer first business choice") {
+                        if let challenge = store.nextBusinessChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitBusinessAnswer(challenge: challenge, choice: firstChoice)
+                            answeredBusiness = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("businessChoiceTestAction")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -2330,6 +2359,221 @@ struct CultureChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextCultureChallenge
+    }
+}
+
+// MARK: - Business World Selection
+struct BusinessWorldView: View {
+    @EnvironmentObject var store: AppStore
+    var body: some View {
+        let worlds = store.stats.selectedSubject.worlds
+        let xp = store.stats.xp
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Market Worlds", systemImage: "chart.line.uptrend.xyaxis")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                SubjectMapPreview(subject: .business, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .business)
+                }
+
+                ForEach(worlds) { world in
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
+                    let selected = store.currentWorld?.id == world.id
+                    Button {
+                        if !locked {
+                            store.select(worldId: world.id, for: .business)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(world.emoji)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(world.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                Text(world.era)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if locked {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(world.unlockRequirement.xpRequired ?? 0) XP")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if selected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.indigo)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locked)
+                    .accessibilityIdentifier("businessWorld_\(world.id)")
+                }
+
+                if let world = store.currentWorld {
+                    Text(world.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                }
+            }
+        }
+        .accessibilityIdentifier("businessWorldView")
+    }
+}
+
+// MARK: - Business Challenge View
+struct BusinessChallengeView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var selectedChoiceId: String? = nil
+    @State private var showResult = false
+    @State private var currentChallenge: BusinessChallenge? = nil
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Decision", systemImage: "briefcase.fill")
+                        .font(.headline)
+                    Spacer()
+                    if let challenge = currentChallenge {
+                        Text(challenge.domain)
+                            .font(.caption.bold())
+                            .foregroundStyle(.indigo)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.indigo.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if let challenge = currentChallenge {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "waveform.path.ecg.rectangle")
+                                .font(.title2)
+                                .foregroundStyle(.indigo)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Market signal")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.primary.opacity(0.65))
+                                    .accessibilityIdentifier("businessMarketSignal")
+                                Text(challenge.marketSignal)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.indigo.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        Text(challenge.question)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+
+                        Text(challenge.context)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+
+                        if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: choice.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                    Text(choice.isCorrect ? "Smart move!" : "Costly move")
+                                        .font(.headline)
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                Text(choice.explanation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text(challenge.lesson)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 4)
+                            }
+                            .padding(12)
+                            .background(Color.primary.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                            .accessibilityIdentifier("businessResult")
+                        }
+
+                        if !showResult {
+                            ForEach(challenge.choices, id: \.id) { choice in
+                                Button {
+                                    withAnimation {
+                                        selectedChoiceId = choice.id
+                                        showResult = true
+                                        store.submitBusinessAnswer(challenge: challenge, choice: choice)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(choice.text)
+                                            .font(.subheadline.bold())
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("businessChoice_\(choice.id)")
+                            }
+                        } else {
+                            Button("Next Deal") {
+                                withAnimation {
+                                    selectedChoiceId = nil
+                                    showResult = false
+                                    loadNextChallenge()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.indigo)
+                            .accessibilityIdentifier("nextBusinessChallenge")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Text("📈 Deal Board Complete!")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        Text("You've handled every available decision in this world. More business scenarios coming soon!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+                }
+            }
+        }
+        .onAppear { loadNextChallenge() }
+        .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
+        .accessibilityIdentifier("businessChallengeView")
+    }
+
+    private func loadNextChallenge() {
+        currentChallenge = store.nextBusinessChallenge
     }
 }
 

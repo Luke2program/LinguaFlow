@@ -405,6 +405,67 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testBusinessWorldsExist() {
+        let businessWorlds = Subject.business.worlds
+        XCTAssertGreaterThanOrEqual(businessWorlds.count, 2)
+        XCTAssertTrue(businessWorlds.contains { $0.id == "founder-guild" })
+        XCTAssertTrue(businessWorlds.contains { $0.id == "wall-street-desk" })
+    }
+
+    func testFounderGuildChallengesLoaded() {
+        let challenges = BusinessData.challenges(for: "founder-guild")
+        XCTAssertGreaterThanOrEqual(challenges.count, 4)
+        let discovery = challenges.first { $0.id == "business-founder-01" }
+        XCTAssertNotNil(discovery)
+        XCTAssertEqual(discovery?.domain, "Customer Discovery")
+        XCTAssertEqual(discovery?.choices.count, 4)
+        XCTAssertTrue(discovery?.choices.contains { $0.isCorrect && $0.text.contains("Interview") } ?? false)
+    }
+
+    func testBusinessChallengeScoring() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .business
+            store.select(worldId: "founder-guild", for: .business)
+
+            let challenge = BusinessData.challenges(for: "founder-guild")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+
+            store.submitBusinessAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
+            let progress = store.stats.progress(for: .business)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
+        }
+    }
+
+    func testBusinessProgressPercent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .business
+            store.select(worldId: "founder-guild", for: .business)
+
+            let challenge = BusinessData.challenges(for: "founder-guild")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitBusinessAnswer(challenge: challenge, choice: correctChoice)
+
+            let percent = store.businessProgressPercent
+            XCTAssertGreaterThan(percent, 0)
+            XCTAssertLessThanOrEqual(percent, 1.0)
+        }
+    }
+
     func testSelectingGeographyStartsFirstWorld() async {
         await MainActor.run {
             let store = AppStore()
@@ -450,6 +511,22 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.stats.selectedSubject, .culture)
             XCTAssertEqual(store.currentWorld?.id, "heritage-kitchens")
             XCTAssertNotNil(store.nextCultureChallenge)
+        }
+    }
+
+    func testSelectingBusinessStartsFirstWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+
+            store.select(subject: .business)
+
+            XCTAssertEqual(store.stats.selectedSubject, .business)
+            XCTAssertEqual(store.currentWorld?.id, "founder-guild")
+            XCTAssertNotNil(store.nextBusinessChallenge)
         }
     }
     

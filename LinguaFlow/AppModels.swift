@@ -118,7 +118,12 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "heritage-kitchens", name: "Heritage Kitchens", emoji: "🍜", era: "Living traditions", description: "Travel through food rituals, etiquette, markets, and everyday meanings behind iconic dishes.", unlockRequirement: .none),
                 PlayableWorld(id: "festival-roads", name: "Festival Roads", emoji: "🎊", era: "Seasonal cycles", description: "Follow real festivals through music, symbols, calendars, and community traditions.", unlockRequirement: .xpRequired(450)),
             ]
-        case .languages, .business, .health:
+        case .business:
+            return [
+                PlayableWorld(id: "founder-guild", name: "Founder Guild", emoji: "📈", era: "Startup basics", description: "Make practical startup, pricing, cash-flow, and customer decisions under pressure.", unlockRequirement: .none),
+                PlayableWorld(id: "wall-street-desk", name: "Wall Street Desk", emoji: "💼", era: "Markets", description: "Read incentives, risk, diversification, and market signals without falling for hype.", unlockRequirement: .xpRequired(550)),
+            ]
+        case .languages, .health:
             return []
         }
     }
@@ -642,6 +647,97 @@ enum CultureData {
     static func challenges(for worldId: String) -> [CultureChallenge] {
         switch worldId {
         case "heritage-kitchens": return heritageKitchenChallenges
+        default: return []
+        }
+    }
+}
+
+// MARK: - Business Challenge (decision-based scenario)
+struct BusinessChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let domain: String
+    let question: String
+    let context: String
+    let choices: [BusinessChoice]
+    let marketSignal: String
+    let lesson: String
+}
+
+struct BusinessChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum BusinessData {
+    static let founderGuildChallenges: [BusinessChallenge] = [
+        BusinessChallenge(
+            id: "business-founder-01",
+            worldId: "founder-guild",
+            domain: "Customer Discovery",
+            question: "You have two weeks before building. What should the founder do first?",
+            context: "A small team wants to launch a study-planning app. They have a feature list, but no paying users yet.",
+            choices: [
+                BusinessChoice(id: "a", text: "Interview target users about painful study moments", isCorrect: true, explanation: "Correct. Real customer discovery reduces the risk of building features no one needs."),
+                BusinessChoice(id: "b", text: "Spend the full budget on a logo and launch video", isCorrect: false, explanation: "Branding can help later, but it does not prove the problem is worth solving."),
+                BusinessChoice(id: "c", text: "Build every planned feature before showing anyone", isCorrect: false, explanation: "That delays feedback and increases waste if the assumptions are wrong."),
+                BusinessChoice(id: "d", text: "Copy the largest competitor's pricing page", isCorrect: false, explanation: "Competitor research is useful, but copying does not reveal your own customers' needs.")
+            ],
+            marketSignal: "No revenue yet, unclear pain point, small runway.",
+            lesson: "Good startups test demand before scaling product. Interviews, preorders, pilots, and usage data beat guesses."
+        ),
+        BusinessChallenge(
+            id: "business-founder-02",
+            worldId: "founder-guild",
+            domain: "Pricing",
+            question: "A beta customer says the product saves their team five hours a week. What pricing move is strongest?",
+            context: "The app costs little to serve, but support takes time. Customers are small businesses, not consumers.",
+            choices: [
+                BusinessChoice(id: "a", text: "Anchor price to the value saved and test a paid pilot", isCorrect: true, explanation: "Correct. B2B pricing should connect to business value and validate willingness to pay."),
+                BusinessChoice(id: "b", text: "Make it free forever to avoid awkward sales calls", isCorrect: false, explanation: "Free users can create activity without proving a sustainable business."),
+                BusinessChoice(id: "c", text: "Set the lowest possible price because software is cheap to copy", isCorrect: false, explanation: "Low pricing can signal low value and may not cover support or acquisition costs."),
+                BusinessChoice(id: "d", text: "Never discuss price until the product is perfect", isCorrect: false, explanation: "Price feedback is part of product learning, especially for business tools.")
+            ],
+            marketSignal: "Clear time savings, small support burden, business buyer.",
+            lesson: "Price is a strategy signal. Sustainable pricing considers customer value, costs, market alternatives, and sales motion."
+        ),
+        BusinessChallenge(
+            id: "business-founder-03",
+            worldId: "founder-guild",
+            domain: "Cash Flow",
+            question: "Sales are growing, but the company is almost out of cash. Which metric needs attention immediately?",
+            context: "Customers pay invoices after 60 days. Contractors and software bills are due every month.",
+            choices: [
+                BusinessChoice(id: "a", text: "Cash conversion and runway", isCorrect: true, explanation: "Correct. A business can grow on paper and still fail if cash arrives too late."),
+                BusinessChoice(id: "b", text: "Office decoration budget", isCorrect: false, explanation: "Office feel may affect morale, but it is not the urgent survival metric."),
+                BusinessChoice(id: "c", text: "Number of social followers", isCorrect: false, explanation: "Followers are not enough if they do not turn into timely cash."),
+                BusinessChoice(id: "d", text: "How many features competitors launched", isCorrect: false, explanation: "Competitive awareness matters, but cash timing is the immediate risk.")
+            ],
+            marketSignal: "Revenue up, delayed payments, monthly expenses due now.",
+            lesson: "Profit and cash are different. Runway, payment terms, burn rate, and collections can decide whether a business survives."
+        ),
+        BusinessChallenge(
+            id: "business-founder-04",
+            worldId: "founder-guild",
+            domain: "Strategy",
+            question: "A bigger competitor adds your headline feature. What is the smartest response?",
+            context: "Your small product has loyal users in one niche. The competitor has a broader platform but weak onboarding for that niche.",
+            choices: [
+                BusinessChoice(id: "a", text: "Double down on the niche workflow and customer intimacy", isCorrect: true, explanation: "Correct. A focused company can win by serving a specific job better than a broad platform."),
+                BusinessChoice(id: "b", text: "Panic and rebuild the entire product this week", isCorrect: false, explanation: "Reactive pivots can destroy what existing customers already value."),
+                BusinessChoice(id: "c", text: "Lower the price to zero immediately", isCorrect: false, explanation: "Discounting alone rarely beats a stronger product or clearer positioning."),
+                BusinessChoice(id: "d", text: "Stop talking to customers until the threat passes", isCorrect: false, explanation: "Customer contact is most valuable when the market changes.")
+            ],
+            marketSignal: "Broad competitor, loyal niche users, differentiated workflow.",
+            lesson: "Strategy is choosing where to win. Focus, switching costs, trust, distribution, and speed can matter more than feature parity."
+        )
+    ]
+
+    static func challenges(for worldId: String) -> [BusinessChallenge] {
+        switch worldId {
+        case "founder-guild": return founderGuildChallenges
         default: return []
         }
     }

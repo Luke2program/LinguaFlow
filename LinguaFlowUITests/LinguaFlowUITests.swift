@@ -323,4 +323,45 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextCultureChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+
+    // MARK: - Business Subject UI Tests
+    func testCanSwitchToBusinessSubject() throws {
+        let app = launchReadyApp()
+
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+
+        let businessOption = app.buttons["subject_business"].firstMatch
+        XCTAssertTrue(businessOption.waitForExistence(timeout: 3))
+        businessOption.tap()
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+
+        sleep(3)
+
+        let founderText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Founder Guild")).firstMatch
+        XCTAssertTrue(founderText.waitForExistence(timeout: 5))
+    }
+
+    func testBusinessWorldSelection() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-business-world"])
+
+        let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Founder Guild")).firstMatch
+        XCTAssertTrue(worldText.waitForExistence(timeout: 3))
+        let decisionText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Decision")).firstMatch
+        XCTAssertTrue(decisionText.waitForExistence(timeout: 3))
+    }
+
+    func testBusinessChallengeInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-business-world"])
+
+        let choice = button("businessChoiceTestAction", in: app)
+        choice.tap()
+
+        let nextButton = app.buttons["nextBusinessChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }
