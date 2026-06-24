@@ -466,6 +466,67 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testHealthWorldsExist() {
+        let healthWorlds = Subject.health.worlds
+        XCTAssertGreaterThanOrEqual(healthWorlds.count, 2)
+        XCTAssertTrue(healthWorlds.contains { $0.id == "energy-clinic" })
+        XCTAssertTrue(healthWorlds.contains { $0.id == "resilience-gym" })
+    }
+
+    func testEnergyClinicChallengesLoaded() {
+        let challenges = HealthData.challenges(for: "energy-clinic")
+        XCTAssertGreaterThanOrEqual(challenges.count, 4)
+        let sleep = challenges.first { $0.id == "health-energy-01" }
+        XCTAssertNotNil(sleep)
+        XCTAssertEqual(sleep?.domain, "Sleep")
+        XCTAssertEqual(sleep?.choices.count, 4)
+        XCTAssertTrue(sleep?.choices.contains { $0.isCorrect && $0.text.contains("Dim lights") } ?? false)
+    }
+
+    func testHealthChallengeScoring() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .health
+            store.select(worldId: "energy-clinic", for: .health)
+
+            let challenge = HealthData.challenges(for: "energy-clinic")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, initialXP + 25)
+            XCTAssertEqual(store.stats.gems, initialGems + 2)
+            let progress = store.stats.progress(for: .health)
+            XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
+        }
+    }
+
+    func testHealthProgressPercent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .health
+            store.select(worldId: "energy-clinic", for: .health)
+
+            let challenge = HealthData.challenges(for: "energy-clinic")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+
+            let percent = store.healthProgressPercent
+            XCTAssertGreaterThan(percent, 0)
+            XCTAssertLessThanOrEqual(percent, 1.0)
+        }
+    }
+
     func testSelectingGeographyStartsFirstWorld() async {
         await MainActor.run {
             let store = AppStore()
@@ -527,6 +588,22 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.stats.selectedSubject, .business)
             XCTAssertEqual(store.currentWorld?.id, "founder-guild")
             XCTAssertNotNil(store.nextBusinessChallenge)
+        }
+    }
+
+    func testSelectingHealthStartsFirstWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+
+            store.select(subject: .health)
+
+            XCTAssertEqual(store.stats.selectedSubject, .health)
+            XCTAssertEqual(store.currentWorld?.id, "energy-clinic")
+            XCTAssertNotNil(store.nextHealthChallenge)
         }
     }
     

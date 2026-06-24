@@ -123,7 +123,12 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "founder-guild", name: "Founder Guild", emoji: "📈", era: "Startup basics", description: "Make practical startup, pricing, cash-flow, and customer decisions under pressure.", unlockRequirement: .none),
                 PlayableWorld(id: "wall-street-desk", name: "Wall Street Desk", emoji: "💼", era: "Markets", description: "Read incentives, risk, diversification, and market signals without falling for hype.", unlockRequirement: .xpRequired(550)),
             ]
-        case .languages, .health:
+        case .health:
+            return [
+                PlayableWorld(id: "energy-clinic", name: "Energy Clinic", emoji: "💚", era: "Daily systems", description: "Stabilize sleep, food, movement, hydration, and stress with practical habit decisions.", unlockRequirement: .none),
+                PlayableWorld(id: "resilience-gym", name: "Resilience Gym", emoji: "🧠", era: "Mind and recovery", description: "Train recovery, focus, emotional regulation, and long-term wellbeing without health fads.", unlockRequirement: .xpRequired(500)),
+            ]
+        case .languages:
             return []
         }
     }
@@ -738,6 +743,97 @@ enum BusinessData {
     static func challenges(for worldId: String) -> [BusinessChallenge] {
         switch worldId {
         case "founder-guild": return founderGuildChallenges
+        default: return []
+        }
+    }
+}
+
+// MARK: - Health Challenge (habit-based scenario)
+struct HealthChallenge: Identifiable, Codable, Equatable {
+    let id: String
+    let worldId: String
+    let domain: String
+    let question: String
+    let context: String
+    let choices: [HealthChoice]
+    let bodySignal: String
+    let habitLesson: String
+}
+
+struct HealthChoice: Codable, Equatable {
+    let id: String
+    let text: String
+    let isCorrect: Bool
+    let explanation: String
+}
+
+enum HealthData {
+    static let energyClinicChallenges: [HealthChallenge] = [
+        HealthChallenge(
+            id: "health-energy-01",
+            worldId: "energy-clinic",
+            domain: "Sleep",
+            question: "You slept badly and feel wired at 10 PM. What is the strongest next move?",
+            context: "Tomorrow matters, but your brain is chasing one more video. The goal is to make sleep easier without turning bedtime into a battle.",
+            choices: [
+                HealthChoice(id: "a", text: "Dim lights, put the phone away, and repeat a calm wind-down", isCorrect: true, explanation: "Correct. A consistent low-light routine helps cue sleep and removes the biggest source of stimulation."),
+                HealthChoice(id: "b", text: "Drink strong coffee to push through tomorrow", isCorrect: false, explanation: "Caffeine late in the day can worsen the next night and deepen the cycle."),
+                HealthChoice(id: "c", text: "Stay in bed scrolling until you feel sleepy", isCorrect: false, explanation: "Scrolling keeps attention and light exposure high, which can delay sleep."),
+                HealthChoice(id: "d", text: "Do an intense workout right before bed", isCorrect: false, explanation: "Exercise is useful, but hard sessions too close to bedtime can be stimulating for some people.")
+            ],
+            bodySignal: "Wired but tired, bright screen, late-night stimulation.",
+            habitLesson: "Sleep improves when the body gets repeated cues: dim light, lower stimulation, regular timing, and a bed associated with rest."
+        ),
+        HealthChallenge(
+            id: "health-energy-02",
+            worldId: "energy-clinic",
+            domain: "Nutrition",
+            question: "You skipped lunch and now want the fastest snack. Which option gives steadier energy?",
+            context: "Your next study block is 90 minutes. You need something practical that reduces the crash risk.",
+            choices: [
+                HealthChoice(id: "a", text: "Greek yogurt with fruit and nuts", isCorrect: true, explanation: "Correct. Protein, fiber, and fat slow digestion and support steadier energy."),
+                HealthChoice(id: "b", text: "A large candy bag only", isCorrect: false, explanation: "Quick sugar can help briefly, but alone it often creates a sharper energy swing."),
+                HealthChoice(id: "c", text: "Skip food and rely on willpower", isCorrect: false, explanation: "Hunger makes focus harder. A small balanced snack is usually smarter than forcing it."),
+                HealthChoice(id: "d", text: "Only a sugary drink", isCorrect: false, explanation: "Liquid sugar can be fast, but it is not a very stable fuel by itself.")
+            ],
+            bodySignal: "Hunger, low focus, upcoming long effort.",
+            habitLesson: "For most people, pairing protein or fiber with carbohydrates gives more stable energy than isolated sugar."
+        ),
+        HealthChallenge(
+            id: "health-energy-03",
+            worldId: "energy-clinic",
+            domain: "Movement",
+            question: "You have been sitting for three hours. What is the best small reset before continuing?",
+            context: "You do not have time for a full workout. The goal is to wake up the body and reduce stiffness.",
+            choices: [
+                HealthChoice(id: "a", text: "Take a brisk 5-minute walk and loosen shoulders and hips", isCorrect: true, explanation: "Correct. Short movement breaks can improve alertness and reduce sitting-related stiffness."),
+                HealthChoice(id: "b", text: "Stay still until the whole project is finished", isCorrect: false, explanation: "Long uninterrupted sitting can make energy and posture worse."),
+                HealthChoice(id: "c", text: "Do nothing because short breaks do not count", isCorrect: false, explanation: "Small breaks count. Consistency beats all-or-nothing thinking."),
+                HealthChoice(id: "d", text: "Stretch aggressively through pain", isCorrect: false, explanation: "Movement should not force pain. Gentle range and walking are better resets.")
+            ],
+            bodySignal: "Stiff back, shallow breathing, fading attention.",
+            habitLesson: "Tiny movement snacks are useful: walking, mobility, and posture changes can compound across the day."
+        ),
+        HealthChallenge(
+            id: "health-energy-04",
+            worldId: "energy-clinic",
+            domain: "Stress",
+            question: "A message spikes your stress before a study session. What helps most right now?",
+            context: "Your heart rate jumps and your attention narrows. You need a fast reset that does not pretend the problem vanished.",
+            choices: [
+                HealthChoice(id: "a", text: "Do two minutes of slow breathing, then write the next concrete action", isCorrect: true, explanation: "Correct. Breathing can reduce arousal, and a concrete next action turns worry into a controllable step."),
+                HealthChoice(id: "b", text: "Open five more apps to distract yourself", isCorrect: false, explanation: "Distraction can snowball into avoidance and more cognitive noise."),
+                HealthChoice(id: "c", text: "Replay the message until you feel certain", isCorrect: false, explanation: "Rumination usually increases stress without improving the plan."),
+                HealthChoice(id: "d", text: "Ignore every body signal for the rest of the day", isCorrect: false, explanation: "Signals are information. A short reset can help you respond instead of react.")
+            ],
+            bodySignal: "Fast pulse, tense jaw, racing thoughts.",
+            habitLesson: "Stress skills work best when they pair body regulation with one clear behavior: breathe, name the issue, choose the next action."
+        )
+    ]
+
+    static func challenges(for worldId: String) -> [HealthChallenge] {
+        switch worldId {
+        case "energy-clinic": return energyClinicChallenges
         default: return []
         }
     }

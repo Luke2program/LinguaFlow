@@ -364,4 +364,45 @@ final class LinguaFlowUITests: XCTestCase {
         let nextButton = app.buttons["nextBusinessChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
+
+    // MARK: - Health Subject UI Tests
+    func testCanSwitchToHealthSubject() throws {
+        let app = launchReadyApp()
+
+        let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
+        XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        subjectButton.tap()
+
+        let healthOption = app.buttons["subject_health"].firstMatch
+        XCTAssertTrue(healthOption.waitForExistence(timeout: 3))
+        healthOption.tap()
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 3))
+        startButton.tap()
+
+        sleep(3)
+
+        let clinicText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Energy Clinic")).firstMatch
+        XCTAssertTrue(clinicText.waitForExistence(timeout: 5))
+    }
+
+    func testHealthWorldSelection() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-health-world"])
+
+        let worldText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Energy Clinic")).firstMatch
+        XCTAssertTrue(worldText.waitForExistence(timeout: 3))
+        let habitText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Habit")).firstMatch
+        XCTAssertTrue(habitText.waitForExistence(timeout: 3))
+    }
+
+    func testHealthChallengeInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-health-world"])
+
+        let choice = button("healthChoiceTestAction", in: app)
+        choice.tap()
+
+        let nextButton = app.buttons["nextHealthChallenge"].firstMatch
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
+    }
 }

@@ -201,6 +201,9 @@ struct DashboardView: View {
                     } else if store.stats.selectedSubject == .business {
                         BusinessWorldView()
                         BusinessChallengeView()
+                    } else if store.stats.selectedSubject == .health {
+                        HealthWorldView()
+                        HealthChallengeView()
                     } else {
                         ComingSoonSubjectView()
                     }
@@ -331,6 +334,7 @@ private struct ChallengeUITestControls: View {
     @State private var answeredMath = false
     @State private var answeredCulture = false
     @State private var answeredBusiness = false
+    @State private var answeredHealth = false
 
     private var isHistoryUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-history-world")
@@ -354,6 +358,10 @@ private struct ChallengeUITestControls: View {
 
     private var isBusinessUITest: Bool {
         ProcessInfo.processInfo.arguments.contains("--ui-testing-business-world")
+    }
+
+    private var isHealthUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing-health-world")
     }
 
     var body: some View {
@@ -480,6 +488,27 @@ private struct ChallengeUITestControls: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("businessChoiceTestAction")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if isHealthUITest {
+            VStack(alignment: .leading, spacing: 8) {
+                if answeredHealth {
+                    Button("Next Habit") {
+                        answeredHealth = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("nextHealthChallenge")
+                } else {
+                    Button("Answer first health choice") {
+                        if let challenge = store.nextHealthChallenge,
+                           let firstChoice = challenge.choices.first {
+                            store.submitHealthAnswer(challenge: challenge, choice: firstChoice)
+                            answeredHealth = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("healthChoiceTestAction")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -2574,6 +2603,221 @@ struct BusinessChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextBusinessChallenge
+    }
+}
+
+// MARK: - Health World Selection
+struct HealthWorldView: View {
+    @EnvironmentObject var store: AppStore
+    var body: some View {
+        let worlds = store.stats.selectedSubject.worlds
+        let xp = store.stats.xp
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Wellbeing Worlds", systemImage: "heart.text.square")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                SubjectMapPreview(subject: .health, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                    store.select(worldId: world.id, for: .health)
+                }
+
+                ForEach(worlds) { world in
+                    let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
+                    let selected = store.currentWorld?.id == world.id
+                    Button {
+                        if !locked {
+                            store.select(worldId: world.id, for: .health)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(world.emoji)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(world.name)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(locked ? .secondary : .primary)
+                                Text(world.era)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if locked {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(world.unlockRequirement.xpRequired ?? 0) XP")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if selected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.mint)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locked)
+                    .accessibilityIdentifier("healthWorld_\(world.id)")
+                }
+
+                if let world = store.currentWorld {
+                    Text(world.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                }
+            }
+        }
+        .accessibilityIdentifier("healthWorldView")
+    }
+}
+
+// MARK: - Health Challenge View
+struct HealthChallengeView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var selectedChoiceId: String? = nil
+    @State private var showResult = false
+    @State private var currentChallenge: HealthChallenge? = nil
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("Habit Lab", systemImage: "heart.text.square.fill")
+                        .font(.headline)
+                    Spacer()
+                    if let challenge = currentChallenge {
+                        Text(challenge.domain)
+                            .font(.caption.bold())
+                            .foregroundStyle(.mint)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.mint.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if let challenge = currentChallenge {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "waveform.path.ecg")
+                                .font(.title2)
+                                .foregroundStyle(.mint)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Body signal")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.primary.opacity(0.65))
+                                    .accessibilityIdentifier("healthBodySignal")
+                                Text(challenge.bodySignal)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.mint.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        Text(challenge.question)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+
+                        Text(challenge.context)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+
+                        if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: choice.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                    Text(choice.isCorrect ? "Healthy move!" : "Needs a reset")
+                                        .font(.headline)
+                                        .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                Text(choice.explanation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text(challenge.habitLesson)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 4)
+                            }
+                            .padding(12)
+                            .background(Color.primary.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                            .accessibilityIdentifier("healthResult")
+                        }
+
+                        if !showResult {
+                            ForEach(challenge.choices, id: \.id) { choice in
+                                Button {
+                                    withAnimation {
+                                        selectedChoiceId = choice.id
+                                        showResult = true
+                                        store.submitHealthAnswer(challenge: challenge, choice: choice)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(choice.text)
+                                            .font(.subheadline.bold())
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("healthChoice_\(choice.id)")
+                            }
+                        } else {
+                            Button("Next Habit") {
+                                withAnimation {
+                                    selectedChoiceId = nil
+                                    showResult = false
+                                    loadNextChallenge()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.mint)
+                            .accessibilityIdentifier("nextHealthChallenge")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Text("💚 Clinic Complete!")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                        Text("You've stabilized every habit system in this world. More wellbeing missions coming soon!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+                }
+            }
+        }
+        .onAppear { loadNextChallenge() }
+        .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
+        .accessibilityIdentifier("healthChallengeView")
+    }
+
+    private func loadNextChallenge() {
+        currentChallenge = store.nextHealthChallenge
     }
 }
 
