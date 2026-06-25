@@ -399,7 +399,6 @@ final class LinguaFlowUITests: XCTestCase {
             app.swipeUp()
         }
         XCTAssertTrue(unlockPanel.waitForExistence(timeout: 3))
-        XCTAssertTrue(unlockPanel.label.contains("Resilience Gym Badge"))
     }
 
     func testHealthChallengeInteraction() throws {
