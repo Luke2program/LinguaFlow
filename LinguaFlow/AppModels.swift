@@ -146,11 +146,50 @@ struct PlayableWorld: Identifiable, Codable, Equatable {
         // This is used in View logic; actual check uses xp parameter externally
         true
     }
+
+    var rewardName: String {
+        "\(name) Badge"
+    }
+
+    func isUnlocked(withXP xp: Int) -> Bool {
+        switch unlockRequirement {
+        case .none:
+            return true
+        case .xpRequired(let requiredXP):
+            return xp >= requiredXP
+        }
+    }
+
+    func xpRemaining(withXP xp: Int) -> Int {
+        max(0, (unlockRequirement.xpRequired ?? 0) - xp)
+    }
+
+    func unlockProgress(withXP xp: Int) -> Double {
+        guard let requiredXP = unlockRequirement.xpRequired, requiredXP > 0 else { return 1 }
+        return min(1, max(0, Double(xp) / Double(requiredXP)))
+    }
 }
 
 enum UnlockRequirement: Codable, Equatable {
     case none
     case xpRequired(Int)
+
+    var xpRequired: Int? {
+        switch self {
+        case .none: return nil
+        case .xpRequired(let x): return x
+        }
+    }
+}
+
+extension Subject {
+    func unlockedWorldCount(withXP xp: Int) -> Int {
+        worlds.filter { $0.isUnlocked(withXP: xp) }.count
+    }
+
+    func nextLockedWorld(withXP xp: Int) -> PlayableWorld? {
+        worlds.first { !$0.isUnlocked(withXP: xp) }
+    }
 }
 
 // MARK: - History Challenge (story-based multiple choice)

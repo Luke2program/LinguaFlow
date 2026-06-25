@@ -117,6 +117,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(unlocked.isUnlocked)
         XCTAssertEqual(locked.unlockRequirement.xpRequired, 1000)
     }
+
+    func testWorldUnlockProgressAndRewards() {
+        let locked = Subject.health.nextLockedWorld(withXP: 125)
+        XCTAssertEqual(locked?.id, "resilience-gym")
+        XCTAssertEqual(locked?.rewardName, "Resilience Gym Badge")
+        XCTAssertEqual(locked?.xpRemaining(withXP: 125), 375)
+        XCTAssertEqual(locked?.unlockProgress(withXP: 125) ?? 0, 0.25, accuracy: 0.001)
+        XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 125), 1)
+
+        XCTAssertNil(Subject.health.nextLockedWorld(withXP: 500))
+        XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 500), 2)
+    }
     
     func testHistoryChallengeScoring() async {
         await MainActor.run {

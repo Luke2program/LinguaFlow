@@ -685,6 +685,71 @@ struct StatPill: View {
     }
 }
 
+struct NextWorldUnlockView: View {
+    let subject: Subject
+    let xp: Int
+
+    var body: some View {
+        let accent = subject.accentColor
+        if let world = subject.nextLockedWorld(withXP: xp), let requiredXP = world.unlockRequirement.xpRequired {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    Image(systemName: "lock.open.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(accent)
+                        .frame(width: 24, height: 24)
+                        .background(accent.opacity(0.16), in: Circle())
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Next world unlock")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                        Text("\(world.emoji) \(world.name)")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+                    }
+                    Spacer()
+                    Text("\(world.xpRemaining(withXP: xp)) XP left")
+                        .font(.caption.bold())
+                        .foregroundStyle(accent)
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [accent, .green], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * world.unlockProgress(withXP: xp))
+                    }
+                }
+                .frame(height: 8)
+
+                Text("Reward: \(world.rewardName) · \(xp)/\(requiredXP) XP")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("nextWorldUnlockReward_\(subject.rawValue)")
+            }
+            .padding(12)
+            .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.18), lineWidth: 1))
+            .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
+        } else if !subject.worlds.isEmpty {
+            HStack(spacing: 10) {
+                Image(systemName: "crown.fill")
+                    .foregroundStyle(accent)
+                Text("All worlds unlocked")
+                    .font(.subheadline.bold())
+                Spacer()
+                Text("Rewards claimed")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
+        }
+    }
+}
+
 struct PetView: View {
     @EnvironmentObject var store: AppStore
     @State private var showingPetDetail = false
@@ -1363,7 +1428,7 @@ struct HistoryWorldView: View {
                     Label("Worlds", systemImage: "globe")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1371,6 +1436,8 @@ struct HistoryWorldView: View {
                 SubjectMapPreview(subject: .history, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .history)
                 }
+
+                NextWorldUnlockView(subject: .history, xp: xp)
                 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -1562,7 +1629,7 @@ struct ScienceWorldView: View {
                     Label("Worlds", systemImage: "atom")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1570,6 +1637,8 @@ struct ScienceWorldView: View {
                 SubjectMapPreview(subject: .science, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .science)
                 }
+
+                NextWorldUnlockView(subject: .science, xp: xp)
                 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -1758,7 +1827,7 @@ struct GeographyWorldView: View {
                     Label("Map Worlds", systemImage: "map")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1766,6 +1835,8 @@ struct GeographyWorldView: View {
                 SubjectMapPreview(subject: .geography, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .geography)
                 }
+
+                NextWorldUnlockView(subject: .geography, xp: xp)
 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -1973,7 +2044,7 @@ struct MathWorldView: View {
                     Label("Puzzle Worlds", systemImage: "function")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1981,6 +2052,8 @@ struct MathWorldView: View {
                 SubjectMapPreview(subject: .math, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .math)
                 }
+
+                NextWorldUnlockView(subject: .math, xp: xp)
 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -2188,7 +2261,7 @@ struct CultureWorldView: View {
                     Label("Culture Worlds", systemImage: "theatermasks")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -2196,6 +2269,8 @@ struct CultureWorldView: View {
                 SubjectMapPreview(subject: .culture, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .culture)
                 }
+
+                NextWorldUnlockView(subject: .culture, xp: xp)
 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -2403,7 +2478,7 @@ struct BusinessWorldView: View {
                     Label("Market Worlds", systemImage: "chart.line.uptrend.xyaxis")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -2411,6 +2486,8 @@ struct BusinessWorldView: View {
                 SubjectMapPreview(subject: .business, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .business)
                 }
+
+                NextWorldUnlockView(subject: .business, xp: xp)
 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -2618,7 +2695,7 @@ struct HealthWorldView: View {
                     Label("Wellbeing Worlds", systemImage: "heart.text.square")
                         .font(.headline)
                     Spacer()
-                    Text("\(worlds.filter { $0.unlockRequirement.xpRequired.map { xp >= $0 } ?? true }.count)/\(worlds.count) unlocked")
+                    Text("\(store.stats.selectedSubject.unlockedWorldCount(withXP: xp))/\(worlds.count) unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -2626,6 +2703,8 @@ struct HealthWorldView: View {
                 SubjectMapPreview(subject: .health, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
                     store.select(worldId: world.id, for: .health)
                 }
+
+                NextWorldUnlockView(subject: .health, xp: xp)
 
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
@@ -2847,16 +2926,6 @@ struct ComingSoonSubjectView: View {
             .padding(.vertical, 20)
         }
         .accessibilityIdentifier("comingSoonSubjectView")
-    }
-}
-
-// MARK: - UnlockRequirement helper
-extension UnlockRequirement {
-    var xpRequired: Int? {
-        switch self {
-        case .none: return nil
-        case .xpRequired(let x): return x
-        }
     }
 }
 
