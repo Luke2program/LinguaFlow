@@ -703,6 +703,7 @@ struct NextWorldUnlockView: View {
                         Text("Next world unlock")
                             .font(.caption.bold())
                             .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
                         Text("\(world.emoji) \(world.name)")
                             .font(.subheadline.bold())
                             .foregroundStyle(.primary)
@@ -731,13 +732,13 @@ struct NextWorldUnlockView: View {
             .padding(12)
             .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.18), lineWidth: 1))
-            .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
         } else if !subject.worlds.isEmpty {
             HStack(spacing: 10) {
                 Image(systemName: "crown.fill")
                     .foregroundStyle(accent)
                 Text("All worlds unlocked")
                     .font(.subheadline.bold())
+                    .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
                 Spacer()
                 Text("Rewards claimed")
                     .font(.caption.bold())
