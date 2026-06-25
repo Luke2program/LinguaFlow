@@ -394,9 +394,12 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(worldText.waitForExistence(timeout: 3))
         let habitText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Habit")).firstMatch
         XCTAssertTrue(habitText.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["nextWorldUnlock_health"].waitForExistence(timeout: 3))
-        let rewardText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Resilience Gym Badge")).firstMatch
-        XCTAssertTrue(rewardText.waitForExistence(timeout: 3))
+        let unlockPanel = app.descendants(matching: .any)["nextWorldUnlock_health"].firstMatch
+        if !unlockPanel.waitForExistence(timeout: 3) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(unlockPanel.waitForExistence(timeout: 3))
+        XCTAssertTrue(unlockPanel.label.contains("Resilience Gym Badge"))
     }
 
     func testHealthChallengeInteraction() throws {

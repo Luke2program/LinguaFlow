@@ -732,6 +732,9 @@ struct NextWorldUnlockView: View {
             .padding(12)
             .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.18), lineWidth: 1))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Next world unlock \(world.name). Reward: \(world.rewardName). \(world.xpRemaining(withXP: xp)) XP left.")
+            .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
         } else if !subject.worlds.isEmpty {
             HStack(spacing: 10) {
                 Image(systemName: "crown.fill")
@@ -746,6 +749,8 @@ struct NextWorldUnlockView: View {
             }
             .padding(12)
             .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("All worlds unlocked. Rewards claimed.")
             .accessibilityIdentifier("nextWorldUnlock_\(subject.rawValue)")
         }
     }
