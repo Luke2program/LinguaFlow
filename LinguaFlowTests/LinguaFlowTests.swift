@@ -143,7 +143,7 @@ final class LinguaFlowTests: XCTestCase {
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
-        XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Wall Street Desk" })
+        XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Age of Discovery" })
     }
     
     func testHistoryChallengeScoring() async {
