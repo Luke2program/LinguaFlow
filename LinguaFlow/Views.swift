@@ -17,7 +17,6 @@ struct RootView: View {
             else { DashboardView(showLevelPicker: $showLevelPicker, showSubjectPicker: $showSubjectPicker) }
         }
         .preferredColorScheme(store.stats.darkMode ? .dark : nil)
-        .accessibilityIdentifier("rootView")
     }
 }
 
@@ -253,7 +252,7 @@ struct DashboardView: View {
             .accessibilityIdentifier("settingsButton")
         }
     }
-    
+
     var subjectHeader: some View {
         HStack {
             Image(systemName: store.stats.selectedSubject.icon)
@@ -932,10 +931,10 @@ struct PetDetailView: View {
                             .foregroundStyle(.white)
                             .clipShape(Capsule())
                     }
-                    
+
                     Text(store.stats.pet.name)
                         .font(.largeTitle.bold())
-                    
+
                     // Level + XP Progress
                     VStack(spacing: 8) {
                         Text("Level \(store.stats.pet.level) • \(store.stats.pet.xp) / \(store.stats.pet.xpToNextLevel) XP")
@@ -950,7 +949,7 @@ struct PetDetailView: View {
                         }.frame(height: 8)
                     }
                     .padding(.horizontal)
-                    
+
                     // Stats Bars
                     VStack(spacing: 12) {
                         StatBar(label: "Happiness", value: store.stats.pet.happiness, color: .pink, icon: "heart.fill")
@@ -958,7 +957,7 @@ struct PetDetailView: View {
                         StatBar(label: "Energy", value: store.stats.pet.energy, color: .green, icon: "bolt.fill")
                     }
                     .padding(.horizontal)
-                    
+
                     // Interactions
                     HStack(spacing: 12) {
                         PetActionButton(icon: "hand.tap.fill", label: "Stroke", color: .pink) {
@@ -981,7 +980,7 @@ struct PetDetailView: View {
                         }
                     }
                     .padding(.horizontal)
-                    
+
                     // Abilities
                     if !store.stats.pet.abilities.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
@@ -1012,17 +1011,17 @@ struct PetDetailView: View {
                         }
                         .padding(.horizontal)
                     }
-                    
+
                     Text(store.stats.pet.description)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                    
+
                     Text("Total words fed: \(store.stats.pet.totalFed)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    
+
                     // Rename
                     HStack {
                         TextField("New name...", text: $newName)
@@ -1103,13 +1102,13 @@ struct PetPickerView: View {
                     .font(.system(size: 36, weight: .black, design: .rounded))
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
-                
+
                 Text("Your pet grows as you learn. Keep it happy by answering correctly!")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                
+
                 HStack(spacing: 16) {
                     ForEach(PetType.allCases) { type in
                         let isSelected = selectedPet == type
@@ -1138,12 +1137,12 @@ struct PetPickerView: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 TextField("Name your pet...", text: $petName)
                     .textFieldStyle(.roundedBorder)
                     .padding(.horizontal, 32)
                     .font(.headline)
-                
+
                 GlassCard {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack { Image(systemName: "heart.fill").foregroundStyle(.pink); Text("Happiness").font(.subheadline); Spacer(); Text("🟢 0.5").font(.caption) }
@@ -1156,7 +1155,7 @@ struct PetPickerView: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 PrimaryButton(title: "Start Learning") {
                     store.stats.pet.type = selectedPet
                     if !petName.isEmpty { store.stats.pet.name = petName }
@@ -1164,7 +1163,7 @@ struct PetPickerView: View {
                     onComplete()
                 }
                 .padding(.horizontal, 32)
-                
+
                 Spacer()
             }
         }
@@ -1339,18 +1338,18 @@ struct SubjectPickerView: View {
         ScrollView {
             VStack(spacing: 24) {
                 Spacer().frame(height: 40)
-                Text("What do you want to learn?")
+                Text("What do you want to study first?")
                     .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                
-                Text("Choose a subject. You can switch anytime.")
+
+                Text("Pick your first world. You can switch anytime.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                
+
                 VStack(spacing: 12) {
                     ForEach(Subject.allCases) { subject in
                         let isSelected = selectedSubject == subject
@@ -1399,13 +1398,13 @@ struct SubjectPickerView: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 PrimaryButton(title: "Start Learning") {
                     store.select(subject: selectedSubject)
                     onComplete()
                 }
                 .padding(.horizontal, 32)
-                
+
                 Spacer()
             }
         }
@@ -1539,7 +1538,7 @@ struct HistoryWorldView: View {
                 }
 
                 NextWorldUnlockView(subject: .history, xp: xp)
-                
+
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
                     let selected = store.currentWorld?.id == world.id
@@ -1578,7 +1577,7 @@ struct HistoryWorldView: View {
                     .disabled(locked)
                     .accessibilityIdentifier("world_\(world.id)")
                 }
-                
+
                 if let world = store.currentWorld {
                     Text(world.description)
                         .font(.caption)
@@ -1597,7 +1596,7 @@ struct HistoryChallengeView: View {
     @State private var selectedChoiceId: String? = nil
     @State private var showResult = false
     @State private var currentChallenge: HistoryChallenge? = nil
-    
+
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -1615,18 +1614,18 @@ struct HistoryChallengeView: View {
                             .clipShape(Capsule())
                     }
                 }
-                
+
                 if let challenge = currentChallenge {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(challenge.question)
                             .font(.title3.bold())
                             .foregroundStyle(.primary)
-                        
+
                         Text(challenge.context)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .lineLimit(4)
-                        
+
                         if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -1656,7 +1655,7 @@ struct HistoryChallengeView: View {
                             .background(Color.primary.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        
+
                         if !showResult {
                             ForEach(challenge.choices, id: \.id) { choice in
                                 Button {
@@ -1712,7 +1711,7 @@ struct HistoryChallengeView: View {
         .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
         .accessibilityIdentifier("historyChallengeView")
     }
-    
+
     private func loadNextChallenge() {
         currentChallenge = store.nextHistoryChallenge
     }
@@ -1740,7 +1739,7 @@ struct ScienceWorldView: View {
                 }
 
                 NextWorldUnlockView(subject: .science, xp: xp)
-                
+
                 ForEach(worlds) { world in
                     let locked = world.unlockRequirement.xpRequired.map { store.stats.xp < $0 } ?? false
                     let selected = store.currentWorld?.id == world.id
@@ -1779,7 +1778,7 @@ struct ScienceWorldView: View {
                     .disabled(locked)
                     .accessibilityIdentifier("scienceWorld_\(world.id)")
                 }
-                
+
                 if let world = store.currentWorld {
                     Text(world.description)
                         .font(.caption)
@@ -1799,7 +1798,7 @@ struct ScienceChallengeView: View {
     @State private var showResult = false
     @State private var currentChallenge: ScienceChallenge? = nil
     @State private var animateSuccess = false
-    
+
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -1817,18 +1816,18 @@ struct ScienceChallengeView: View {
                             .clipShape(Capsule())
                     }
                 }
-                
+
                 if let challenge = currentChallenge {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(challenge.question)
                             .font(.title3.bold())
                             .foregroundStyle(.primary)
-                        
+
                         Text(challenge.context)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .lineLimit(4)
-                        
+
                         if showResult, let choice = challenge.choices.first(where: { $0.id == selectedChoiceId }) {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -1854,7 +1853,7 @@ struct ScienceChallengeView: View {
                                     .stroke(choice.isCorrect ? Color.green.opacity(0.3) : Color.red.opacity(0.3), lineWidth: 1)
                             )
                         }
-                        
+
                         if !showResult {
                             ForEach(challenge.choices, id: \.id) { choice in
                                 Button {
@@ -1910,7 +1909,7 @@ struct ScienceChallengeView: View {
         .onChange(of: store.stats.selectedSubject) { _, _ in loadNextChallenge() }
         .accessibilityIdentifier("scienceChallengeView")
     }
-    
+
     private func loadNextChallenge() {
         currentChallenge = store.nextScienceChallenge
     }
@@ -3034,19 +3033,22 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject var store: AppStore
-    @State private var step = 0
+    @State private var step = ProcessInfo.processInfo.arguments.contains("--ui-testing-onboarding-pet-step") ? 5 : 0
+    @State private var selectedSubject: Subject = .languages
     @State private var selectedPair: LanguagePair = LanguagePair.popularPairs[0]
     @State private var selectedLevel: CEFRLevel = .a1
     @State private var selectedPet: PetType = .cat
     @State private var petName = "Mochi"
     @State private var animateEmoji = false
-    
-    private let totalSteps = 5
-    
+    @State private var didFinishOnboarding = false
+    @FocusState private var isPetNameFocused: Bool
+
+    private var totalSteps: Int { selectedSubject == .languages ? 6 : 4 }
+
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 // Progress bar
                 HStack(spacing: 4) {
@@ -3058,29 +3060,36 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.top, 16)
-                
+
                 // Step content
                 TabView(selection: $step) {
                     WelcomeStep().tag(0)
                     FeaturesStep().tag(1)
-                    LanguagePairStep(selectedPair: $selectedPair).tag(2)
-                    LevelStep(selectedLevel: $selectedLevel).tag(3)
-                    PetStep(selectedPet: $selectedPet, petName: $petName).tag(4)
+                    SubjectStep(selectedSubject: $selectedSubject).tag(2)
+                    if selectedSubject == .languages {
+                        LanguagePairStep(selectedPair: $selectedPair).tag(3)
+                        LevelStep(selectedLevel: $selectedLevel).tag(4)
+                        PetStep(selectedPet: $selectedPet, petName: $petName, isNameFocused: $isPetNameFocused).tag(5)
+                    } else {
+                        PetStep(selectedPet: $selectedPet, petName: $petName, isNameFocused: $isPetNameFocused).tag(3)
+                    }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: step)
-                
+                .animation(.easeInOut(duration: 0.3), value: selectedSubject)
+
                 // Bottom buttons
                 VStack(spacing: 12) {
                     PrimaryButton(title: step < totalSteps - 1 ? "Continue" : "Start Learning") {
-                        if step < totalSteps - 1 {
-                            withAnimation { step += 1 }
-                        } else {
-                            finishOnboarding()
-                        }
+                        handlePrimaryAction()
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        if step == totalSteps - 1 {
+                            handlePrimaryAction()
+                        }
+                    })
                     .padding(.horizontal, 32)
-                    
+
                     if step > 0 {
                         Button("Back") {
                             withAnimation { step -= 1 }
@@ -3092,18 +3101,49 @@ struct OnboardingView: View {
                 .padding(.bottom, 32)
             }
         }
+        .onChange(of: isPetNameFocused) { oldValue, newValue in
+            if oldValue && !newValue && step == totalSteps - 1 {
+                finishOnboarding()
+            }
+        }
+        .onChange(of: selectedSubject) { _, _ in
+            if step >= totalSteps {
+                step = totalSteps - 1
+            }
+        }
     }
-    
+
+    private func handlePrimaryAction() {
+        isPetNameFocused = false
+        if step < totalSteps - 1 {
+            withAnimation { step += 1 }
+        } else {
+            finishOnboarding()
+        }
+    }
+
     private func finishOnboarding() {
-        store.stats.hasSeenTitle = true
-        store.stats.hasSeenPetPicker = true
-        store.stats.hasSeenSubjectPicker = false
-        store.stats.selectedLevel = selectedLevel
-        store.stats.selectedLanguagePair = selectedPair
-        store.stats.pet.type = selectedPet
-        store.stats.pet.name = petName.isEmpty ? "Mochi" : petName
-        store.select(languagePair: selectedPair)
-        store.select(level: selectedLevel)
+        guard !didFinishOnboarding else { return }
+        didFinishOnboarding = true
+        store.select(subject: selectedSubject)
+        if selectedSubject == .languages {
+            store.select(languagePair: selectedPair)
+            store.select(level: selectedLevel)
+        }
+
+        var updatedStats = store.stats
+        updatedStats.hasSeenTitle = true
+        updatedStats.hasSkippedAuth = true
+        updatedStats.hasSeenPetPicker = true
+        updatedStats.hasSeenSubjectPicker = true
+        updatedStats.selectedSubject = selectedSubject
+        if selectedSubject == .languages {
+            updatedStats.selectedLevel = selectedLevel
+            updatedStats.selectedLanguagePair = selectedPair
+        }
+        updatedStats.pet.type = selectedPet
+        updatedStats.pet.name = petName.isEmpty ? "Mochi" : petName
+        store.stats = updatedStats
         store.save()
     }
 }
@@ -3112,22 +3152,22 @@ struct OnboardingView: View {
 struct WelcomeStep: View {
     @State private var showText = false
     @State private var showEmoji = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.1))
                     .frame(width: 180, height: 180)
-                
+
                 Text("🤯")
                     .font(.system(size: 80))
                     .scaleEffect(showEmoji ? 1 : 0.5)
                     .opacity(showEmoji ? 1 : 0)
             }
-            
+
             VStack(spacing: 16) {
                 Text("Ever struggled to learn something new?")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -3135,7 +3175,7 @@ struct WelcomeStep: View {
                     .foregroundStyle(.primary)
                     .opacity(showText ? 1 : 0)
                     .offset(y: showText ? 0 : 20)
-                
+
                 Text("Flashcards that bore you.\nApps that feel like homework.\nThings you forget the next day.")
                     .font(.title3)
                     .multilineTextAlignment(.center)
@@ -3144,7 +3184,7 @@ struct WelcomeStep: View {
                     .offset(y: showText ? 0 : 20)
             }
             .padding(.horizontal, 32)
-            
+
             Spacer()
         }
         .onAppear {
@@ -3157,19 +3197,19 @@ struct WelcomeStep: View {
 // MARK: - Step 2: Features
 struct FeaturesStep: View {
     @State private var showFeatures = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             Text("Not anymore.")
                 .font(.system(size: 40, weight: .black, design: .rounded))
                 .foregroundStyle(.primary)
-            
+
             Text("Meet QuestFlow")
                 .font(.title2)
                 .foregroundStyle(Color.blue)
-            
+
             VStack(alignment: .leading, spacing: 20) {
                 OnboardingFeatureRow(icon: "brain.head.profile", text: "Spaced repetition that actually works", detail: "Words come back right when you're about to forget them")
                 OnboardingFeatureRow(icon: "mic.fill", text: "Speak your answers", detail: "Practice pronunciation with speech recognition")
@@ -3179,7 +3219,7 @@ struct FeaturesStep: View {
             .padding(.horizontal, 32)
             .opacity(showFeatures ? 1 : 0)
             .offset(y: showFeatures ? 0 : 30)
-            
+
             Spacer()
         }
         .onAppear {
@@ -3188,23 +3228,103 @@ struct FeaturesStep: View {
     }
 }
 
-// MARK: - Step 3: Language Pair
+// MARK: - Step 3: Subject
+struct SubjectStep: View {
+    @Binding var selectedSubject: Subject
+
+    var body: some View {
+        VStack(spacing: 22) {
+            Spacer().frame(height: 12)
+
+            Text("What do you want to study first?")
+                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 28)
+
+            Text("Pick your first world. You can switch later.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach(Subject.allCases) { subject in
+                        let isSelected = selectedSubject == subject
+                        Button {
+                            withAnimation(.spring(duration: 0.3)) {
+                                selectedSubject = subject
+                            }
+                        } label: {
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(subject.accentColor.opacity(0.15))
+                                        .frame(width: 48, height: 48)
+                                    Image(systemName: subject.icon)
+                                        .font(.title3)
+                                        .foregroundStyle(subject.accentColor)
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(subject.displayName)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text(subject.subtitle)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+
+                                Spacer()
+
+                                if isSelected {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(subject.accentColor)
+                                }
+                            }
+                            .padding(14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(isSelected ? subject.accentColor.opacity(0.1) : Color.primary.opacity(0.05))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(isSelected ? subject.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("onboardingSubject_\(subject.rawValue)")
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+
+            Spacer().frame(height: 6)
+        }
+        .accessibilityIdentifier("onboardingSubjectStep")
+    }
+}
+
+// MARK: - Step 4: Language Pair
 struct LanguagePairStep: View {
     @Binding var selectedPair: LanguagePair
-    
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            
-            Text("What do you want to learn?")
+
+            Text("Which languages?")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.primary)
-            
-            Text("Choose your language pair")
+
+            Text("Choose what you speak and what you want to learn.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            
+
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(LanguagePair.allPairs) { pair in
@@ -3217,7 +3337,7 @@ struct LanguagePairStep: View {
                 }
                 .padding(.horizontal, 24)
             }
-            
+
             Spacer()
         }
     }
@@ -3227,7 +3347,7 @@ struct LanguagePairCard: View {
     let pair: LanguagePair
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -3237,7 +3357,7 @@ struct LanguagePairCard: View {
                     Text(pair.target.flag)
                         .font(.system(size: 36))
                 }
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(pair.learningName)
                         .font(.headline)
@@ -3246,9 +3366,9 @@ struct LanguagePairCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
@@ -3270,22 +3390,22 @@ struct LanguagePairCard: View {
     }
 }
 
-// MARK: - Step 4: CEFR Level
+// MARK: - Step 5: CEFR Level
 struct LevelStep: View {
     @Binding var selectedLevel: CEFRLevel
-    
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            
+
             Text("What's your level?")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
-            
+
             Text("You can always change this later")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            
+
             VStack(spacing: 12) {
                 ForEach(CEFRLevel.allCases) { level in
                     LevelCard(level: level, isSelected: selectedLevel == level) {
@@ -3296,7 +3416,7 @@ struct LevelStep: View {
                 }
             }
             .padding(.horizontal, 24)
-            
+
             Spacer()
         }
     }
@@ -3306,7 +3426,7 @@ struct LevelCard: View {
     let level: CEFRLevel
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -3314,7 +3434,7 @@ struct LevelCard: View {
                     .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundStyle(isSelected ? Color.blue : Color.primary)
                     .frame(width: 56)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(level.subtitle)
                         .font(.headline)
@@ -3323,9 +3443,9 @@ struct LevelCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
@@ -3350,22 +3470,22 @@ struct LevelCard: View {
 struct PetStep: View {
     @Binding var selectedPet: PetType
     @Binding var petName: String
-    @FocusState private var isNameFocused: Bool
-    
+    var isNameFocused: FocusState<Bool>.Binding
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            
+
             Text("Meet your learning companion")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 32)
-            
+
             Text("Keep them happy by practicing daily!")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            
+
             // Pet selector
             HStack(spacing: 16) {
                 ForEach(PetType.allCases) { pet in
@@ -3376,30 +3496,30 @@ struct PetStep: View {
                     }
                 }
             }
-            
+
             // Selected pet preview
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.1))
                     .frame(width: 140, height: 140)
-                
+
                 Text(selectedPet.emoji)
                     .font(.system(size: 72))
             }
             .padding(.vertical, 8)
-            
+
             // Pet name
             VStack(spacing: 8) {
                 TextField("Name your pet...", text: $petName)
                     .textFieldStyle(.roundedBorder)
-                    .focused($isNameFocused)
+                    .focused(isNameFocused)
                     .padding(.horizontal, 48)
-                
+
                 Text("They'll evolve as you learn!")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             // Pet stats preview
             HStack(spacing: 24) {
                 PetStat(icon: "heart.fill", label: "Happiness", color: .red)
@@ -3407,7 +3527,7 @@ struct PetStep: View {
                 PetStat(icon: "fork.knife", label: "Hunger", color: .orange)
             }
             .padding(.top, 8)
-            
+
             Spacer()
         }
     }
@@ -3417,7 +3537,7 @@ struct PetButton: View {
     let pet: PetType
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(pet.emoji)
@@ -3440,7 +3560,7 @@ struct PetStat: View {
     let icon: String
     let label: String
     let color: Color
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
@@ -3458,14 +3578,14 @@ struct OnboardingFeatureRow: View {
     let icon: String
     let text: String
     let detail: String
-    
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundStyle(Color.blue)
                 .frame(width: 36)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(text)
                     .font(.subheadline.bold())
@@ -3474,7 +3594,7 @@ struct OnboardingFeatureRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
         }
         .padding(.vertical, 4)

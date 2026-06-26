@@ -3,6 +3,48 @@ import XCTest
 final class LinguaFlowUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
+    func testOnboardingStartLearningAdvancesFromPetStep() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--reset-ui-state", "--ui-testing-onboarding-pet-step"]
+        app.launch()
+
+        let petNameField = app.textFields["Name your pet..."].firstMatch
+        XCTAssertTrue(petNameField.waitForExistence(timeout: 5))
+        petNameField.tap()
+        petNameField.typeText("Mochi")
+
+        let startButton = app.buttons["Start Learning"].firstMatch
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        startButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+
+        if !app.staticTexts["Today's Quest"].waitForExistence(timeout: 5) {
+            XCTFail("Expected dashboard after onboarding. Current UI:\n\(app.debugDescription)")
+        }
+    }
+
+    func testOnboardingChoosesSubjectBeforeLanguagePair() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--reset-ui-state"]
+        app.launch()
+
+        let continueButton = app.buttons["Continue"].firstMatch
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+
+        let subjectTitle = app.staticTexts["What do you want to study first?"].firstMatch
+        for _ in 0..<4 where !subjectTitle.exists {
+            continueButton.tap()
+            sleep(1)
+        }
+
+        XCTAssertTrue(subjectTitle.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["onboardingSubject_languages"].waitForExistence(timeout: 5))
+
+        continueButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Which languages?"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons.matching(identifier: "languagePair_de-DE-es-ES").firstMatch.waitForExistence(timeout: 5))
+    }
+
     private func launchReadyApp(arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing", "--reset-ui-state"] + arguments
@@ -102,7 +144,7 @@ final class LinguaFlowUITests: XCTestCase {
         authApp.launch()
         XCTAssertTrue(authApp.staticTexts["Welcome Back"].waitForExistence(timeout: 10))
     }
-    
+
     // MARK: - Subject System UI Tests
     func testSubjectSwitchButtonExists() throws {
         let app = launchReadyApp()
@@ -113,33 +155,33 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
     }
-    
+
     func testCanSwitchToHistorySubject() throws {
         let app = launchReadyApp()
-        
+
         // Tap subject switch
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         subjectButton.tap()
-        
+
         // Select history
         let historyOption = app.buttons["subject_history"].firstMatch
         XCTAssertTrue(historyOption.waitForExistence(timeout: 3))
         historyOption.tap()
-        
+
         // Tap Start Learning
         let startButton = app.buttons["Start Learning"].firstMatch
         XCTAssertTrue(startButton.waitForExistence(timeout: 3))
         startButton.tap()
-        
+
         // Wait for sheet dismissal and view update
         sleep(3)
-        
+
         // Verify history content appears - look for Ancient Rome text
         let romeText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Ancient Rome")).firstMatch
         XCTAssertTrue(romeText.waitForExistence(timeout: 5))
     }
-    
+
     func testHistoryWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
@@ -147,42 +189,42 @@ final class LinguaFlowUITests: XCTestCase {
         let yearText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "BCE")).firstMatch
         XCTAssertTrue(yearText.waitForExistence(timeout: 3))
     }
-    
+
     func testHistoryChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
         // Answer a history choice
         let choiceA = button("historyChoiceTestAction", in: app)
         choiceA.tap()
-        
+
         // Verify result shows
         let nextButton = app.buttons["nextHistoryChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
-    
+
     // MARK: - Science Subject UI Tests
     func testCanSwitchToScienceSubject() throws {
         let app = launchReadyApp()
-        
+
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         subjectButton.tap()
-        
+
         let scienceOption = app.buttons["subject_science"].firstMatch
         XCTAssertTrue(scienceOption.waitForExistence(timeout: 3))
         scienceOption.tap()
-        
+
         let startButton = app.buttons["Start Learning"].firstMatch
         XCTAssertTrue(startButton.waitForExistence(timeout: 3))
         startButton.tap()
-        
+
         sleep(3)
-        
+
         // Verify science content appears - look for Space Frontiers text
         let spaceText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Space Frontiers")).firstMatch
         XCTAssertTrue(spaceText.waitForExistence(timeout: 5))
     }
-    
+
     func testScienceWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
@@ -190,14 +232,14 @@ final class LinguaFlowUITests: XCTestCase {
         let missionText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Mission")).firstMatch
         XCTAssertTrue(missionText.waitForExistence(timeout: 3))
     }
-    
+
     func testScienceChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
         // Answer a science choice
         let choiceB = button("scienceChoiceTestAction", in: app)
         choiceB.tap()
-        
+
         // Verify result shows
         let nextButton = app.buttons["nextScienceChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
