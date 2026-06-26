@@ -3129,14 +3129,14 @@ struct WelcomeStep: View {
             }
             
             VStack(spacing: 16) {
-                Text("Ever struggled to learn a new language?")
+                Text("Ever struggled to learn something new?")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.primary)
                     .opacity(showText ? 1 : 0)
                     .offset(y: showText ? 0 : 20)
                 
-                Text("Flashcards that bore you.\nApps that feel like homework.\nWords you forget the next day.")
+                Text("Flashcards that bore you.\nApps that feel like homework.\nThings you forget the next day.")
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
