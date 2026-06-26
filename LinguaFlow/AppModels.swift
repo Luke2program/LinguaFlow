@@ -32,7 +32,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
         case .languages: return "Master new languages with spaced repetition"
         case .history: return "Explore real worlds, make choices, change history"
         case .science: return "Discover how the universe works"
-        case .geography: return "Know the world, one fact at a time"
+        case .geography: return "Explore maps, borders, routes, and hidden places"
         case .math: return "Build number skills with quick challenges"
         case .culture: return "Art, music, food, and traditions worldwide"
         case .business: return "Strategy, markets, money, and sharper decisions"
@@ -432,6 +432,11 @@ struct GeographyChallenge: Identifiable, Codable, Equatable {
     let context: String
     let choices: [GeographyChoice]
     let mapClue: String
+    let mapTargetLabel: String
+    let mapStartX: Double
+    let mapStartY: Double
+    let mapTargetX: Double
+    let mapTargetY: Double
     let fieldNote: String
 }
 
@@ -457,6 +462,11 @@ enum GeographyData {
                 GeographyChoice(id: "d", text: "Zagreb", isCorrect: false, explanation: "Zagreb is Croatia's capital, but it is not on the Danube.")
             ],
             mapClue: "Follow the Danube east until the Alps fade into the Vienna Basin.",
+            mapTargetLabel: "Austria",
+            mapStartX: 0.45,
+            mapStartY: 0.42,
+            mapTargetX: 0.54,
+            mapTargetY: 0.48,
             fieldNote: "Vienna's position helped it become a crossroads between western, central, and southeastern Europe."
         ),
         GeographyChallenge(
@@ -472,6 +482,11 @@ enum GeographyData {
                 GeographyChoice(id: "d", text: "Rome", isCorrect: false, explanation: "Rome is in Italy and faces the Tyrrhenian Sea, not the Atlantic.")
             ],
             mapClue: "Look for the capital at the mouth of the Tagus, where river traffic meets the Atlantic.",
+            mapTargetLabel: "Portugal",
+            mapStartX: 0.42,
+            mapStartY: 0.46,
+            mapTargetX: 0.34,
+            mapTargetY: 0.55,
             fieldNote: "Lisbon is one of mainland Europe's westernmost capitals."
         ),
         GeographyChallenge(
@@ -487,6 +502,11 @@ enum GeographyData {
                 GeographyChoice(id: "d", text: "Helsinki", isCorrect: false, explanation: "Helsinki is coastal and archipelagic, but it is not between Lake Mälaren and the Baltic.")
             ],
             mapClue: "Find the island capital guarding Sweden's freshwater-to-sea passage.",
+            mapTargetLabel: "Sweden",
+            mapStartX: 0.53,
+            mapStartY: 0.30,
+            mapTargetX: 0.59,
+            mapTargetY: 0.24,
             fieldNote: "Stockholm's waterways shaped its trade, defense, and distinctive city plan."
         ),
         GeographyChallenge(
@@ -502,6 +522,11 @@ enum GeographyData {
                 GeographyChoice(id: "d", text: "Skopje", isCorrect: false, explanation: "Skopje is on the Vardar River, not at the Sava-Danube junction.")
             ],
             mapClue: "Trace the Sava east until it flows into the Danube.",
+            mapTargetLabel: "Serbia",
+            mapStartX: 0.48,
+            mapStartY: 0.55,
+            mapTargetX: 0.57,
+            mapTargetY: 0.58,
             fieldNote: "Belgrade's river junction made it a key fortress city for Roman, Byzantine, Ottoman, and Habsburg power."
         )
     ]

@@ -264,6 +264,9 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertNotNil(vienna)
         XCTAssertEqual(vienna?.region, "Central Europe")
         XCTAssertEqual(vienna?.choices.count, 4)
+        XCTAssertEqual(vienna?.mapTargetLabel, "Austria")
+        XCTAssertEqual(vienna?.mapTargetX ?? 0, 0.54, accuracy: 0.001)
+        XCTAssertEqual(vienna?.mapTargetY ?? 0, 0.48, accuracy: 0.001)
         XCTAssertTrue(vienna?.choices.contains { $0.isCorrect && $0.text == "Vienna" } ?? false)
     }
 

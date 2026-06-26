@@ -2016,24 +2016,7 @@ struct GeographyChallengeView: View {
 
                 if let challenge = currentChallenge {
                     VStack(alignment: .leading, spacing: 10) {
-                        HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: "map.fill")
-                                .font(.title2)
-                                .foregroundStyle(.cyan)
-                                .frame(width: 32)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Map clue")
-                                    .font(.caption.bold())
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("geographyMapClue")
-                                Text(challenge.mapClue)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                            }
-                        }
-                        .padding(12)
-                        .background(Color.cyan.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        GeographyMiniMapView(challenge: challenge)
 
                         Text(challenge.question)
                             .font(.title3.bold())
@@ -2129,6 +2112,118 @@ struct GeographyChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextGeographyChallenge
+    }
+}
+
+struct GeographyMiniMapView: View {
+    let challenge: GeographyChallenge
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(LinearGradient(colors: [Color.cyan.opacity(0.22), Color.blue.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing))
+
+                GeometryReader { proxy in
+                    let size = proxy.size
+                    let start = CGPoint(x: size.width * challenge.mapStartX, y: size.height * challenge.mapStartY)
+                    let target = CGPoint(x: size.width * challenge.mapTargetX, y: size.height * challenge.mapTargetY)
+
+                    ZStack {
+                        MiniMapLandmass(x: 0.48, y: 0.48, width: 0.38, height: 0.44, rotation: -8)
+                        MiniMapLandmass(x: 0.25, y: 0.48, width: 0.18, height: 0.26, rotation: 14)
+                        MiniMapLandmass(x: 0.68, y: 0.40, width: 0.25, height: 0.32, rotation: 10)
+                        MiniMapLandmass(x: 0.66, y: 0.68, width: 0.17, height: 0.22, rotation: -12)
+
+                        Path { path in
+                            path.move(to: start)
+                            path.addQuadCurve(
+                                to: target,
+                                control: CGPoint(x: (start.x + target.x) / 2, y: min(start.y, target.y) - 26)
+                            )
+                        }
+                        .stroke(Color.white.opacity(0.95), style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [7, 7]))
+
+                        MapPin(point: start, color: .white, systemImage: "location.fill")
+                        MapPin(point: target, color: .cyan, systemImage: "mappin.circle.fill")
+
+                        VStack(spacing: 2) {
+                            Text("Find")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.secondary)
+                            Text(challenge.mapTargetLabel)
+                                .font(.caption.bold())
+                                .foregroundStyle(.primary)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .position(x: min(max(target.x + 44, 58), size.width - 58), y: max(target.y - 26, 24))
+                    }
+                }
+                .padding(12)
+            }
+            .frame(height: 140)
+
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "map.fill")
+                    .font(.title3)
+                    .foregroundStyle(.cyan)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Map clue")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("geographyMapClue")
+                    Text(challenge.mapClue)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.cyan.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.cyan.opacity(0.16), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Map mission: find \(challenge.mapTargetLabel)")
+        .accessibilityIdentifier("geographyMiniMap")
+    }
+}
+
+private struct MiniMapLandmass: View {
+    let x: Double
+    let y: Double
+    let width: Double
+    let height: Double
+    let rotation: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            Capsule()
+                .fill(Color.green.opacity(0.26))
+                .overlay(Capsule().stroke(Color.green.opacity(0.34), lineWidth: 1))
+                .frame(width: proxy.size.width * width, height: proxy.size.height * height)
+                .rotationEffect(.degrees(rotation))
+                .position(x: proxy.size.width * x, y: proxy.size.height * y)
+        }
+    }
+}
+
+private struct MapPin: View {
+    let point: CGPoint
+    let color: Color
+    let systemImage: String
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 24, weight: .black))
+            .foregroundStyle(color)
+            .shadow(color: .black.opacity(0.14), radius: 4, y: 2)
+            .position(point)
     }
 }
 
