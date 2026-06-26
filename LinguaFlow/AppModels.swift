@@ -922,6 +922,22 @@ struct DailyQuest: Equatable {
     var progress: Double { min(1, Double(completed) / Double(max(1, target))) }
 }
 
+struct WorldRewardBadge: Identifiable, Equatable {
+    let subject: Subject
+    let world: PlayableWorld
+    let isEarned: Bool
+    let xpRemaining: Int
+
+    var id: String { "\(subject.rawValue)-\(world.id)" }
+    var title: String { world.rewardName }
+    var subtitle: String {
+        isEarned ? "\(subject.displayName) unlocked" : "\(xpRemaining) XP left"
+    }
+    var systemImage: String {
+        isEarned ? "seal.fill" : "lock.fill"
+    }
+}
+
 enum AppLanguage: String, Codable, CaseIterable, Identifiable {
     case german = "de-DE"
     case spanish = "es-ES"
@@ -1336,6 +1352,41 @@ struct UserStats: Codable, Equatable {
     
     mutating func updateProgress(for subject: Subject, _ progress: SubjectProgress) {
         subjectProgress[subject.rawValue] = progress
+    }
+}
+
+extension UserStats {
+    var worldRewardBadges: [WorldRewardBadge] {
+        Subject.allCases.flatMap { subject in
+            subject.worlds.map { world in
+                WorldRewardBadge(
+                    subject: subject,
+                    world: world,
+                    isEarned: world.isUnlocked(withXP: xp),
+                    xpRemaining: world.xpRemaining(withXP: xp)
+                )
+            }
+        }
+    }
+
+    var earnedWorldRewardCount: Int {
+        worldRewardBadges.filter(\.isEarned).count
+    }
+
+    var totalWorldRewardCount: Int {
+        worldRewardBadges.count
+    }
+
+    var worldRewardProgress: Double {
+        guard totalWorldRewardCount > 0 else { return 0 }
+        return Double(earnedWorldRewardCount) / Double(totalWorldRewardCount)
+    }
+
+    var featuredWorldRewardBadges: [WorldRewardBadge] {
+        let badges = worldRewardBadges
+        let earned = badges.filter(\.isEarned).suffix(3)
+        let nextLocked = badges.first { !$0.isEarned }.map { [$0] } ?? []
+        return Array(earned) + nextLocked
     }
 }
 

@@ -129,6 +129,22 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertNil(Subject.health.nextLockedWorld(withXP: 500))
         XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 500), 2)
     }
+
+    func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
+        var stats = UserStats()
+        stats.xp = 0
+
+        XCTAssertEqual(stats.totalWorldRewardCount, 15)
+        XCTAssertEqual(stats.earnedWorldRewardCount, 7)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 15.0, accuracy: 0.001)
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
+
+        stats.xp = 500
+        XCTAssertEqual(stats.earnedWorldRewardCount, 12)
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
+        XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Wall Street Desk" })
+    }
     
     func testHistoryChallengeScoring() async {
         await MainActor.run {

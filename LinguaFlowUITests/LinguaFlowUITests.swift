@@ -109,6 +109,8 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
     }
     

@@ -175,6 +175,7 @@ struct DashboardView: View {
                     subjectHeader
                     ChallengeUITestControls()
                     DailyQuestView()
+                    RewardVaultView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
@@ -323,6 +324,100 @@ struct DailyQuestView: View {
             }
         }
         .accessibilityIdentifier("dailyQuestPanel")
+    }
+}
+
+struct RewardVaultView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let badges = store.stats.featuredWorldRewardBadges
+        let progress = store.stats.worldRewardProgress
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.yellow.opacity(colorScheme == .dark ? 0.22 : 0.18))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "trophy.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.yellow)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Reward Vault")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("rewardVaultTitle")
+                        Text("\(store.stats.earnedWorldRewardCount)/\(store.stats.totalWorldRewardCount) world badges collected")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("rewardVaultProgressText")
+                    }
+                    Spacer()
+                    Text("\(Int(progress * 100))%")
+                        .font(.caption.bold())
+                        .foregroundStyle(.yellow)
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.yellow, .orange, .green], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * progress)
+                    }
+                }
+                .frame(height: 9)
+
+                HStack(spacing: 8) {
+                    ForEach(badges) { badge in
+                        RewardBadgeChip(badge: badge)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("rewardVaultPanel")
+    }
+}
+
+struct RewardBadgeChip: View {
+    let badge: WorldRewardBadge
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ZStack(alignment: .bottomTrailing) {
+                Text(badge.world.emoji)
+                    .font(.system(size: 28))
+                    .frame(width: 46, height: 46)
+                    .background(badge.subject.accentColor.opacity(badge.isEarned ? 0.18 : 0.07), in: Circle())
+                    .saturation(badge.isEarned ? 1 : 0.15)
+                    .opacity(badge.isEarned ? 1 : 0.62)
+                Image(systemName: badge.systemImage)
+                    .font(.caption2.bold())
+                    .foregroundStyle(badge.isEarned ? .green : .secondary)
+                    .padding(4)
+                    .background(.thinMaterial, in: Circle())
+            }
+            Text(badge.world.name)
+                .font(.caption2.bold())
+                .foregroundStyle(badge.isEarned ? .primary : .secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+            Text(badge.isEarned ? "Collected" : "\(badge.xpRemaining) XP")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 86)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .background(Color.primary.opacity(badge.isEarned ? 0.055 : 0.035), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(badge.subject.accentColor.opacity(badge.isEarned ? 0.22 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(badge.title), \(badge.subtitle)")
+        .accessibilityIdentifier("rewardBadge_\(badge.id)")
     }
 }
 
