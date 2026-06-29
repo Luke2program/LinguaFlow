@@ -1735,7 +1735,8 @@ struct RubiconCampaignMapView: View {
             .padding(12)
             .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.05), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .accessibilityIdentifier("rubiconInteractiveMap")
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("rubiconCampaignMap")
     }
 
     private func decisionButton(_ title: String, icon: String, color: Color) -> some View {
