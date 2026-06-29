@@ -1700,12 +1700,33 @@ struct RubiconCampaignMapView: View {
                         .buttonStyle(.plain)
                         .position(x: proxy.size.width * location.x, y: proxy.size.height * location.y)
                         .accessibilityLabel("\(location.title): \(location.subtitle)")
-                        .accessibilityIdentifier("rubiconMapPin_\(location.id)")
+                        .accessibilityIdentifier("rubiconVisualPin_\(location.id)")
                     }
                 }
             }
             .frame(height: 224)
             .accessibilityIdentifier("rubiconCampaignMap")
+
+            HStack(spacing: 7) {
+                ForEach(locations) { location in
+                    Button {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                            select(location)
+                        }
+                    } label: {
+                        Text(location.title)
+                            .font(.caption2.bold())
+                            .foregroundStyle(selectedLocation == location.title ? .white : location.color)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 7)
+                            .background(selectedLocation == location.title ? location.color : location.color.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("rubiconMapPin_\(location.id)")
+                }
+            }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
@@ -1756,6 +1777,19 @@ struct RubiconCampaignMapView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("rubiconDecision_\(title.replacingOccurrences(of: " ", with: ""))")
+    }
+
+    private func select(_ location: HistoricalMapLocation) {
+        selectedLocation = location.title
+        if location.id == "rome" {
+            routeProgress = 1
+        } else if location.id == "rubicon" {
+            routeProgress = 0.5
+        } else if location.id == "ravenna" {
+            routeProgress = 0.18
+        } else {
+            routeProgress = 0.72
+        }
     }
 
     private func territoryLabel(_ text: String, x: CGFloat, y: CGFloat, color: Color, size: CGSize) -> some View {
