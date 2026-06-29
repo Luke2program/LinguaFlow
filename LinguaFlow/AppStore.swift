@@ -326,6 +326,30 @@ final class AppStore: ObservableObject {
         save()
         objectWillChange.send()
     }
+
+    func startRandomStudy() {
+        let options = Subject.allCases
+            .filter { $0 != .languages }
+            .flatMap { subject in
+                subject.worlds
+                    .filter { $0.isUnlocked(withXP: stats.xp) }
+                    .map { (subject: subject, world: $0) }
+            }
+
+        guard let pick = options.randomElement() else {
+            select(subject: .languages)
+            feedbackMessage = "Roulette picked Languages. Build XP to unlock more worlds."
+            return
+        }
+
+        stats.selectedSubject = pick.subject
+        var progress = stats.progress(for: pick.subject)
+        progress.currentWorldId = pick.world.id
+        stats.updateProgress(for: pick.subject, progress)
+        feedbackMessage = "Roulette picked \(pick.world.name) in \(pick.subject.displayName)."
+        save()
+        objectWillChange.send()
+    }
     
     func select(worldId: String, for subject: Subject) {
         var progress = stats.progress(for: subject)

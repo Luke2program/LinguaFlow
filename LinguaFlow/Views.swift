@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    RandomStudyView()
                     ChallengeUITestControls()
                     DailyQuestView()
                     RewardVaultView()
@@ -271,6 +272,52 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct RandomStudyView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.startRandomStudy()
+            }
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(LinearGradient(colors: [.purple.opacity(0.24), .cyan.opacity(0.18), .yellow.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 52, height: 52)
+                    Image(systemName: "shuffle.circle.fill")
+                        .font(.title2.bold())
+                        .foregroundStyle(.purple)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Quest Roulette")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(store.feedbackMessage.contains("Roulette picked") ? store.feedbackMessage : "Jump into a random unlocked world.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                Spacer()
+                Image(systemName: "play.fill")
+                    .font(.caption.bold())
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .frame(width: 28, height: 28)
+                    .background(Color.primary, in: Circle())
+            }
+            .padding(14)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("randomStudyButton")
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : "Quest Roulette. Jump into a random unlocked world.")
     }
 }
 
@@ -1351,6 +1398,38 @@ struct SubjectPickerView: View {
                     .padding(.horizontal, 32)
 
                 VStack(spacing: 12) {
+                    Button {
+                        store.startRandomStudy()
+                        onComplete()
+                    } label: {
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(LinearGradient(colors: [.purple.opacity(0.22), .cyan.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 52, height: 52)
+                                Image(systemName: "shuffle.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.purple)
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Surprise me")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("Start a random unlocked quest world.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.purple)
+                        }
+                        .padding(16)
+                        .background(RoundedRectangle(cornerRadius: 16).fill(Color.purple.opacity(0.07)))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.purple.opacity(0.28), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("subject_randomStudy")
+
                     ForEach(Subject.allCases) { subject in
                         let isSelected = selectedSubject == subject
                         Button {

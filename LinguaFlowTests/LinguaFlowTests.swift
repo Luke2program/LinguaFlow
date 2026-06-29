@@ -637,6 +637,24 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertNotNil(store.nextHealthChallenge)
         }
     }
+
+    func testRandomStudyStartsUnlockedPlayableWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.xp = 0
+
+            store.startRandomStudy()
+
+            XCTAssertNotEqual(store.stats.selectedSubject, .languages)
+            XCTAssertNotNil(store.currentWorld)
+            XCTAssertTrue(store.currentWorld?.isUnlocked(withXP: store.stats.xp) ?? false)
+            XCTAssertTrue(store.feedbackMessage.contains("Roulette picked"))
+        }
+    }
     
     func testSubjectDefaultIsLanguages() {
         let stats = UserStats()

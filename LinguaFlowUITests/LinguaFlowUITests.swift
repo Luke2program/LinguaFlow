@@ -150,10 +150,22 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp()
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
+    }
+
+    func testRandomStudyButtonJumpsIntoAWorld() throws {
+        let app = launchReadyApp()
+
+        let randomButton = app.buttons["randomStudyButton"].firstMatch
+        XCTAssertTrue(randomButton.waitForExistence(timeout: 3))
+        randomButton.tap()
+
+        let pickedButton = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Roulette picked")).firstMatch
+        XCTAssertTrue(pickedButton.waitForExistence(timeout: 3))
     }
 
     func testCanSwitchToHistorySubject() throws {
