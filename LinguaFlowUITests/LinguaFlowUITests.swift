@@ -74,6 +74,17 @@ final class LinguaFlowUITests: XCTestCase {
         return target
     }
 
+    private func element(_ id: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let target = app.descendants(matching: .any)[id].firstMatch
+        if target.waitForExistence(timeout: 2) { return target }
+        for _ in 0..<6 {
+            app.swipeUp()
+            if target.waitForExistence(timeout: 1) { return target }
+        }
+        XCTFail("Element \(id) did not appear after scrolling", file: file, line: line)
+        return target
+    }
+
     func testRequiresTypedAnswerAndDirection() throws {
         let app = launchReadyApp()
 
@@ -205,7 +216,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testRubiconCampaignMapInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
-        XCTAssertTrue(app.descendants(matching: .any)["rubiconCampaignMap"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("rubiconCampaignMap", in: app).exists)
 
         let rubiconPin = app.buttons["rubiconMapPin_rubicon"].firstMatch
         XCTAssertTrue(rubiconPin.waitForExistence(timeout: 3))
