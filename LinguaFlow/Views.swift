@@ -1595,6 +1595,246 @@ struct SubjectMapPreview: View {
     }
 }
 
+struct RubiconCampaignMapView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var selectedLocation = "Rubicon"
+    @State private var routeProgress = 0.72
+    @State private var decision = "Cross"
+
+    private let locations: [HistoricalMapLocation] = [
+        HistoricalMapLocation(id: "ravenna", title: "Ravenna", subtitle: "Caesar's winter quarters", x: 0.50, y: 0.26, color: .red, icon: "shield.lefthalf.filled"),
+        HistoricalMapLocation(id: "rubicon", title: "Rubicon", subtitle: "Legal border of Caesar's command", x: 0.47, y: 0.38, color: .orange, icon: "flag.checkered"),
+        HistoricalMapLocation(id: "ariminum", title: "Ariminum", subtitle: "First target after the crossing", x: 0.56, y: 0.42, color: .red, icon: "mappin.circle.fill"),
+        HistoricalMapLocation(id: "rome", title: "Rome", subtitle: "Senate power center", x: 0.46, y: 0.75, color: .yellow, icon: "building.columns.fill")
+    ]
+
+    private var selectedInfo: HistoricalMapLocation {
+        locations.first { $0.title == selectedLocation } ?? locations[1]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "map.fill")
+                Text("Roman Republic, 49 BCE")
+                Spacer()
+                Text(decision == "Cross" ? "Point of no return" : "Political survival")
+                    .font(.caption2.bold())
+                    .foregroundStyle(decision == "Cross" ? .red : .blue)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background((decision == "Cross" ? Color.red : Color.blue).opacity(0.14), in: Capsule())
+            }
+            .font(.caption.bold())
+            .foregroundStyle(.orange)
+
+            GeometryReader { proxy in
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.18, green: 0.41, blue: 0.48).opacity(colorScheme == .dark ? 0.55 : 0.34),
+                                    Color(red: 0.96, green: 0.78, blue: 0.48).opacity(colorScheme == .dark ? 0.42 : 0.72)
+                                ],
+                                startPoint: .topTrailing,
+                                endPoint: .bottomLeading
+                            )
+                        )
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.orange.opacity(0.25), lineWidth: 1))
+
+                    senateTerritory(in: proxy.size)
+                        .fill(Color.orange.opacity(colorScheme == .dark ? 0.18 : 0.24))
+                    caesarTerritory(in: proxy.size)
+                        .fill(Color.red.opacity(colorScheme == .dark ? 0.18 : 0.20))
+                    italyShape(in: proxy.size)
+                        .fill(Color(red: 0.86, green: 0.65, blue: 0.34).opacity(colorScheme == .dark ? 0.72 : 0.88))
+                        .overlay(italyShape(in: proxy.size).stroke(Color.primary.opacity(0.16), lineWidth: 1))
+                    adriaticShape(in: proxy.size)
+                        .fill(Color.cyan.opacity(colorScheme == .dark ? 0.18 : 0.24))
+
+                    rubiconRiver(in: proxy.size)
+                        .stroke(Color.cyan.opacity(0.9), style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [5, 4]))
+                    caesarRoute(in: proxy.size, progress: routeProgress)
+                        .stroke(Color.red.opacity(0.92), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                    caesarRoute(in: proxy.size, progress: routeProgress)
+                        .stroke(Color.white.opacity(0.7), style: StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round, dash: [7, 7]))
+
+                    territoryLabel("Caesar's command", x: 0.20, y: 0.21, color: .red, size: proxy.size)
+                    territoryLabel("Senate-controlled Italy", x: 0.25, y: 0.72, color: .orange, size: proxy.size)
+                    territoryLabel("Adriatic Sea", x: 0.78, y: 0.45, color: .cyan, size: proxy.size)
+
+                    ForEach(locations) { location in
+                        Button {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                selectedLocation = location.title
+                                if location.id == "rome" {
+                                    routeProgress = 1
+                                } else if location.id == "rubicon" {
+                                    routeProgress = 0.5
+                                } else if location.id == "ravenna" {
+                                    routeProgress = 0.18
+                                } else {
+                                    routeProgress = 0.72
+                                }
+                            }
+                        } label: {
+                            VStack(spacing: 3) {
+                                ZStack {
+                                    Circle()
+                                        .fill(location.title == selectedLocation ? location.color : Color(.systemBackground))
+                                        .frame(width: location.title == selectedLocation ? 34 : 28, height: location.title == selectedLocation ? 34 : 28)
+                                        .overlay(Circle().stroke(location.color.opacity(0.85), lineWidth: 2))
+                                    Image(systemName: location.icon)
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundStyle(location.title == selectedLocation ? .white : location.color)
+                                }
+                                Text(location.title)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.primary)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(.thinMaterial, in: Capsule())
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .position(x: proxy.size.width * location.x, y: proxy.size.height * location.y)
+                        .accessibilityLabel("\(location.title): \(location.subtitle)")
+                        .accessibilityIdentifier("rubiconMapPin_\(location.id)")
+                    }
+                }
+            }
+            .frame(height: 224)
+            .accessibilityIdentifier("rubiconCampaignMap")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Image(systemName: selectedInfo.icon)
+                        .foregroundStyle(selectedInfo.color)
+                        .frame(width: 20)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(selectedInfo.title)
+                            .font(.subheadline.bold())
+                        Text(selectedInfo.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+
+                HStack(spacing: 8) {
+                    decisionButton("Cross", icon: "arrow.up.right.circle.fill", color: .red)
+                    decisionButton("Turn back", icon: "arrow.uturn.backward.circle.fill", color: .blue)
+                }
+
+                Text(decision == "Cross" ? "Caesar marches with the 13th Legion. Rome sees this as civil war." : "Caesar obeys the Senate, but risks prosecution and the loss of his command.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("rubiconDecisionOutcome")
+            }
+            .padding(12)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.05), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .accessibilityIdentifier("rubiconInteractiveMap")
+    }
+
+    private func decisionButton(_ title: String, icon: String, color: Color) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.24)) {
+                decision = title
+                routeProgress = title == "Cross" ? 1 : 0.42
+                selectedLocation = title == "Cross" ? "Rome" : "Rubicon"
+            }
+        } label: {
+            Label(title, systemImage: icon)
+                .font(.caption.bold())
+                .foregroundStyle(decision == title ? .white : color)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(decision == title ? color : color.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("rubiconDecision_\(title.replacingOccurrences(of: " ", with: ""))")
+    }
+
+    private func territoryLabel(_ text: String, x: CGFloat, y: CGFloat, color: Color, size: CGSize) -> some View {
+        Text(text)
+            .font(.system(size: 9, weight: .bold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(.thinMaterial, in: Capsule())
+            .position(x: size.width * x, y: size.height * y)
+    }
+
+    private func italyShape(in size: CGSize) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: size.width * 0.40, y: size.height * 0.14))
+            path.addCurve(to: CGPoint(x: size.width * 0.58, y: size.height * 0.25), control1: CGPoint(x: size.width * 0.50, y: size.height * 0.09), control2: CGPoint(x: size.width * 0.58, y: size.height * 0.15))
+            path.addCurve(to: CGPoint(x: size.width * 0.55, y: size.height * 0.47), control1: CGPoint(x: size.width * 0.61, y: size.height * 0.35), control2: CGPoint(x: size.width * 0.55, y: size.height * 0.39))
+            path.addCurve(to: CGPoint(x: size.width * 0.64, y: size.height * 0.70), control1: CGPoint(x: size.width * 0.57, y: size.height * 0.57), control2: CGPoint(x: size.width * 0.64, y: size.height * 0.61))
+            path.addCurve(to: CGPoint(x: size.width * 0.52, y: size.height * 0.86), control1: CGPoint(x: size.width * 0.65, y: size.height * 0.81), control2: CGPoint(x: size.width * 0.57, y: size.height * 0.88))
+            path.addCurve(to: CGPoint(x: size.width * 0.43, y: size.height * 0.64), control1: CGPoint(x: size.width * 0.50, y: size.height * 0.75), control2: CGPoint(x: size.width * 0.43, y: size.height * 0.72))
+            path.addCurve(to: CGPoint(x: size.width * 0.37, y: size.height * 0.39), control1: CGPoint(x: size.width * 0.42, y: size.height * 0.53), control2: CGPoint(x: size.width * 0.35, y: size.height * 0.48))
+            path.addCurve(to: CGPoint(x: size.width * 0.40, y: size.height * 0.14), control1: CGPoint(x: size.width * 0.39, y: size.height * 0.29), control2: CGPoint(x: size.width * 0.34, y: size.height * 0.20))
+            path.closeSubpath()
+        }
+    }
+
+    private func adriaticShape(in size: CGSize) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: size.width * 0.62, y: size.height * 0.18))
+            path.addCurve(to: CGPoint(x: size.width * 0.76, y: size.height * 0.68), control1: CGPoint(x: size.width * 0.74, y: size.height * 0.30), control2: CGPoint(x: size.width * 0.78, y: size.height * 0.50))
+            path.addCurve(to: CGPoint(x: size.width * 0.65, y: size.height * 0.79), control1: CGPoint(x: size.width * 0.72, y: size.height * 0.75), control2: CGPoint(x: size.width * 0.68, y: size.height * 0.78))
+            path.addCurve(to: CGPoint(x: size.width * 0.60, y: size.height * 0.32), control1: CGPoint(x: size.width * 0.68, y: size.height * 0.59), control2: CGPoint(x: size.width * 0.63, y: size.height * 0.42))
+            path.closeSubpath()
+        }
+    }
+
+    private func senateTerritory(in size: CGSize) -> Path {
+        Path(ellipseIn: CGRect(x: size.width * 0.20, y: size.height * 0.48, width: size.width * 0.50, height: size.height * 0.40))
+    }
+
+    private func caesarTerritory(in size: CGSize) -> Path {
+        Path(roundedRect: CGRect(x: size.width * 0.12, y: size.height * 0.08, width: size.width * 0.56, height: size.height * 0.27), cornerRadius: 28)
+    }
+
+    private func rubiconRiver(in size: CGSize) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: size.width * 0.34, y: size.height * 0.37))
+            path.addCurve(to: CGPoint(x: size.width * 0.58, y: size.height * 0.40), control1: CGPoint(x: size.width * 0.42, y: size.height * 0.32), control2: CGPoint(x: size.width * 0.50, y: size.height * 0.43))
+        }
+    }
+
+    private func caesarRoute(in size: CGSize, progress: Double) -> Path {
+        let route = [
+            CGPoint(x: size.width * 0.50, y: size.height * 0.26),
+            CGPoint(x: size.width * 0.47, y: size.height * 0.38),
+            CGPoint(x: size.width * 0.56, y: size.height * 0.42),
+            CGPoint(x: size.width * 0.50, y: size.height * 0.58),
+            CGPoint(x: size.width * 0.46, y: size.height * 0.75)
+        ]
+        let clampedProgress = min(max(progress, 0), 1)
+        let targetIndex = max(1, Int(ceil(Double(route.count - 1) * clampedProgress)))
+        return Path { path in
+            path.move(to: route[0])
+            for point in route[1...targetIndex] {
+                path.addLine(to: point)
+            }
+        }
+    }
+}
+
+private struct HistoricalMapLocation: Identifiable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let x: CGFloat
+    let y: CGFloat
+    let color: Color
+    let icon: String
+}
+
 // MARK: - History World Selection
 struct HistoryWorldView: View {
     @EnvironmentObject var store: AppStore
@@ -1612,8 +1852,12 @@ struct HistoryWorldView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                SubjectMapPreview(subject: .history, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
-                    store.select(worldId: world.id, for: .history)
+                if store.currentWorld?.id == "ancient-rome" {
+                    RubiconCampaignMapView()
+                } else {
+                    SubjectMapPreview(subject: .history, worlds: worlds, selectedWorldId: store.currentWorld?.id, xp: xp) { world in
+                        store.select(worldId: world.id, for: .history)
+                    }
                 }
 
                 NextWorldUnlockView(subject: .history, xp: xp)

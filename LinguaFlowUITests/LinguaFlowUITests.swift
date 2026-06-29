@@ -202,6 +202,23 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(yearText.waitForExistence(timeout: 3))
     }
 
+    func testRubiconCampaignMapInteraction() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["rubiconCampaignMap"].waitForExistence(timeout: 3))
+
+        let rubiconPin = app.buttons["rubiconMapPin_rubicon"].firstMatch
+        XCTAssertTrue(rubiconPin.waitForExistence(timeout: 3))
+        rubiconPin.tap()
+
+        let turnBackButton = app.buttons["rubiconDecision_Turnback"].firstMatch
+        XCTAssertTrue(turnBackButton.waitForExistence(timeout: 3))
+        turnBackButton.tap()
+
+        let outcome = app.staticTexts["rubiconDecisionOutcome"].firstMatch
+        XCTAssertTrue(outcome.waitForExistence(timeout: 3))
+    }
+
     func testHistoryChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
