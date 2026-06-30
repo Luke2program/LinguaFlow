@@ -175,6 +175,7 @@ struct DashboardView: View {
                     RandomStudyView()
                     ChallengeUITestControls()
                     DailyQuestView()
+                    LevelTrackView()
                     RewardVaultView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
@@ -370,6 +371,70 @@ struct DailyQuestView: View {
             }
         }
         .accessibilityIdentifier("dailyQuestPanel")
+    }
+}
+
+struct LevelTrackView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let stats = store.stats
+        let nextUnlock = stats.nextWorldUnlockBadge
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.indigo.opacity(0.22), .cyan.opacity(0.16), .green.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Text("\(stats.learningLevel)")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Level \(stats.learningLevel) · \(stats.levelTitle)")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("levelTrackTitle")
+                        Text(stats.streakBoostText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("levelTrackStreak")
+                    }
+                    Spacer()
+                    Text("\(stats.xpNeededForNextLevel) XP")
+                        .font(.caption.bold())
+                        .foregroundStyle(.indigo)
+                        .accessibilityIdentifier("levelTrackNextXP")
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.indigo, .cyan, .green], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * stats.levelProgress)
+                    }
+                }
+                .frame(height: 10)
+                .accessibilityIdentifier("levelTrackProgress")
+
+                HStack(spacing: 8) {
+                    Image(systemName: nextUnlock == nil ? "sparkles" : "lock.open")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Text(nextUnlock.map { "Next unlock: \($0.world.name) in \($0.subject.displayName) · \($0.xpRemaining) XP left" } ?? "All current worlds unlocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                        .accessibilityIdentifier("levelTrackNextUnlock")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("levelTrackPanel")
     }
 }
 

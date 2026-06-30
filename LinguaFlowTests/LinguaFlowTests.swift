@@ -130,6 +130,21 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 500), 2)
     }
 
+    func testLearningLevelTrackAndNextUnlock() {
+        var stats = UserStats()
+        stats.xp = 275
+        stats.streak = 4
+
+        XCTAssertEqual(stats.learningLevel, 3)
+        XCTAssertEqual(stats.levelTitle, "World Walker")
+        XCTAssertEqual(stats.xpIntoCurrentLevel, 75)
+        XCTAssertEqual(stats.xpNeededForNextLevel, 25)
+        XCTAssertEqual(stats.levelProgress, 0.75, accuracy: 0.001)
+        XCTAssertEqual(stats.streakBoostText, "4-day streak · +8% momentum")
+        XCTAssertEqual(stats.nextWorldUnlockBadge?.world.name, "African Wonders")
+        XCTAssertEqual(stats.nextWorldUnlockBadge?.xpRemaining, 25)
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

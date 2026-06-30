@@ -1381,6 +1381,38 @@ struct UserStats: Codable, Equatable {
 }
 
 extension UserStats {
+    var learningLevel: Int {
+        max(1, (xp / 100) + 1)
+    }
+
+    var xpIntoCurrentLevel: Int {
+        max(0, xp % 100)
+    }
+
+    var xpNeededForNextLevel: Int {
+        max(0, 100 - xpIntoCurrentLevel)
+    }
+
+    var levelProgress: Double {
+        Double(xpIntoCurrentLevel) / 100.0
+    }
+
+    var levelTitle: String {
+        switch learningLevel {
+        case 1...2: return "Trail Starter"
+        case 3...4: return "World Walker"
+        case 5...7: return "Quest Adept"
+        case 8...11: return "Realm Scholar"
+        default: return "Master Explorer"
+        }
+    }
+
+    var streakBoostText: String {
+        guard streak > 1 else { return "Start a streak for bonus momentum" }
+        let boost = min(25, streak * 2)
+        return "\(streak)-day streak · +\(boost)% momentum"
+    }
+
     var worldRewardBadges: [WorldRewardBadge] {
         Subject.allCases.flatMap { subject in
             subject.worlds.map { world in
@@ -1412,6 +1444,13 @@ extension UserStats {
         let earned = badges.filter(\.isEarned).suffix(3)
         let nextLocked = badges.first { !$0.isEarned }.map { [$0] } ?? []
         return Array(earned) + nextLocked
+    }
+
+    var nextWorldUnlockBadge: WorldRewardBadge? {
+        worldRewardBadges
+            .filter { !$0.isEarned }
+            .sorted { $0.xpRemaining < $1.xpRemaining }
+            .first
     }
 }
 

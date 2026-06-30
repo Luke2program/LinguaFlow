@@ -163,6 +163,8 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["levelTrackPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
