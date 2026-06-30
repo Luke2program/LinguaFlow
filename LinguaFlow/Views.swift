@@ -424,7 +424,7 @@ struct LevelTrackView: View {
                     Image(systemName: nextUnlock == nil ? "sparkles" : "lock.open")
                         .font(.caption.bold())
                         .foregroundStyle(.secondary)
-                    Text(nextUnlock.map { "Next unlock: \($0.world.name) in \($0.subject.displayName) · \($0.xpRemaining) XP left" } ?? "All current worlds unlocked")
+                    Text(nextUnlock.map { "Next unlock: \($0.world.name) · \($0.xpRemaining) XP left" } ?? "All current worlds unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
