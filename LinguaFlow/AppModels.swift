@@ -947,6 +947,69 @@ struct DailyQuest: Equatable {
     var progress: Double { min(1, Double(completed) / Double(max(1, target))) }
 }
 
+struct DailyAdventure: Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let xp: Int
+    let streak: Int
+
+    var title: String {
+        if let world {
+            return "\(world.name) Run"
+        }
+        return "Language Harbor Run"
+    }
+
+    var objective: String {
+        switch subject {
+        case .languages:
+            return "Clear 5 mixed prompts to fill your fluency drop meter."
+        case .history:
+            return "Explore a real turning point, choose carefully, then read what actually happened."
+        case .science:
+            return "Solve one field mission and collect the evidence note."
+        case .geography:
+            return "Follow the clue trail from map hint to correct place."
+        case .math:
+            return "Break the pattern lock before the next gate closes."
+        case .culture:
+            return "Read the scene, choose the respectful move, and keep the context."
+        case .business:
+            return "Make one founder-grade decision using the signal, not the noise."
+        case .health:
+            return "Practice one useful habit decision you can apply today."
+        }
+    }
+
+    var rewardLine: String {
+        let streakBonus = streak > 1 ? " · streak x\(min(5, streak))" : ""
+        return "+30 XP · \(rewardName)\(streakBonus)"
+    }
+
+    var rewardName: String {
+        switch subject {
+        case .languages: return "Fluency Drop"
+        case .history: return "Chronicle Page"
+        case .science: return "Discovery Spark"
+        case .geography: return "Trail Marker"
+        case .math: return "Puzzle Core"
+        case .culture: return "Culture Stamp"
+        case .business: return "Decision Token"
+        case .health: return "Habit Charge"
+        }
+    }
+
+    var unlockHint: String {
+        if let world, !world.isUnlocked(withXP: xp) {
+            return "\(world.xpRemaining(withXP: xp)) XP until this world opens."
+        }
+        if let next = subject.nextLockedWorld(withXP: xp) {
+            return "\(next.xpRemaining(withXP: xp)) XP to unlock \(next.name)."
+        }
+        return "Complete today's run to push your level track forward."
+    }
+}
+
 struct WorldRewardBadge: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld

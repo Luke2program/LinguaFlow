@@ -160,6 +160,35 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
         XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Age of Discovery" })
     }
+
+    func testDailyAdventureFramesSubjectWorldAndUnlockReward() {
+        let rome = Subject.history.worlds.first { $0.id == "ancient-rome" }
+        let adventure = DailyAdventure(subject: .history, world: rome, xp: 125, streak: 3)
+
+        XCTAssertEqual(adventure.title, "Ancient Rome Run")
+        XCTAssertTrue(adventure.objective.contains("real turning point"))
+        XCTAssertEqual(adventure.rewardLine, "+30 XP · Chronicle Page · streak x3")
+        XCTAssertEqual(adventure.unlockHint, "375 XP to unlock Medieval Europe.")
+
+        let languageAdventure = DailyAdventure(subject: .languages, world: nil, xp: 0, streak: 0)
+        XCTAssertEqual(languageAdventure.title, "Language Harbor Run")
+        XCTAssertTrue(languageAdventure.objective.contains("mixed prompts"))
+        XCTAssertEqual(languageAdventure.rewardLine, "+30 XP · Fluency Drop")
+    }
+
+    func testStoreDailyAdventureUsesSelectedWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.stats.xp = 350
+            var progress = store.stats.progress(for: .geography)
+            progress.currentWorldId = "african-wonders"
+            store.stats.updateProgress(for: .geography, progress)
+
+            XCTAssertEqual(store.dailyAdventure.title, "African Wonders Run")
+            XCTAssertEqual(store.dailyAdventure.unlockHint, "Complete today's run to push your level track forward.")
+        }
+    }
     
     func testHistoryChallengeScoring() async {
         await MainActor.run {

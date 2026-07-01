@@ -174,6 +174,7 @@ struct DashboardView: View {
                     subjectHeader
                     RandomStudyView()
                     ChallengeUITestControls()
+                    DailyAdventureView()
                     DailyQuestView()
                     LevelTrackView()
                     RewardVaultView()
@@ -371,6 +372,80 @@ struct DailyQuestView: View {
             }
         }
         .accessibilityIdentifier("dailyQuestPanel")
+    }
+}
+
+struct DailyAdventureView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let adventure = store.dailyAdventure
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                if adventure.subject == .languages {
+                    store.pickNextCard()
+                    store.feedbackMessage = "Adventure started: clear the next language prompts."
+                } else if let world = adventure.world {
+                    store.select(worldId: world.id, for: adventure.subject)
+                    store.feedbackMessage = "Adventure started: \(world.name)."
+                }
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(LinearGradient(colors: [adventure.subject.accentColor.opacity(0.24), .yellow.opacity(0.18), .cyan.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Text(adventure.world?.emoji ?? "💧")
+                            .font(.system(size: 28))
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Daily Adventure")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                        Text(adventure.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyAdventureTitle")
+                    }
+                    Spacer()
+                    Image(systemName: "play.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .frame(width: 30, height: 30)
+                        .background(Color.primary, in: Circle())
+                }
+
+                Text(adventure.objective)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                    .accessibilityIdentifier("dailyAdventureObjective")
+
+                HStack(spacing: 8) {
+                    Label(adventure.rewardLine, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(adventure.subject.accentColor)
+                    Spacer(minLength: 8)
+                    Text(adventure.unlockHint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.78)
+                        .accessibilityIdentifier("dailyAdventureUnlockHint")
+                }
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.045), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(adventure.subject.accentColor.opacity(0.18), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Daily Adventure. \(adventure.title). \(adventure.objective) Reward \(adventure.rewardLine).")
+        .accessibilityIdentifier("dailyAdventurePanel")
     }
 }
 

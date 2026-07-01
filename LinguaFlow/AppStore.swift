@@ -50,6 +50,16 @@ final class AppStore: ObservableObject {
     var dailyQuest: DailyQuest {
         DailyQuest(subject: stats.selectedSubject, completed: stats.reviewedToday, target: min(10, max(4, stats.dailyGoal / 2)))
     }
+    var dailyAdventure: DailyAdventure {
+        let world: PlayableWorld?
+        if stats.selectedSubject == .languages {
+            world = nil
+        } else {
+            let currentWorldId = stats.subjectProgress[stats.selectedSubject.rawValue]?.currentWorldId
+            world = stats.selectedSubject.worlds.first { $0.id == currentWorldId } ?? stats.selectedSubject.worlds.first
+        }
+        return DailyAdventure(subject: stats.selectedSubject, world: world, xp: stats.xp, streak: stats.streak)
+    }
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
