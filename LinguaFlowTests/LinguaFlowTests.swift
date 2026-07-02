@@ -161,6 +161,31 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Age of Discovery" })
     }
 
+    func testWorldPathStopsTrackActiveLockedAndChallengeProgress() {
+        var stats = UserStats()
+        stats.xp = 125
+        var progress = stats.progress(for: .history)
+        progress.currentWorldId = "ancient-rome"
+        progress.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, progress)
+
+        let stops = stats.worldPathStops(for: .history)
+
+        XCTAssertEqual(stops.count, 3)
+        XCTAssertEqual(stops[0].world.name, "Ancient Rome")
+        XCTAssertTrue(stops[0].isSelected)
+        XCTAssertFalse(stops[0].isLocked)
+        XCTAssertEqual(stops[0].progressText, "2/5 missions")
+        XCTAssertEqual(stops[0].progress, 0.4, accuracy: 0.001)
+
+        XCTAssertEqual(stops[1].world.name, "Medieval Europe")
+        XCTAssertTrue(stops[1].isLocked)
+        XCTAssertEqual(stops[1].xpRemaining, 375)
+        XCTAssertEqual(stops[1].statusText, "375 XP")
+
+        XCTAssertTrue(stats.worldPathStops(for: .languages).isEmpty)
+    }
+
     func testDailyAdventureFramesSubjectWorldAndUnlockReward() {
         let rome = Subject.history.worlds.first { $0.id == "ancient-rome" }
         let adventure = DailyAdventure(subject: .history, world: rome, xp: 125, streak: 3)

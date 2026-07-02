@@ -1026,6 +1026,59 @@ struct WorldRewardBadge: Identifiable, Equatable {
     }
 }
 
+struct WorldPathStop: Identifiable, Equatable {
+    let subject: Subject
+    let world: PlayableWorld
+    let index: Int
+    let isSelected: Bool
+    let isLocked: Bool
+    let completedChallenges: Int
+    let totalChallenges: Int
+    let xpRemaining: Int
+
+    var id: String { "\(subject.rawValue)-\(world.id)" }
+    var stepLabel: String { "Stage \(index + 1)" }
+    var progressText: String {
+        guard totalChallenges > 0 else { return isLocked ? "\(xpRemaining) XP to unlock" : "Ready to explore" }
+        return "\(min(completedChallenges, totalChallenges))/\(totalChallenges) missions"
+    }
+    var statusText: String {
+        if isSelected { return "Active" }
+        if isLocked { return "\(xpRemaining) XP" }
+        return "Playable"
+    }
+    var progress: Double {
+        guard totalChallenges > 0 else { return isLocked ? 0 : 1 }
+        return min(1, Double(completedChallenges) / Double(totalChallenges))
+    }
+    var accessibilityLabel: String {
+        "\(world.name), \(stepLabel), \(statusText), \(progressText)"
+    }
+}
+
+extension Subject {
+    func challengeIds(for worldId: String) -> [String] {
+        switch self {
+        case .languages:
+            return []
+        case .history:
+            return HistoryData.challenges(for: worldId).map(\.id)
+        case .science:
+            return ScienceData.challenges(for: worldId).map(\.id)
+        case .geography:
+            return GeographyData.challenges(for: worldId).map(\.id)
+        case .math:
+            return MathData.challenges(for: worldId).map(\.id)
+        case .culture:
+            return CultureData.challenges(for: worldId).map(\.id)
+        case .business:
+            return BusinessData.challenges(for: worldId).map(\.id)
+        case .health:
+            return HealthData.challenges(for: worldId).map(\.id)
+        }
+    }
+}
+
 enum AppLanguage: String, Codable, CaseIterable, Identifiable {
     case german = "de-DE"
     case spanish = "es-ES"
@@ -1444,6 +1497,31 @@ struct UserStats: Codable, Equatable {
 }
 
 extension UserStats {
+    func currentWorldId(for subject: Subject) -> String? {
+        subjectProgress[subject.rawValue]?.currentWorldId ?? subject.worlds.first?.id
+    }
+
+    func worldPathStops(for subject: Subject) -> [WorldPathStop] {
+        guard subject != .languages else { return [] }
+        let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+        let activeWorldId = currentWorldId(for: subject)
+
+        return subject.worlds.enumerated().map { index, world in
+            let challengeIds = subject.challengeIds(for: world.id)
+            let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+            return WorldPathStop(
+                subject: subject,
+                world: world,
+                index: index,
+                isSelected: world.id == activeWorldId,
+                isLocked: !world.isUnlocked(withXP: xp),
+                completedChallenges: completed,
+                totalChallenges: challengeIds.count,
+                xpRemaining: world.xpRemaining(withXP: xp)
+            )
+        }
+    }
+
     var learningLevel: Int {
         max(1, (xp / 100) + 1)
     }

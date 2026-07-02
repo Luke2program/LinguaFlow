@@ -175,6 +175,7 @@ struct DashboardView: View {
                     RandomStudyView()
                     ChallengeUITestControls()
                     DailyAdventureView()
+                    WorldPathView()
                     DailyQuestView()
                     LevelTrackView()
                     RewardVaultView()
@@ -446,6 +447,210 @@ struct DailyAdventureView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Adventure. \(adventure.title). \(adventure.objective) Reward \(adventure.rewardLine).")
         .accessibilityIdentifier("dailyAdventurePanel")
+    }
+}
+
+struct WorldPathView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        if store.stats.selectedSubject == .languages {
+            LanguageWorldPathView()
+        } else {
+            let subject = store.stats.selectedSubject
+            let stops = store.stats.worldPathStops(for: subject)
+            GlassCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .top, spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                .fill(subject.accentColor.opacity(colorScheme == .dark ? 0.24 : 0.16))
+                                .frame(width: 48, height: 48)
+                            Image(systemName: subject.mapSystemImage)
+                                .font(.title3.bold())
+                                .foregroundStyle(subject.accentColor)
+                        }
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("World Path")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .accessibilityIdentifier("worldPathTitle")
+                            Text("\(subject.unlockedWorldCount(withXP: store.stats.xp))/\(subject.worlds.count) worlds open · choose your next run")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("worldPathProgressText")
+                        }
+                        Spacer()
+                    }
+
+                    SubjectMapPreview(subject: subject, worlds: subject.worlds, selectedWorldId: store.currentWorld?.id, xp: store.stats.xp) { world in
+                        store.select(worldId: world.id, for: subject)
+                        store.feedbackMessage = "World Path selected \(world.name)."
+                    }
+
+                    VStack(spacing: 8) {
+                        ForEach(stops) { stop in
+                            WorldPathStopRow(stop: stop) {
+                                store.select(worldId: stop.world.id, for: stop.subject)
+                                store.feedbackMessage = "World Path selected \(stop.world.name)."
+                            }
+                        }
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("worldPathPanel")
+        }
+    }
+}
+
+struct WorldPathStopRow: View {
+    let stop: WorldPathStop
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(stop.isSelected ? stop.subject.accentColor : stop.subject.accentColor.opacity(0.12))
+                        .frame(width: 36, height: 36)
+                    Text(stop.isLocked ? "🔒" : stop.world.emoji)
+                        .font(.system(size: 18))
+                        .saturation(stop.isLocked ? 0.2 : 1)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(stop.stepLabel)
+                            .font(.caption2.bold())
+                            .foregroundStyle(stop.subject.accentColor)
+                        Text(stop.world.name)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(stop.isLocked ? .secondary : .primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                    }
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(0.1))
+                            Capsule()
+                                .fill(stop.subject.accentColor.opacity(stop.isLocked ? 0.28 : 0.88))
+                                .frame(width: geo.size.width * stop.progress)
+                        }
+                    }
+                    .frame(height: 6)
+
+                    Text(stop.progressText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Text(stop.statusText)
+                    .font(.caption2.bold())
+                    .foregroundStyle(stop.isSelected ? stop.subject.accentColor : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .frame(width: 56, alignment: .trailing)
+            }
+            .padding(10)
+            .background(Color.primary.opacity(stop.isSelected ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(stop.subject.accentColor.opacity(stop.isSelected ? 0.26 : 0.08), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(stop.isLocked)
+        .accessibilityLabel(stop.accessibilityLabel)
+        .accessibilityIdentifier("worldPathStop_\(stop.subject.rawValue)_\(stop.world.id)")
+    }
+}
+
+struct LanguageWorldPathView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var languageStops: [(id: String, icon: String, title: String, subtitle: String, progress: Double)] {
+        [
+            ("cards", "textformat.abc", "Word Dock", "\(store.learnedCount)/\(max(store.availableCards.count, 1)) cards started", min(1, Double(store.learnedCount) / Double(max(store.availableCards.count, 1)))),
+            ("drops", "drop.fill", "Fluency Falls", "\(Int(store.stats.fluentDrops)) drops collected", min(1, store.stats.fluentDrops / 25.0)),
+            ("review", "arrow.triangle.2.circlepath", "Review Gate", "\(store.dueCount) due now", store.dueCount == 0 ? 1 : 0.35)
+        ]
+    }
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(Color.blue.opacity(colorScheme == .dark ? 0.24 : 0.16))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "map")
+                            .font(.title3.bold())
+                            .foregroundStyle(.blue)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Language Path")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("worldPathTitle")
+                        Text("\(store.stats.selectedLanguagePair.displayName) · speak, type, review, repeat")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("worldPathProgressText")
+                    }
+                    Spacer()
+                    Button {
+                        store.pickNextCard()
+                        store.feedbackMessage = "Language Path opened the next review gate."
+                    } label: {
+                        Image(systemName: "play.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .frame(width: 30, height: 30)
+                            .background(Color.primary, in: Circle())
+                    }
+                    .accessibilityIdentifier("languagePathPlayButton")
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(languageStops, id: \.id) { stop in
+                        VStack(alignment: .leading, spacing: 7) {
+                            Image(systemName: stop.icon)
+                                .font(.headline.bold())
+                                .foregroundStyle(.blue)
+                            Text(stop.title)
+                                .font(.caption.bold())
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
+                            Text(stop.subtitle)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.78)
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(Color.primary.opacity(0.1))
+                                    Capsule()
+                                        .fill(LinearGradient(colors: [.blue, .cyan], startPoint: .leading, endPoint: .trailing))
+                                        .frame(width: geo.size.width * stop.progress)
+                                }
+                            }
+                            .frame(height: 6)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 106, alignment: .topLeading)
+                        .padding(10)
+                        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("worldPathPanel")
     }
 }
 

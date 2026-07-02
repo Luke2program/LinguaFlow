@@ -164,6 +164,8 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["dailyAdventurePanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["levelTrackPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
@@ -211,6 +213,10 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testHistoryWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["World Path"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["worldPathStop_history_ancient-rome"].waitForExistence(timeout: 3))
 
         // Verify challenge appears by looking for a year text like "BCE"
         let yearText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "BCE")).firstMatch
