@@ -214,6 +214,51 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.dailyAdventure.unlockHint, "Complete today's run to push your level track forward.")
         }
     }
+
+    func testSubjectChallengeUnlocksNextWorldRewardAtXPThreshold() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 490
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            progress.completedChallengeIds = []
+            store.stats.updateProgress(for: .health, progress)
+
+            let challenge = HealthData.challenges(for: "energy-clinic")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, 515)
+            XCTAssertEqual(store.newlyUnlockedWorld?.world.name, "Resilience Gym")
+            XCTAssertEqual(store.newlyUnlockedWorld?.title, "Resilience Gym Badge")
+            XCTAssertTrue(store.feedbackMessage.contains("Reward unlocked"))
+            XCTAssertTrue(store.stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
+        }
+    }
+
+    func testRepeatedSubjectChallengeDoesNotDuplicateUnlockBanner() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 490
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            progress.completedChallengeIds = []
+            store.stats.updateProgress(for: .health, progress)
+
+            let challenge = HealthData.challenges(for: "energy-clinic")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+            store.newlyUnlockedWorld = nil
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, 515)
+            XCTAssertNil(store.newlyUnlockedWorld)
+        }
+    }
     
     func testHistoryChallengeScoring() async {
         await MainActor.run {

@@ -17,6 +17,7 @@ final class AppStore: ObservableObject {
     @Published var speechMessage = "Tap Speak, say the answer, then tap Use speech."
     @Published var showingSettings = false
     @Published var newlyUnlockedLevel: CEFRLevel? = nil
+    @Published var newlyUnlockedWorld: WorldRewardBadge? = nil
     @Published var pomodoroRemaining = 25 * 60
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false
@@ -118,6 +119,14 @@ final class AppStore: ObservableObject {
             }
             if arguments.contains("--ui-testing-health-world") {
                 stats.selectedSubject = .health
+                var progress = stats.progress(for: .health)
+                progress.currentWorldId = "energy-clinic"
+                progress.completedChallengeIds = []
+                stats.updateProgress(for: .health, progress)
+            }
+            if arguments.contains("--ui-testing-health-near-unlock") {
+                stats.selectedSubject = .health
+                stats.xp = 490
                 var progress = stats.progress(for: .health)
                 progress.currentWorldId = "energy-clinic"
                 progress.completedChallengeIds = []
@@ -369,127 +378,56 @@ final class AppStore: ObservableObject {
     }
     
     func submitHistoryAnswer(challenge: HistoryChallenge, choice: HistoryChoice) {
-        var progress = stats.progress(for: .history)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .history, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .history, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
     
     func submitScienceAnswer(challenge: ScienceChallenge, choice: ScienceChoice) {
-        var progress = stats.progress(for: .science)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .science, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .science, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
     func submitGeographyAnswer(challenge: GeographyChallenge, choice: GeographyChoice) {
-        var progress = stats.progress(for: .geography)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .geography, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .geography, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
     func submitMathAnswer(challenge: MathChallenge, choice: MathChoice) {
-        var progress = stats.progress(for: .math)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .math, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .math, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
     func submitCultureAnswer(challenge: CultureChallenge, choice: CultureChoice) {
-        var progress = stats.progress(for: .culture)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .culture, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .culture, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
     func submitBusinessAnswer(challenge: BusinessChallenge, choice: BusinessChoice) {
-        var progress = stats.progress(for: .business)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
-            progress.totalHistoryXP += xpEarned
-            stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
-            stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
-        }
-        stats.updateProgress(for: .business, progress)
-        refreshPracticeDay()
-        save()
+        completeSubjectChallenge(subject: .business, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
     func submitHealthAnswer(challenge: HealthChallenge, choice: HealthChoice) {
-        var progress = stats.progress(for: .health)
-        if !progress.completedChallengeIds.contains(challenge.id) {
-            progress.completedChallengeIds.append(challenge.id)
-            let xpEarned = choice.isCorrect ? 25 : 10
+        completeSubjectChallenge(subject: .health, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
+    }
+
+    private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        var progress = stats.progress(for: subject)
+        if !progress.completedChallengeIds.contains(challengeId) {
+            progress.completedChallengeIds.append(challengeId)
+            let xpEarned = isCorrect ? 25 : 10
             progress.totalHistoryXP += xpEarned
             stats.xp += xpEarned
-            stats.gems += choice.isCorrect ? 2 : 0
+            stats.gems += isCorrect ? 2 : 0
             stats.reviewedToday += 1
-            if choice.isCorrect { stats.correctToday += 1 }
-            progress.worldScores[challenge.worldId, default: 0] += xpEarned
-            feedPet(correctCount: choice.isCorrect ? 2 : 1)
+            if isCorrect { stats.correctToday += 1 }
+            progress.worldScores[worldId, default: 0] += xpEarned
+            stats.updateProgress(for: subject, progress)
+            let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+            if let unlocked = newlyEarned.first(where: { $0.subject == subject }) ?? newlyEarned.first {
+                newlyUnlockedWorld = unlocked
+                feedbackMessage = "Reward unlocked: \(unlocked.world.name) opened."
+                objectWillChange.send()
+            }
+            feedPet(correctCount: isCorrect ? 2 : 1)
+        } else {
+            stats.updateProgress(for: subject, progress)
         }
-        stats.updateProgress(for: .health, progress)
         refreshPracticeDay()
         save()
     }

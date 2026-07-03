@@ -174,6 +174,9 @@ struct DashboardView: View {
                     subjectHeader
                     RandomStudyView()
                     ChallengeUITestControls()
+                    if let badge = store.newlyUnlockedWorld {
+                        WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
+                    }
                     DailyAdventureView()
                     WorldPathView()
                     DailyQuestView()
@@ -1014,6 +1017,56 @@ struct UnlockBanner: View {
                     .buttonStyle(.borderedProminent).tint(.green.opacity(0.7))
             }
         }
+    }
+}
+
+struct WorldUnlockBanner: View {
+    let badge: WorldRewardBadge
+    let dismiss: () -> Void
+
+    var body: some View {
+        GlassCard {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack(alignment: .bottomTrailing) {
+                    Text(badge.world.emoji)
+                        .font(.system(size: 38))
+                        .frame(width: 64, height: 64)
+                        .background(badge.subject.accentColor.opacity(0.18), in: Circle())
+                    Image(systemName: "lock.open.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .padding(6)
+                        .background(Color.green, in: Circle())
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("World Unlocked")
+                        .font(.caption.bold())
+                        .foregroundStyle(badge.subject.accentColor)
+                    Text(badge.world.name)
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("worldUnlockTitle")
+                    Text("\(badge.world.rewardName) added to the Reward Vault. New missions are ready.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("worldUnlockMessage")
+                }
+
+                Spacer(minLength: 4)
+
+                Button(action: dismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityLabel("Dismiss world unlock")
+                .accessibilityIdentifier("dismissWorldUnlock")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("worldUnlockBanner")
     }
 }
 

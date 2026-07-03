@@ -252,6 +252,18 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
 
+    func testWorldUnlockBannerAppearsAfterCrossingXPThreshold() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-health-world", "--ui-testing-health-near-unlock"])
+
+        let choice = button("healthChoiceTestAction", in: app)
+        choice.tap()
+
+        let title = element("worldUnlockTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: 3))
+        XCTAssertEqual(title.label, "Resilience Gym")
+        XCTAssertTrue(element("worldUnlockMessage", in: app).label.contains("Reward Vault"))
+    }
+
     // MARK: - Science Subject UI Tests
     func testCanSwitchToScienceSubject() throws {
         let app = launchReadyApp()
