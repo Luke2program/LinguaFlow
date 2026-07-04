@@ -215,6 +215,57 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testQuestBoardBuildsLanguageReviewAndUnlockTargets() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .languages
+            store.stats.selectedLevel = .a1
+            store.prepareSchedulesForCurrentSelection()
+
+            let missions = store.questBoardMissions
+
+            XCTAssertEqual(missions.count, 3)
+            XCTAssertEqual(missions[0].kind, .dailyAdventure)
+            XCTAssertEqual(missions[0].title, "Language Harbor Run")
+            XCTAssertTrue(missions.contains { $0.kind == .languageReview && $0.id == "language-review" })
+            XCTAssertTrue(missions.contains { $0.kind == .nextUnlock && $0.title == "Unlock African Wonders" })
+        }
+    }
+
+    func testQuestBoardTracksActiveWorldProgressAndCanFocusUnlockTarget() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.selectedSubject = .history
+            store.stats.xp = 125
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = ["rome-01", "rome-02"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let missions = store.questBoardMissions
+            let activeWorld = missions.first { $0.kind == .activeWorld }
+            let nextUnlock = missions.first { $0.kind == .nextUnlock }
+
+            XCTAssertEqual(activeWorld?.title, "Finish Ancient Rome")
+            XCTAssertEqual(activeWorld?.progress ?? 0, 0.4, accuracy: 0.001)
+            XCTAssertEqual(nextUnlock?.title, "Unlock African Wonders")
+
+            store.startQuestBoardMission(nextUnlock!)
+
+            XCTAssertEqual(store.stats.selectedSubject, .geography)
+            XCTAssertEqual(store.currentWorld?.id, "european-capitals")
+            XCTAssertTrue(store.feedbackMessage.contains("Unlock African Wonders"))
+        }
+    }
+
     func testSubjectChallengeUnlocksNextWorldRewardAtXPThreshold() async {
         await MainActor.run {
             let store = AppStore()

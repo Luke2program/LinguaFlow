@@ -178,6 +178,7 @@ struct DashboardView: View {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
                     }
                     DailyAdventureView()
+                    QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
                     LevelTrackView()
@@ -450,6 +451,121 @@ struct DailyAdventureView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Adventure. \(adventure.title). \(adventure.objective) Reward \(adventure.rewardLine).")
         .accessibilityIdentifier("dailyAdventurePanel")
+    }
+}
+
+struct QuestBoardView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let missions = store.questBoardMissions
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.cyan.opacity(0.22), .indigo.opacity(0.18), .yellow.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "list.bullet.clipboard.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Quest Board")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("questBoardTitle")
+                        Text("Pick a run, chase the reward, keep the streak alive.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("questBoardSubtitle")
+                    }
+                    Spacer()
+                    Text("Lv \(store.stats.learningLevel)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.indigo)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.indigo.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                }
+
+                VStack(spacing: 9) {
+                    ForEach(missions) { mission in
+                        QuestBoardMissionRow(mission: mission) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startQuestBoardMission(mission)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("questBoardPanel")
+    }
+}
+
+struct QuestBoardMissionRow: View {
+    let mission: QuestBoardMission
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(mission.subject.accentColor.opacity(0.16))
+                        .frame(width: 38, height: 38)
+                    Image(systemName: mission.systemImage)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(mission.subject.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 6) {
+                        Text(mission.title)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                        Spacer(minLength: 6)
+                        Text(mission.reward)
+                            .font(.caption2.bold())
+                            .foregroundStyle(mission.subject.accentColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                    }
+
+                    Text(mission.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.78)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [mission.subject.accentColor, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * mission.progress)
+                        }
+                    }
+                    .frame(height: 6)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(11)
+            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(mission.subject.accentColor.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(mission.accessibilityLabel)
+        .accessibilityIdentifier("questMission_\(mission.id)")
     }
 }
 

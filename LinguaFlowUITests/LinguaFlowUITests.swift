@@ -164,6 +164,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["dailyAdventurePanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["questBoardPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["questMission_language-review"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
@@ -172,6 +175,18 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
+    }
+
+    func testQuestBoardMissionTapStartsReviewGate() throws {
+        let app = launchReadyApp()
+
+        let mission = app.buttons["questMission_language-review"].firstMatch
+        XCTAssertTrue(mission.waitForExistence(timeout: 3))
+        mission.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("review gate"))
     }
 
     func testRandomStudyButtonJumpsIntoAWorld() throws {

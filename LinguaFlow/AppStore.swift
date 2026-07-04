@@ -61,6 +61,92 @@ final class AppStore: ObservableObject {
         }
         return DailyAdventure(subject: stats.selectedSubject, world: world, xp: stats.xp, streak: stats.streak)
     }
+    var questBoardMissions: [QuestBoardMission] {
+        let subject = stats.selectedSubject
+        let adventure = dailyAdventure
+        var missions: [QuestBoardMission] = [
+            QuestBoardMission(
+                id: "daily-adventure",
+                kind: .dailyAdventure,
+                title: adventure.title,
+                subtitle: adventure.objective,
+                reward: adventure.rewardLine,
+                systemImage: "play.circle.fill",
+                subject: subject,
+                worldId: adventure.world?.id,
+                progress: dailyQuest.progress
+            )
+        ]
+
+        if subject == .languages {
+            let totalCards = max(availableCards.count, 1)
+            let reviewProgress = min(1, Double(max(learnedCount, masteredCount)) / Double(totalCards))
+            missions.append(
+                QuestBoardMission(
+                    id: "language-review",
+                    kind: .languageReview,
+                    title: dueCount > 0 ? "Clear \(dueCount) due cards" : "Scout the next phrase",
+                    subtitle: "\(stats.selectedLanguagePair.displayName) · \(masteredCount)/\(totalCards) mastered",
+                    reward: "+16 XP · Fluency Drop",
+                    systemImage: "textformat.abc",
+                    subject: .languages,
+                    worldId: nil,
+                    progress: reviewProgress
+                )
+            )
+        } else if let world = dailyAdventure.world {
+            let progress = stats.progress(for: subject)
+            let challengeIds = subject.challengeIds(for: world.id)
+            let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+            let total = max(challengeIds.count, 1)
+            let remaining = max(0, total - completed)
+            missions.append(
+                QuestBoardMission(
+                    id: "active-world-\(world.id)",
+                    kind: .activeWorld,
+                    title: "Finish \(world.name)",
+                    subtitle: remaining == 0 ? "World cleared. Pick the next route." : "\(remaining) missions left in \(world.era)",
+                    reward: "+25 XP · \(dailyQuest.rewardName)",
+                    systemImage: subject.mapSystemImage,
+                    subject: subject,
+                    worldId: world.id,
+                    progress: min(1, Double(completed) / Double(total))
+                )
+            )
+        }
+
+        if let unlock = stats.nextWorldUnlockBadge {
+            missions.append(
+                QuestBoardMission(
+                    id: "next-unlock-\(unlock.id)",
+                    kind: .nextUnlock,
+                    title: "Unlock \(unlock.world.name)",
+                    subtitle: "\(unlock.xpRemaining) XP left · \(unlock.subject.displayName)",
+                    reward: unlock.world.rewardName,
+                    systemImage: "lock.open.fill",
+                    subject: unlock.subject,
+                    worldId: unlock.world.id,
+                    progress: unlock.world.unlockProgress(withXP: stats.xp)
+                )
+            )
+        } else {
+            missions.append(
+                QuestBoardMission(
+                    id: "roulette",
+                    kind: .roulette,
+                    title: "Spin Quest Roulette",
+                    subtitle: "All current worlds are open. Jump somewhere unexpected.",
+                    reward: "+30 XP · Surprise run",
+                    systemImage: "shuffle.circle.fill",
+                    subject: subject,
+                    worldId: nil,
+                    progress: 1
+                )
+            )
+        }
+
+        return Array(missions.prefix(3))
+    }
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
@@ -366,6 +452,42 @@ final class AppStore: ObservableObject {
         progress.currentWorldId = pick.world.id
         stats.updateProgress(for: pick.subject, progress)
         feedbackMessage = "Roulette picked \(pick.world.name) in \(pick.subject.displayName)."
+        save()
+        objectWillChange.send()
+    }
+
+    func startQuestBoardMission(_ mission: QuestBoardMission) {
+        switch mission.kind {
+        case .dailyAdventure:
+            if mission.subject == .languages {
+                stats.selectedSubject = .languages
+                pickNextCard()
+                feedbackMessage = "Quest Board opened today's language run."
+            } else if let worldId = mission.worldId {
+                stats.selectedSubject = mission.subject
+                select(worldId: worldId, for: mission.subject)
+                feedbackMessage = "Quest Board opened \(mission.title)."
+            }
+        case .languageReview:
+            stats.selectedSubject = .languages
+            pickNextCard()
+            feedbackMessage = "Quest Board opened the review gate."
+        case .activeWorld:
+            stats.selectedSubject = mission.subject
+            if let worldId = mission.worldId {
+                select(worldId: worldId, for: mission.subject)
+            }
+            feedbackMessage = "Quest Board focused \(mission.title)."
+        case .nextUnlock:
+            stats.selectedSubject = mission.subject
+            if let playableWorld = mission.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+                select(worldId: playableWorld.id, for: mission.subject)
+            }
+            feedbackMessage = "Quest Board target set: \(mission.title)."
+        case .roulette:
+            startRandomStudy()
+            return
+        }
         save()
         objectWillChange.send()
     }

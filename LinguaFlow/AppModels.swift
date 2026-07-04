@@ -1010,6 +1010,30 @@ struct DailyAdventure: Equatable {
     }
 }
 
+enum QuestBoardMissionKind: String, Equatable {
+    case dailyAdventure
+    case languageReview
+    case activeWorld
+    case nextUnlock
+    case roulette
+}
+
+struct QuestBoardMission: Identifiable, Equatable {
+    let id: String
+    let kind: QuestBoardMissionKind
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let subject: Subject
+    let worldId: String?
+    let progress: Double
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Reward \(reward)."
+    }
+}
+
 struct WorldRewardBadge: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld
