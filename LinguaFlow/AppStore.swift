@@ -51,6 +51,21 @@ final class AppStore: ObservableObject {
     var dailyQuest: DailyQuest {
         DailyQuest(subject: stats.selectedSubject, completed: stats.reviewedToday, target: min(10, max(4, stats.dailyGoal / 2)))
     }
+    var streakChest: StreakChest {
+        let quest = dailyQuest
+        let claimedToday = stats.lastStreakChestClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        let streakBonus = min(30, max(0, stats.streak - 1) * 3)
+        let gemBonus = min(4, max(0, stats.streak / 3))
+        return StreakChest(
+            subject: stats.selectedSubject,
+            streak: stats.streak,
+            progress: quest.progress,
+            rewardXP: 20 + streakBonus,
+            rewardGems: 2 + gemBonus,
+            isReady: quest.progress >= 1,
+            isClaimedToday: claimedToday
+        )
+    }
     var dailyAdventure: DailyAdventure {
         let world: PlayableWorld?
         if stats.selectedSubject == .languages {
@@ -217,6 +232,12 @@ final class AppStore: ObservableObject {
                 progress.currentWorldId = "energy-clinic"
                 progress.completedChallengeIds = []
                 stats.updateProgress(for: .health, progress)
+            }
+            if arguments.contains("--ui-testing-chest-ready") {
+                stats.reviewedToday = max(stats.reviewedToday, min(10, max(4, stats.dailyGoal / 2)))
+                stats.correctToday = stats.reviewedToday
+                stats.streak = max(stats.streak, 3)
+                stats.lastStreakChestClaimDate = nil
             }
             prepareSchedulesForCurrentSelection()
         }
@@ -490,6 +511,31 @@ final class AppStore: ObservableObject {
         }
         save()
         objectWillChange.send()
+    }
+
+    @discardableResult
+    func claimStreakChest(now: Date = Date()) -> Bool {
+        let chest = streakChest
+        guard chest.isReady, !chest.isClaimedToday else {
+            feedbackMessage = chest.isClaimedToday ? "Today's chest is already claimed." : "Finish the Daily Quest to open the chest."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += chest.rewardXP
+        stats.gems += chest.rewardGems
+        stats.lastStreakChestClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Chest opened: \(chest.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Chest opened: \(chest.rewardText)."
+        }
+        save()
+        objectWillChange.send()
+        return true
     }
     
     func select(worldId: String, for subject: Subject) {

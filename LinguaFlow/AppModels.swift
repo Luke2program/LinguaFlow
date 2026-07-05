@@ -947,6 +947,35 @@ struct DailyQuest: Equatable {
     var progress: Double { min(1, Double(completed) / Double(max(1, target))) }
 }
 
+struct StreakChest: Equatable {
+    let subject: Subject
+    let streak: Int
+    let progress: Double
+    let rewardXP: Int
+    let rewardGems: Int
+    let isReady: Bool
+    let isClaimedToday: Bool
+
+    var title: String {
+        if isClaimedToday { return "Chest Claimed" }
+        return isReady ? "Streak Chest Ready" : "Streak Chest"
+    }
+
+    var subtitle: String {
+        if isClaimedToday { return "Come back tomorrow for a stronger reward." }
+        if isReady { return "Claim today's \(subject.displayName) prize." }
+        return "Finish the Daily Quest to open it."
+    }
+
+    var rewardText: String {
+        "+\(rewardXP) XP · +\(rewardGems) gems"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Reward \(rewardText)."
+    }
+}
+
 struct DailyAdventure: Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -1496,6 +1525,7 @@ struct UserStats: Codable, Equatable {
     var soundEnabled: Bool = true
     var hapticsEnabled: Bool = true
     var notificationsEnabled: Bool = true
+    var lastStreakChestClaimDate: Date? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false

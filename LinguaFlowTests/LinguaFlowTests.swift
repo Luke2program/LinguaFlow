@@ -289,6 +289,32 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testStreakChestRequiresDailyQuestAndClaimsOnce() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 485
+            store.stats.gems = 1
+            store.stats.streak = 4
+            store.stats.reviewedToday = store.dailyQuest.target
+
+            XCTAssertTrue(store.streakChest.isReady)
+            XCTAssertFalse(store.streakChest.isClaimedToday)
+            XCTAssertEqual(store.streakChest.rewardXP, 29)
+            XCTAssertEqual(store.streakChest.rewardGems, 3)
+
+            XCTAssertTrue(store.claimStreakChest(now: Date()))
+            XCTAssertEqual(store.stats.xp, 514)
+            XCTAssertEqual(store.stats.gems, 4)
+            XCTAssertEqual(store.newlyUnlockedWorld?.world.name, "Resilience Gym")
+            XCTAssertTrue(store.streakChest.isClaimedToday)
+
+            XCTAssertFalse(store.claimStreakChest(now: Date()))
+            XCTAssertEqual(store.stats.xp, 514)
+            XCTAssertEqual(store.stats.gems, 4)
+        }
+    }
+
     func testRepeatedSubjectChallengeDoesNotDuplicateUnlockBanner() async {
         await MainActor.run {
             let store = AppStore()

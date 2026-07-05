@@ -181,6 +181,7 @@ struct DashboardView: View {
                     QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
+                    StreakChestView()
                     LevelTrackView()
                     RewardVaultView()
                     PetView()
@@ -377,6 +378,79 @@ struct DailyQuestView: View {
             }
         }
         .accessibilityIdentifier("dailyQuestPanel")
+    }
+}
+
+struct StreakChestView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let chest = store.streakChest
+        GlassCard {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 17, style: .continuous)
+                        .fill(LinearGradient(colors: [
+                            chest.subject.accentColor.opacity(chest.isReady ? 0.28 : 0.14),
+                            .yellow.opacity(chest.isReady ? 0.24 : 0.12),
+                            .green.opacity(chest.isClaimedToday ? 0.22 : 0.10)
+                        ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 56, height: 56)
+                    Image(systemName: chest.isClaimedToday ? "checkmark.seal.fill" : (chest.isReady ? "shippingbox.fill" : "lock.fill"))
+                        .font(.title3.bold())
+                        .foregroundStyle(chest.isClaimedToday ? .green : chest.subject.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(chest.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("streakChestTitle")
+                        Spacer()
+                        Text(chest.rewardText)
+                            .font(.caption.bold())
+                            .foregroundStyle(chest.subject.accentColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .accessibilityIdentifier("streakChestReward")
+                    }
+
+                    Text(chest.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("streakChestSubtitle")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [chest.subject.accentColor, .yellow, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * chest.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimStreakChest()
+                        }
+                    } label: {
+                        Label(chest.isClaimedToday ? "Claimed" : "Open Chest", systemImage: chest.isClaimedToday ? "checkmark" : "sparkles")
+                            .font(.caption.bold())
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(chest.isReady && !chest.isClaimedToday ? chest.subject.accentColor : .secondary)
+                    .disabled(!chest.isReady || chest.isClaimedToday)
+                    .accessibilityIdentifier("claimStreakChestButton")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(chest.accessibilityLabel)
+        .accessibilityIdentifier("streakChestPanel")
     }
 }
 

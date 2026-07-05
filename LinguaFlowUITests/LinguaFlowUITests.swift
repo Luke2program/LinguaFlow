@@ -170,6 +170,7 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["streakChestPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["levelTrackPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
@@ -187,6 +188,23 @@ final class LinguaFlowUITests: XCTestCase {
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
         XCTAssertTrue(feedback.label.contains("review gate"))
+    }
+
+    func testCanClaimReadyStreakChest() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+
+        let panel = element("streakChestPanel", in: app)
+        XCTAssertTrue(panel.exists)
+        XCTAssertTrue(app.staticTexts["streakChestTitle"].label.contains("Ready"))
+
+        let claimButton = app.buttons["claimStreakChestButton"].firstMatch
+        XCTAssertTrue(claimButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(claimButton.isEnabled)
+        claimButton.tap()
+
+        XCTAssertTrue(app.staticTexts["streakChestTitle"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["streakChestTitle"].label, "Chest Claimed")
+        XCTAssertFalse(app.buttons["claimStreakChestButton"].isEnabled)
     }
 
     func testRandomStudyButtonJumpsIntoAWorld() throws {
