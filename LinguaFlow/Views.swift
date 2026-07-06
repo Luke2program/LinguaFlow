@@ -173,6 +173,7 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     RandomStudyView()
+                    RecommendedRunView()
                     ChallengeUITestControls()
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
@@ -326,6 +327,94 @@ struct RandomStudyView: View {
         .accessibilityIdentifier("randomStudyButton")
         .accessibilityElement(children: .combine)
         .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : "Quest Roulette. Jump into a random unlocked world.")
+    }
+}
+
+struct RecommendedRunView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let recommendation = store.recommendedRun
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.startRecommendedRun(recommendation)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                recommendation.subject.accentColor.opacity(0.26),
+                                .green.opacity(0.16),
+                                .yellow.opacity(0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: recommendation.systemImage)
+                            .font(.title3.bold())
+                            .foregroundStyle(recommendation.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Recommended Next")
+                            .font(.caption.bold())
+                            .foregroundStyle(recommendation.subject.accentColor)
+                            .accessibilityIdentifier("recommendedRunEyebrow")
+                        Text(recommendation.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("recommendedRunTitle")
+                    }
+
+                    Spacer()
+
+                    Label(recommendation.ctaTitle, systemImage: "arrow.right.circle.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                }
+
+                Text(recommendation.subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityIdentifier("recommendedRunSubtitle")
+
+                HStack(spacing: 10) {
+                    Label(recommendation.reward, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(recommendation.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [recommendation.subject.accentColor, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * recommendation.progress)
+                        }
+                    }
+                    .frame(height: 8)
+                    .accessibilityIdentifier("recommendedRunProgress")
+                }
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(recommendation.subject.accentColor.opacity(0.22), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(recommendation.accessibilityLabel)
+        .accessibilityIdentifier("recommendedRunPanel")
     }
 }
 

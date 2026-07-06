@@ -162,6 +162,8 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["recommendedRunPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["recommendedRunTitle"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["dailyAdventurePanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["questBoardPanel"].waitForExistence(timeout: 3))
@@ -188,6 +190,20 @@ final class LinguaFlowUITests: XCTestCase {
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
         XCTAssertTrue(feedback.label.contains("review gate"))
+    }
+
+    func testRecommendedRunPanelStartsSuggestedAdventure() throws {
+        let app = launchReadyApp()
+
+        let panel = app.buttons["recommendedRunPanel"].firstMatch
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["recommendedRunEyebrow"].label.contains("Recommended"))
+        XCTAssertTrue(app.staticTexts["recommendedRunTitle"].label.contains("Language Harbor Run"))
+        panel.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("Recommended run opened"))
     }
 
     func testCanClaimReadyStreakChest() throws {

@@ -76,6 +76,64 @@ final class AppStore: ObservableObject {
         }
         return DailyAdventure(subject: stats.selectedSubject, world: world, xp: stats.xp, streak: stats.streak)
     }
+    var recommendedRun: RecommendedRun {
+        let chest = streakChest
+        if chest.isReady && !chest.isClaimedToday {
+            return RecommendedRun(
+                action: .claimStreakChest,
+                title: "Open your streak chest",
+                subtitle: "Daily Quest complete. Bank the reward before the next run.",
+                reward: chest.rewardText,
+                ctaTitle: "Open Chest",
+                systemImage: "shippingbox.fill",
+                subject: chest.subject,
+                worldId: nil,
+                progress: 1
+            )
+        }
+
+        let quest = dailyQuest
+        if quest.progress < 1 {
+            let adventure = dailyAdventure
+            return RecommendedRun(
+                action: .dailyAdventure,
+                title: adventure.title,
+                subtitle: adventure.objective,
+                reward: adventure.rewardLine,
+                ctaTitle: "Start Run",
+                systemImage: "play.circle.fill",
+                subject: adventure.subject,
+                worldId: adventure.world?.id,
+                progress: quest.progress
+            )
+        }
+
+        if let unlock = stats.nextWorldUnlockBadge {
+            return RecommendedRun(
+                action: .nextUnlock,
+                title: "Chase \(unlock.world.name)",
+                subtitle: "\(unlock.xpRemaining) XP left in \(unlock.subject.displayName). Focus the nearest locked world.",
+                reward: unlock.world.rewardName,
+                ctaTitle: "Focus Unlock",
+                systemImage: "lock.open.fill",
+                subject: unlock.subject,
+                worldId: unlock.world.id,
+                progress: unlock.world.unlockProgress(withXP: stats.xp)
+            )
+        }
+
+        return RecommendedRun(
+            action: .roulette,
+            title: "Spin Quest Roulette",
+            subtitle: "All current worlds are open. Jump somewhere unexpected.",
+            reward: "+30 XP · Surprise run",
+            ctaTitle: "Spin",
+            systemImage: "shuffle.circle.fill",
+            subject: stats.selectedSubject,
+            worldId: nil,
+            progress: 1
+        )
+    }
     var questBoardMissions: [QuestBoardMission] {
         let subject = stats.selectedSubject
         let adventure = dailyAdventure
@@ -473,6 +531,35 @@ final class AppStore: ObservableObject {
         progress.currentWorldId = pick.world.id
         stats.updateProgress(for: pick.subject, progress)
         feedbackMessage = "Roulette picked \(pick.world.name) in \(pick.subject.displayName)."
+        save()
+        objectWillChange.send()
+    }
+
+    func startRecommendedRun(_ recommendation: RecommendedRun) {
+        switch recommendation.action {
+        case .dailyAdventure:
+            if recommendation.subject == .languages {
+                stats.selectedSubject = .languages
+                pickNextCard()
+                feedbackMessage = "Recommended run opened today's language adventure."
+            } else if let worldId = recommendation.worldId {
+                stats.selectedSubject = recommendation.subject
+                select(worldId: worldId, for: recommendation.subject)
+                feedbackMessage = "Recommended run opened \(recommendation.title)."
+            }
+        case .claimStreakChest:
+            _ = claimStreakChest()
+            return
+        case .nextUnlock:
+            stats.selectedSubject = recommendation.subject
+            if let playableWorld = recommendation.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+                select(worldId: playableWorld.id, for: recommendation.subject)
+            }
+            feedbackMessage = "Recommended run focused \(recommendation.title)."
+        case .roulette:
+            startRandomStudy()
+            return
+        }
         save()
         objectWillChange.send()
     }

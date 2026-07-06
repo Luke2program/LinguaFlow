@@ -1047,6 +1047,29 @@ enum QuestBoardMissionKind: String, Equatable {
     case roulette
 }
 
+enum RecommendedRunAction: String, Equatable {
+    case dailyAdventure
+    case claimStreakChest
+    case nextUnlock
+    case roulette
+}
+
+struct RecommendedRun: Equatable {
+    let action: RecommendedRunAction
+    let title: String
+    let subtitle: String
+    let reward: String
+    let ctaTitle: String
+    let systemImage: String
+    let subject: Subject
+    let worldId: String?
+    let progress: Double
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Reward \(reward). \(ctaTitle)."
+    }
+}
+
 struct QuestBoardMission: Identifiable, Equatable {
     let id: String
     let kind: QuestBoardMissionKind

@@ -315,6 +315,52 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testRecommendedRunPrioritizesDailyAdventureThenReadyChest() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.streak = 3
+            store.stats.reviewedToday = 0
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            store.stats.updateProgress(for: .history, progress)
+
+            let adventure = store.recommendedRun
+            XCTAssertEqual(adventure.action, .dailyAdventure)
+            XCTAssertEqual(adventure.title, "Ancient Rome Run")
+            XCTAssertEqual(adventure.ctaTitle, "Start Run")
+            XCTAssertLessThan(adventure.progress, 1)
+
+            store.stats.reviewedToday = store.dailyQuest.target
+            let chest = store.recommendedRun
+            XCTAssertEqual(chest.action, .claimStreakChest)
+            XCTAssertEqual(chest.title, "Open your streak chest")
+            XCTAssertEqual(chest.reward, "+26 XP · +3 gems")
+            XCTAssertEqual(chest.progress, 1)
+        }
+    }
+
+    func testRecommendedRunFocusesNextUnlockAfterClaimedChest() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.xp = 275
+            store.stats.reviewedToday = store.dailyQuest.target
+            store.stats.lastStreakChestClaimDate = Date()
+
+            let recommendation = store.recommendedRun
+            XCTAssertEqual(recommendation.action, .nextUnlock)
+            XCTAssertEqual(recommendation.title, "Chase African Wonders")
+            XCTAssertEqual(recommendation.subject, .geography)
+
+            store.startRecommendedRun(recommendation)
+
+            XCTAssertEqual(store.stats.selectedSubject, .geography)
+            XCTAssertEqual(store.currentWorld?.id, "european-capitals")
+            XCTAssertTrue(store.feedbackMessage.contains("Recommended run focused"))
+        }
+    }
+
     func testRepeatedSubjectChallengeDoesNotDuplicateUnlockBanner() async {
         await MainActor.run {
             let store = AppStore()
