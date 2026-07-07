@@ -162,29 +162,28 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["recommendedRunPanel"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["recommendedRunTitle"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["dailyAdventurePanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(button("recommendedRunPanel", in: app).exists)
+        XCTAssertTrue(element("recommendedRunTitle", in: app).exists)
+        XCTAssertTrue(button("dailyAdventurePanel", in: app).exists)
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["questBoardPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("questBoardPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["questMission_language-review"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(button("questMission_language-review", in: app).exists)
+        XCTAssertTrue(element("worldPathPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["dailyQuestPanel"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["streakChestPanel"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["levelTrackPanel"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.descendants(matching: .any)["rewardVaultPanel"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("dailyQuestPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("streakChestPanel", in: app).exists)
+        XCTAssertTrue(element("levelTrackPanel", in: app).exists)
+        XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("rewardVaultPanel", in: app).exists)
+        XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
     }
 
     func testQuestBoardMissionTapStartsReviewGate() throws {
         let app = launchReadyApp()
 
-        let mission = app.buttons["questMission_language-review"].firstMatch
-        XCTAssertTrue(mission.waitForExistence(timeout: 3))
+        let mission = button("questMission_language-review", in: app)
         mission.tap()
 
         let feedback = app.staticTexts["answerFeedback"].firstMatch
@@ -195,8 +194,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testRecommendedRunPanelStartsSuggestedAdventure() throws {
         let app = launchReadyApp()
 
-        let panel = app.buttons["recommendedRunPanel"].firstMatch
-        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        let panel = button("recommendedRunPanel", in: app)
         XCTAssertTrue(app.staticTexts["recommendedRunEyebrow"].label.contains("Recommended"))
         XCTAssertTrue(app.staticTexts["recommendedRunTitle"].label.contains("Language Harbor Run"))
         panel.tap()
