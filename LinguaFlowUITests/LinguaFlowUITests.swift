@@ -162,13 +162,13 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(button("recommendedRunPanel", in: app).exists)
+        XCTAssertTrue(element("recommendedRunPanel", in: app).exists)
         XCTAssertTrue(element("recommendedRunTitle", in: app).exists)
-        XCTAssertTrue(button("dailyAdventurePanel", in: app).exists)
+        XCTAssertTrue(element("dailyAdventurePanel", in: app).exists)
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(element("questBoardPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
-        XCTAssertTrue(button("questMission_language-review", in: app).exists)
+        XCTAssertTrue(element("questMission_language-review", in: app).exists)
         XCTAssertTrue(element("worldPathPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("dailyQuestPanel", in: app).exists)
@@ -183,7 +183,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testQuestBoardMissionTapStartsReviewGate() throws {
         let app = launchReadyApp()
 
-        let mission = button("questMission_language-review", in: app)
+        let mission = element("questMission_language-review", in: app)
         mission.tap()
 
         let feedback = app.staticTexts["answerFeedback"].firstMatch
@@ -194,7 +194,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testRecommendedRunPanelStartsSuggestedAdventure() throws {
         let app = launchReadyApp()
 
-        let panel = button("recommendedRunPanel", in: app)
+        let panel = element("recommendedRunPanel", in: app)
         XCTAssertTrue(app.staticTexts["recommendedRunEyebrow"].label.contains("Recommended"))
         XCTAssertTrue(app.staticTexts["recommendedRunTitle"].label.contains("Language Harbor Run"))
         panel.tap()
