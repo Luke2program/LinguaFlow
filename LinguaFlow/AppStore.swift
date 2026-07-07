@@ -615,7 +615,7 @@ final class AppStore: ObservableObject {
         stats.lastStreakChestClaimDate = now
 
         let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
-        if let unlocked = newlyEarned.first {
+        if let unlocked = newlyEarned.first(where: { $0.subject == chest.subject }) ?? newlyEarned.first {
             newlyUnlockedWorld = unlocked
             feedbackMessage = "Chest opened: \(chest.rewardText). \(unlocked.world.name) unlocked."
         } else {
