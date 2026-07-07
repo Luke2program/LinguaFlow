@@ -18,6 +18,7 @@ final class AppStore: ObservableObject {
     @Published var showingSettings = false
     @Published var newlyUnlockedLevel: CEFRLevel? = nil
     @Published var newlyUnlockedWorld: WorldRewardBadge? = nil
+    @Published var newlyCompletedWorld: WorldCompletionReward? = nil
     @Published var pomodoroRemaining = 25 * 60
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false
@@ -663,6 +664,8 @@ final class AppStore: ObservableObject {
     private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
         let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
         var progress = stats.progress(for: subject)
+        let worldChallengeIds = subject.challengeIds(for: worldId)
+        let wasWorldComplete = !worldChallengeIds.isEmpty && worldChallengeIds.allSatisfy { progress.completedChallengeIds.contains($0) }
         if !progress.completedChallengeIds.contains(challengeId) {
             progress.completedChallengeIds.append(challengeId)
             let xpEarned = isCorrect ? 25 : 10
@@ -679,12 +682,45 @@ final class AppStore: ObservableObject {
                 feedbackMessage = "Reward unlocked: \(unlocked.world.name) opened."
                 objectWillChange.send()
             }
+            checkForWorldCompletion(subject: subject, worldId: worldId, wasComplete: wasWorldComplete)
             feedPet(correctCount: isCorrect ? 2 : 1)
         } else {
             stats.updateProgress(for: subject, progress)
         }
         refreshPracticeDay()
         save()
+    }
+
+    private func checkForWorldCompletion(subject: Subject, worldId: String, wasComplete: Bool) {
+        guard subject != .languages, !wasComplete else { return }
+        guard let world = subject.worlds.first(where: { $0.id == worldId }) else { return }
+        let challengeIds = subject.challengeIds(for: worldId)
+        guard !challengeIds.isEmpty else { return }
+        let progress = stats.progress(for: subject)
+        let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+        guard completed == challengeIds.count else { return }
+
+        let currentIndex = subject.worlds.firstIndex(where: { $0.id == worldId }) ?? 0
+        stats.xp += 40
+        stats.gems += 4
+        let nextWorld = subject.worlds.dropFirst(currentIndex + 1).first { !isWorldCleared(subject: subject, worldId: $0.id) }
+        let nextXPRemaining = nextWorld.map { $0.xpRemaining(withXP: stats.xp) }
+        newlyCompletedWorld = WorldCompletionReward(
+            subject: subject,
+            world: world,
+            completedMissions: completed,
+            totalMissions: challengeIds.count,
+            nextWorld: nextWorld,
+            nextWorldXPRemaining: nextXPRemaining
+        )
+        feedbackMessage = "World cleared: \(world.name). +40 XP and +4 gems."
+    }
+
+    private func isWorldCleared(subject: Subject, worldId: String) -> Bool {
+        let challengeIds = subject.challengeIds(for: worldId)
+        guard !challengeIds.isEmpty else { return false }
+        let progress = stats.progress(for: subject)
+        return challengeIds.allSatisfy { progress.completedChallengeIds.contains($0) }
     }
     
     var currentWorld: PlayableWorld? {

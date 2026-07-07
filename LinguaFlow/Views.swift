@@ -178,6 +178,9 @@ struct DashboardView: View {
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
                     }
+                    if let completion = store.newlyCompletedWorld {
+                        WorldCompletionBanner(completion: completion) { store.newlyCompletedWorld = nil }
+                    }
                     DailyAdventureView()
                     QuestBoardView()
                     WorldPathView()
@@ -1346,6 +1349,89 @@ struct WorldUnlockBanner: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("worldUnlockBanner")
+    }
+}
+
+struct WorldCompletionBanner: View {
+    let completion: WorldCompletionReward
+    let dismiss: () -> Void
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 14) {
+                    ZStack(alignment: .bottomTrailing) {
+                        Text(completion.world.emoji)
+                            .font(.system(size: 40))
+                            .frame(width: 68, height: 68)
+                            .background(
+                                LinearGradient(
+                                    colors: [
+                                        completion.subject.accentColor.opacity(0.28),
+                                        .yellow.opacity(0.18),
+                                        .green.opacity(0.16)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                in: Circle()
+                            )
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(.white)
+                            .padding(6)
+                            .background(Color.green, in: Circle())
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("World Cleared")
+                            .font(.caption.bold())
+                            .foregroundStyle(completion.subject.accentColor)
+                        Text(completion.title)
+                            .font(.title3.bold())
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("worldCompletionTitle")
+                        Text(completion.progressText)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("worldCompletionProgress")
+                        Text(completion.nextStepText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("worldCompletionNextStep")
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Button(action: dismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityLabel("Dismiss world completion")
+                    .accessibilityIdentifier("dismissWorldCompletion")
+                }
+
+                HStack(spacing: 8) {
+                    Label(completion.rewardLine, systemImage: "sparkles")
+                        .font(.caption.bold())
+                        .foregroundStyle(completion.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                    Spacer()
+                    Text(completion.world.rewardName)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                }
+                .padding(.top, 2)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(completion.accessibilityLabel)
+        .accessibilityIdentifier("worldCompletionBanner")
     }
 }
 

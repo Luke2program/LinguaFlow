@@ -382,6 +382,59 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertNil(store.newlyUnlockedWorld)
         }
     }
+
+    func testCompletingWorldGrantsOneTimeCompletionReward() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 420
+            store.stats.gems = 3
+
+            let challenges = HistoryData.challenges(for: "ancient-rome")
+            XCTAssertGreaterThan(challenges.count, 1)
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = challenges.dropLast().map(\.id)
+            store.stats.updateProgress(for: .history, progress)
+
+            let finalChallenge = challenges.last!
+            let correctChoice = finalChallenge.choices.first { $0.isCorrect }!
+
+            store.submitHistoryAnswer(challenge: finalChallenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, 485)
+            XCTAssertEqual(store.stats.gems, 9)
+            XCTAssertEqual(store.newlyCompletedWorld?.title, "Ancient Rome Cleared")
+            XCTAssertEqual(store.newlyCompletedWorld?.progressText, "\(challenges.count)/\(challenges.count) missions complete")
+            XCTAssertEqual(store.newlyCompletedWorld?.nextWorld?.id, "medieval-europe")
+            XCTAssertEqual(store.newlyCompletedWorld?.nextWorldXPRemaining, 15)
+            XCTAssertTrue(store.feedbackMessage.contains("World cleared"))
+        }
+    }
+
+    func testCompletedWorldRewardDoesNotRepeatForFinishedChallenge() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.xp = 100
+            store.stats.gems = 2
+
+            let challenges = ScienceData.challenges(for: "space-exploration")
+            var progress = store.stats.progress(for: .science)
+            progress.currentWorldId = "space-exploration"
+            progress.completedChallengeIds = challenges.map(\.id)
+            store.stats.updateProgress(for: .science, progress)
+
+            let challenge = challenges[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+
+            store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(store.stats.xp, 100)
+            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertNil(store.newlyCompletedWorld)
+        }
+    }
     
     func testHistoryChallengeScoring() async {
         await MainActor.run {

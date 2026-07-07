@@ -1102,6 +1102,32 @@ struct WorldRewardBadge: Identifiable, Equatable {
     }
 }
 
+struct WorldCompletionReward: Identifiable, Equatable {
+    let subject: Subject
+    let world: PlayableWorld
+    let completedMissions: Int
+    let totalMissions: Int
+    let nextWorld: PlayableWorld?
+    let nextWorldXPRemaining: Int?
+
+    var id: String { "\(subject.rawValue)-\(world.id)-complete" }
+    var title: String { "\(world.name) Cleared" }
+    var rewardLine: String { "+40 XP · +4 gems · \(world.rewardName)" }
+    var progressText: String { "\(min(completedMissions, totalMissions))/\(totalMissions) missions complete" }
+    var nextStepText: String {
+        if let nextWorld {
+            if let nextWorldXPRemaining, nextWorldXPRemaining > 0 {
+                return "\(nextWorldXPRemaining) XP to unlock \(nextWorld.name)."
+            }
+            return "\(nextWorld.name) is ready for your next run."
+        }
+        return "Subject route cleared. Spin Quest Roulette for a fresh world."
+    }
+    var accessibilityLabel: String {
+        "\(title). \(progressText). Reward \(rewardLine). \(nextStepText)"
+    }
+}
+
 struct WorldPathStop: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld
