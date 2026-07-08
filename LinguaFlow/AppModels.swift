@@ -976,6 +976,52 @@ struct StreakChest: Equatable {
     }
 }
 
+struct DailyCombo: Equatable {
+    let subject: Subject
+    let correctToday: Int
+    let target: Int
+
+    var currentStep: Int {
+        correctToday % target
+    }
+
+    var visibleStep: Int {
+        currentStep == 0 && correctToday > 0 ? target : currentStep
+    }
+
+    var completedCombos: Int {
+        correctToday / target
+    }
+
+    var progress: Double {
+        Double(visibleStep) / Double(max(1, target))
+    }
+
+    var title: String {
+        completedCombos == 0 ? "Build a Focus Combo" : "Focus Combo x\(completedCombos)"
+    }
+
+    var subtitle: String {
+        if currentStep == 0, correctToday > 0 {
+            return "Combo banked. Start the next chain for another bonus."
+        }
+        let remaining = max(1, target - currentStep)
+        return "\(remaining) correct \(remaining == 1 ? "move" : "moves") to trigger the next reward."
+    }
+
+    var rewardText: String {
+        "+5 XP · +1 gem"
+    }
+
+    var progressText: String {
+        "\(visibleStep)/\(target) chain"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyAdventure: Equatable {
     let subject: Subject
     let world: PlayableWorld?

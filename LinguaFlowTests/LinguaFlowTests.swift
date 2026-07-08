@@ -86,6 +86,21 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(completedQuest.reward, "+18 XP · Guild Coin")
     }
 
+    func testDailyComboShowsNextRewardAndCompletedChain() {
+        let earlyCombo = DailyCombo(subject: .science, correctToday: 2, target: 3)
+        XCTAssertEqual(earlyCombo.title, "Build a Focus Combo")
+        XCTAssertEqual(earlyCombo.subtitle, "1 correct move to trigger the next reward.")
+        XCTAssertEqual(earlyCombo.rewardText, "+5 XP · +1 gem")
+        XCTAssertEqual(earlyCombo.progressText, "2/3 chain")
+        XCTAssertEqual(earlyCombo.progress, 2.0 / 3.0, accuracy: 0.001)
+
+        let completedCombo = DailyCombo(subject: .history, correctToday: 6, target: 3)
+        XCTAssertEqual(completedCombo.title, "Focus Combo x2")
+        XCTAssertEqual(completedCombo.subtitle, "Combo banked. Start the next chain for another bonus.")
+        XCTAssertEqual(completedCombo.progressText, "3/3 chain")
+        XCTAssertEqual(completedCombo.progress, 1.0, accuracy: 0.001)
+    }
+
     func testPlayableSubjectsHaveGeneratedMapMetadata() {
         XCTAssertEqual(Subject.history.mapTitle, "History Map")
         XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")
@@ -286,6 +301,31 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.newlyUnlockedWorld?.title, "Resilience Gym Badge")
             XCTAssertTrue(store.feedbackMessage.contains("Reward unlocked"))
             XCTAssertTrue(store.stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
+        }
+    }
+
+    func testDailyComboGrantsBonusEveryThirdCorrectSubjectMission() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 0
+            store.stats.gems = 0
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            progress.completedChallengeIds = []
+            store.stats.updateProgress(for: .health, progress)
+
+            let challenges = HealthData.challenges(for: "energy-clinic")
+            for challenge in challenges.prefix(3) {
+                let correctChoice = challenge.choices.first { $0.isCorrect }!
+                store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+            }
+
+            XCTAssertEqual(store.stats.correctToday, 3)
+            XCTAssertEqual(store.stats.xp, 80)
+            XCTAssertEqual(store.stats.gems, 7)
+            XCTAssertEqual(store.dailyCombo.title, "Focus Combo x1")
+            XCTAssertTrue(store.feedbackMessage.contains("Combo x1"))
         }
     }
 

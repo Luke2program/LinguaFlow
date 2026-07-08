@@ -67,6 +67,9 @@ final class AppStore: ObservableObject {
             isClaimedToday: claimedToday
         )
     }
+    var dailyCombo: DailyCombo {
+        DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
+    }
     var dailyAdventure: DailyAdventure {
         let world: PlayableWorld?
         if stats.selectedSubject == .languages {
@@ -360,6 +363,7 @@ final class AppStore: ObservableObject {
         stats.gems += grade == .easy ? 2 : (grade == .good ? 1 : 0)
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
+        if grade != .again { awardDailyComboBonusIfNeeded() }
         // Feed pet on correct answers
         if grade != .again {
             feedPet(correctCount: grade == .easy ? 2 : 1)
@@ -674,6 +678,7 @@ final class AppStore: ObservableObject {
             stats.gems += isCorrect ? 2 : 0
             stats.reviewedToday += 1
             if isCorrect { stats.correctToday += 1 }
+            if isCorrect { awardDailyComboBonusIfNeeded() }
             progress.worldScores[worldId, default: 0] += xpEarned
             stats.updateProgress(for: subject, progress)
             let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
@@ -689,6 +694,15 @@ final class AppStore: ObservableObject {
         }
         refreshPracticeDay()
         save()
+    }
+
+    private func awardDailyComboBonusIfNeeded() {
+        let combo = dailyCombo
+        guard combo.correctToday > 0, combo.currentStep == 0 else { return }
+        stats.xp += 5
+        stats.gems += 1
+        let bonus = "Combo x\(combo.completedCombos): \(combo.rewardText)."
+        feedbackMessage = feedbackMessage.isEmpty ? bonus : "\(feedbackMessage) \(bonus)"
     }
 
     private func checkForWorldCompletion(subject: Subject, worldId: String, wasComplete: Bool) {

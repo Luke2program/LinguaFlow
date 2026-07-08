@@ -182,6 +182,7 @@ struct DashboardView: View {
                         WorldCompletionBanner(completion: completion) { store.newlyCompletedWorld = nil }
                     }
                     DailyAdventureView()
+                    DailyComboView()
                     QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
@@ -617,6 +618,85 @@ struct DailyAdventureView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Adventure. \(adventure.title). \(adventure.objective) Reward \(adventure.rewardLine).")
         .accessibilityIdentifier("dailyAdventurePanel")
+    }
+}
+
+struct DailyComboView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let combo = store.dailyCombo
+        GlassCard {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    combo.subject.accentColor.opacity(colorScheme == .dark ? 0.30 : 0.20),
+                                    .yellow.opacity(colorScheme == .dark ? 0.24 : 0.16),
+                                    .green.opacity(colorScheme == .dark ? 0.18 : 0.12)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 52, height: 52)
+                    Image(systemName: combo.currentStep == 0 && combo.correctToday > 0 ? "bolt.badge.checkmark.fill" : "bolt.fill")
+                        .font(.title3.bold())
+                        .foregroundStyle(combo.subject.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(combo.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("dailyComboTitle")
+                        Spacer(minLength: 8)
+                        Text(combo.rewardText)
+                            .font(.caption.bold())
+                            .foregroundStyle(combo.subject.accentColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyComboReward")
+                    }
+
+                    Text(combo.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                        .accessibilityIdentifier("dailyComboSubtitle")
+
+                    HStack(spacing: 10) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                                Capsule()
+                                    .fill(LinearGradient(colors: [combo.subject.accentColor, .yellow, .green], startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: geo.size.width * combo.progress)
+                            }
+                        }
+                        .frame(height: 8)
+
+                        Text(combo.progressText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .frame(width: 64, alignment: .trailing)
+                            .accessibilityIdentifier("dailyComboProgressText")
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(combo.accessibilityLabel)
+        .accessibilityIdentifier("dailyComboPanel")
     }
 }
 
