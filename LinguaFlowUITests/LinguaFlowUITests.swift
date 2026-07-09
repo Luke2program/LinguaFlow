@@ -169,6 +169,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("dailyComboPanel", in: app).exists)
         XCTAssertTrue(element("dailyComboTitle", in: app).exists)
         XCTAssertTrue(element("dailyComboProgressText", in: app).exists)
+        XCTAssertTrue(element("dailyBossPanel", in: app).exists)
+        XCTAssertTrue(element("dailyBossTitle", in: app).exists)
+        XCTAssertTrue(element("dailyBossProgressText", in: app).exists)
         XCTAssertTrue(element("questBoardPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("questMission_language-review", in: app).exists)
@@ -222,6 +225,22 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["streakChestTitle"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["streakChestTitle"].label, "Chest Claimed")
         XCTAssertFalse(app.buttons["claimStreakChestButton"].isEnabled)
+    }
+
+    func testCanDefeatReadyDailyBoss() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+
+        let panel = element("dailyBossPanel", in: app)
+        XCTAssertTrue(panel.exists)
+        XCTAssertTrue(app.staticTexts["dailyBossTitle"].label.contains("Grammar Kraken"))
+
+        let fightButton = app.buttons["fightDailyBossButton"].firstMatch
+        XCTAssertTrue(fightButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(fightButton.isEnabled)
+        fightButton.tap()
+
+        XCTAssertEqual(app.staticTexts["dailyBossTitle"].label, "Boss Defeated")
+        XCTAssertFalse(app.buttons["fightDailyBossButton"].isEnabled)
     }
 
     func testRandomStudyButtonJumpsIntoAWorld() throws {

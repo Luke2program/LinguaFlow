@@ -101,6 +101,36 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(completedCombo.progress, 1.0, accuracy: 0.001)
     }
 
+    func testDailyBossChargesAndDefeatsOncePerDay() async {
+        await MainActor.run {
+            var charging = DailyBoss(subject: .math, correctToday: 4, target: 5, isDefeatedToday: false)
+            XCTAssertEqual(charging.title, "Pattern Hydra Appears")
+            XCTAssertFalse(charging.isReady)
+            XCTAssertEqual(charging.progressText, "4/5 charge")
+            XCTAssertEqual(charging.subtitle, "1 correct move to charge the boss encounter.")
+
+            charging = DailyBoss(subject: .math, correctToday: 5, target: 5, isDefeatedToday: false)
+            XCTAssertTrue(charging.isReady)
+            XCTAssertEqual(charging.subtitle, "Your combo chain is charged. Finish the boss for a bigger prize.")
+
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.correctToday = 5
+            store.stats.xp = 365
+            store.stats.gems = 1
+
+            XCTAssertTrue(store.defeatDailyBoss(now: Date()))
+            XCTAssertEqual(store.stats.xp, 400)
+            XCTAssertEqual(store.stats.gems, 4)
+            XCTAssertTrue(store.dailyBoss.isDefeatedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Boss defeated"))
+
+            XCTAssertFalse(store.defeatDailyBoss(now: Date()))
+            XCTAssertEqual(store.stats.xp, 400)
+            XCTAssertEqual(store.stats.gems, 4)
+        }
+    }
+
     func testPlayableSubjectsHaveGeneratedMapMetadata() {
         XCTAssertEqual(Subject.history.mapTitle, "History Map")
         XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")

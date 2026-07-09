@@ -183,6 +183,7 @@ struct DashboardView: View {
                     }
                     DailyAdventureView()
                     DailyComboView()
+                    DailyBossView()
                     QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
@@ -697,6 +698,104 @@ struct DailyComboView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(combo.accessibilityLabel)
         .accessibilityIdentifier("dailyComboPanel")
+    }
+}
+
+struct DailyBossView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let boss = store.dailyBoss
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        boss.subject.accentColor.opacity(colorScheme == .dark ? 0.34 : 0.22),
+                                        .red.opacity(colorScheme == .dark ? 0.26 : 0.16),
+                                        .yellow.opacity(colorScheme == .dark ? 0.20 : 0.12)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 54, height: 54)
+                        Image(systemName: boss.isDefeatedToday ? "checkmark.seal.fill" : "flame.circle.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(boss.isDefeatedToday ? .green : boss.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Daily Boss")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                        Text(boss.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyBossTitle")
+                    }
+
+                    Spacer()
+
+                    Text(boss.rewardText)
+                        .font(.caption.bold())
+                        .foregroundStyle(boss.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .accessibilityIdentifier("dailyBossReward")
+                }
+
+                Text(boss.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityIdentifier("dailyBossSubtitle")
+
+                HStack(spacing: 10) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [boss.subject.accentColor, .red, .yellow], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * boss.progress)
+                        }
+                    }
+                    .frame(height: 9)
+
+                    Text(boss.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .frame(width: 72, alignment: .trailing)
+                        .accessibilityIdentifier("dailyBossProgressText")
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        _ = store.defeatDailyBoss()
+                    }
+                } label: {
+                    Label(boss.isDefeatedToday ? "Defeated" : "Fight Boss", systemImage: boss.isDefeatedToday ? "checkmark" : "bolt.fill")
+                        .font(.caption.bold())
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(boss.isReady && !boss.isDefeatedToday ? boss.subject.accentColor : .secondary)
+                .disabled(!boss.isReady || boss.isDefeatedToday)
+                .accessibilityIdentifier("fightDailyBossButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(boss.accessibilityLabel)
+        .accessibilityIdentifier("dailyBossPanel")
     }
 }
 

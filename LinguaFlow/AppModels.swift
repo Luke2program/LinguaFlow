@@ -1022,6 +1022,41 @@ struct DailyCombo: Equatable {
     }
 }
 
+struct DailyBoss: Equatable {
+    let subject: Subject
+    let correctToday: Int
+    let target: Int
+    let isDefeatedToday: Bool
+
+    var title: String {
+        isDefeatedToday ? "Boss Defeated" : "\(subject.bossName) Appears"
+    }
+
+    var subtitle: String {
+        if isDefeatedToday { return "Reward claimed. A new boss returns tomorrow." }
+        if isReady { return "Your combo chain is charged. Finish the boss for a bigger prize." }
+        let remaining = max(0, target - correctToday)
+        return "\(remaining) correct \(remaining == 1 ? "move" : "moves") to charge the boss encounter."
+    }
+
+    var isReady: Bool {
+        correctToday >= target
+    }
+
+    var progress: Double {
+        min(1, Double(correctToday) / Double(max(1, target)))
+    }
+
+    var rewardXP: Int { 35 }
+    var rewardGems: Int { 3 }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gems" }
+    var progressText: String { "\(min(correctToday, target))/\(target) charge" }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyAdventure: Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -1205,6 +1240,19 @@ struct WorldPathStop: Identifiable, Equatable {
 }
 
 extension Subject {
+    var bossName: String {
+        switch self {
+        case .languages: return "Grammar Kraken"
+        case .history: return "Timeline Warden"
+        case .science: return "Entropy Core"
+        case .geography: return "Lost Compass"
+        case .math: return "Pattern Hydra"
+        case .culture: return "Etiquette Phantom"
+        case .business: return "Market Mirage"
+        case .health: return "Habit Breaker"
+        }
+    }
+
     func challengeIds(for worldId: String) -> [String] {
         switch self {
         case .languages:
@@ -1621,6 +1669,7 @@ struct UserStats: Codable, Equatable {
     var hapticsEnabled: Bool = true
     var notificationsEnabled: Bool = true
     var lastStreakChestClaimDate: Date? = nil
+    var lastBossDefeatDate: Date? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false

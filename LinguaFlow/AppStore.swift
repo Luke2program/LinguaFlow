@@ -70,6 +70,10 @@ final class AppStore: ObservableObject {
     var dailyCombo: DailyCombo {
         DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
     }
+    var dailyBoss: DailyBoss {
+        let defeatedToday = stats.lastBossDefeatDate.map { Calendar.current.isDateInToday($0) } ?? false
+        return DailyBoss(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 5, isDefeatedToday: defeatedToday)
+    }
     var dailyAdventure: DailyAdventure {
         let world: PlayableWorld?
         if stats.selectedSubject == .languages {
@@ -624,6 +628,31 @@ final class AppStore: ObservableObject {
             feedbackMessage = "Chest opened: \(chest.rewardText). \(unlocked.world.name) unlocked."
         } else {
             feedbackMessage = "Chest opened: \(chest.rewardText)."
+        }
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func defeatDailyBoss(now: Date = Date()) -> Bool {
+        let boss = dailyBoss
+        guard boss.isReady, !boss.isDefeatedToday else {
+            feedbackMessage = boss.isDefeatedToday ? "Today's boss is already defeated." : "Charge the boss with \(boss.progressText) first."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += boss.rewardXP
+        stats.gems += boss.rewardGems
+        stats.lastBossDefeatDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == boss.subject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Boss defeated: \(boss.subject.bossName). \(boss.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Boss defeated: \(boss.subject.bossName). \(boss.rewardText)."
         }
         save()
         objectWillChange.send()
