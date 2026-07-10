@@ -74,6 +74,19 @@ final class AppStore: ObservableObject {
         let defeatedToday = stats.lastBossDefeatDate.map { Calendar.current.isDateInToday($0) } ?? false
         return DailyBoss(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 5, isDefeatedToday: defeatedToday)
     }
+    var dailyRelic: DailyRelic {
+        let relics = stats.selectedSubject.mysteryRelics
+        let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
+        let relic = relics[(day + stats.learningLevel) % max(1, relics.count)]
+        let claimedToday = stats.lastMysteryRelicClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        return DailyRelic(
+            relic: relic,
+            correctToday: stats.correctToday,
+            target: 3,
+            isClaimedToday: claimedToday,
+            alreadyCollected: stats.collectedRelicSet.contains(relic.id)
+        )
+    }
     var dailyAdventure: DailyAdventure {
         let world: PlayableWorld?
         if stats.selectedSubject == .languages {
@@ -654,6 +667,28 @@ final class AppStore: ObservableObject {
         } else {
             feedbackMessage = "Boss defeated: \(boss.subject.bossName). \(boss.rewardText)."
         }
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimDailyRelic(now: Date = Date()) -> Bool {
+        let relicDrop = dailyRelic
+        guard relicDrop.isReady, !relicDrop.isClaimedToday else {
+            feedbackMessage = relicDrop.isClaimedToday ? "Today's relic is already secured." : "Reveal the relic with \(relicDrop.progressText) first."
+            return false
+        }
+
+        stats.xp += 18
+        stats.gems += 2
+        stats.lastMysteryRelicClaimDate = now
+        var collected = stats.collectedRelicIds ?? []
+        if !collected.contains(relicDrop.relic.id) {
+            collected.append(relicDrop.relic.id)
+        }
+        stats.collectedRelicIds = collected
+        feedbackMessage = "Relic secured: \(relicDrop.relic.title). \(relicDrop.relic.lore)"
         save()
         objectWillChange.send()
         return true

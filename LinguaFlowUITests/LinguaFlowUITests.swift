@@ -172,6 +172,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("dailyBossPanel", in: app).exists)
         XCTAssertTrue(element("dailyBossTitle", in: app).exists)
         XCTAssertTrue(element("dailyBossProgressText", in: app).exists)
+        XCTAssertTrue(element("dailyRelicPanel", in: app).exists)
+        XCTAssertTrue(element("dailyRelicTitle", in: app).exists)
+        XCTAssertTrue(element("dailyRelicProgressText", in: app).exists)
         XCTAssertTrue(element("questBoardPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("questMission_language-review", in: app).exists)
@@ -183,7 +186,8 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("levelTrackPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("rewardVaultPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["7/15 world badges collected"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["7/15 world badges · 0/16 relics"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Relic Shelf"].waitForExistence(timeout: 3))
     }
 
     func testQuestBoardMissionTapStartsReviewGate() throws {
@@ -241,6 +245,22 @@ final class LinguaFlowUITests: XCTestCase {
 
         XCTAssertEqual(app.staticTexts["dailyBossTitle"].label, "Boss Defeated")
         XCTAssertFalse(app.buttons["fightDailyBossButton"].isEnabled)
+    }
+
+    func testCanClaimReadyDailyRelic() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+
+        let panel = element("dailyRelicPanel", in: app)
+        XCTAssertTrue(panel.exists)
+        XCTAssertTrue(app.staticTexts["dailyRelicTitle"].label.contains("Mystery Relic Ready"))
+
+        let claimButton = app.buttons["claimDailyRelicButton"].firstMatch
+        XCTAssertTrue(claimButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(claimButton.isEnabled)
+        claimButton.tap()
+
+        XCTAssertEqual(app.staticTexts["dailyRelicTitle"].label, "Relic Secured")
+        XCTAssertFalse(app.buttons["claimDailyRelicButton"].isEnabled)
     }
 
     func testRandomStudyButtonJumpsIntoAWorld() throws {

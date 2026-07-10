@@ -184,6 +184,7 @@ struct DashboardView: View {
                     DailyAdventureView()
                     DailyComboView()
                     DailyBossView()
+                    DailyRelicView()
                     QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
@@ -799,6 +800,103 @@ struct DailyBossView: View {
     }
 }
 
+struct DailyRelicView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let relicDrop = store.dailyRelic
+        GlassCard {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 17, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    relicDrop.relic.subject.accentColor.opacity(colorScheme == .dark ? 0.28 : 0.18),
+                                    .yellow.opacity(colorScheme == .dark ? 0.28 : 0.18),
+                                    .cyan.opacity(colorScheme == .dark ? 0.20 : 0.12)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                    Text(relicDrop.isClaimedToday ? relicDrop.relic.emoji : "❔")
+                        .font(.system(size: 29))
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Daily Relic")
+                                .font(.caption.bold())
+                                .foregroundStyle(.secondary)
+                            Text(relicDrop.title)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
+                                .accessibilityIdentifier("dailyRelicTitle")
+                        }
+                        Spacer(minLength: 8)
+                        Text(relicDrop.rewardText)
+                            .font(.caption.bold())
+                            .foregroundStyle(relicDrop.relic.subject.accentColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .accessibilityIdentifier("dailyRelicReward")
+                    }
+
+                    Text(relicDrop.isClaimedToday ? relicDrop.relic.lore : relicDrop.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                        .accessibilityIdentifier("dailyRelicSubtitle")
+
+                    HStack(spacing: 10) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                                Capsule()
+                                    .fill(LinearGradient(colors: [relicDrop.relic.subject.accentColor, .yellow, .cyan], startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: geo.size.width * relicDrop.progress)
+                            }
+                        }
+                        .frame(height: 8)
+
+                        Text(relicDrop.progressText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .frame(width: 74, alignment: .trailing)
+                            .accessibilityIdentifier("dailyRelicProgressText")
+                    }
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimDailyRelic()
+                        }
+                    } label: {
+                        Label(relicDrop.isClaimedToday ? "Secured" : "Reveal Relic", systemImage: relicDrop.isClaimedToday ? "checkmark.seal.fill" : "sparkles")
+                            .font(.caption.bold())
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(relicDrop.isReady && !relicDrop.isClaimedToday ? relicDrop.relic.subject.accentColor : .secondary)
+                    .disabled(!relicDrop.isReady || relicDrop.isClaimedToday)
+                    .accessibilityIdentifier("claimDailyRelicButton")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(relicDrop.accessibilityLabel)
+        .accessibilityIdentifier("dailyRelicPanel")
+    }
+}
+
 struct QuestBoardView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.colorScheme) private var colorScheme
@@ -1188,6 +1286,7 @@ struct RewardVaultView: View {
 
     var body: some View {
         let badges = store.stats.featuredWorldRewardBadges
+        let relics = store.stats.featuredRelicVaultItems
         let progress = store.stats.worldRewardProgress
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -1205,7 +1304,7 @@ struct RewardVaultView: View {
                             .font(.headline)
                             .foregroundStyle(.primary)
                             .accessibilityIdentifier("rewardVaultTitle")
-                        Text("\(store.stats.earnedWorldRewardCount)/\(store.stats.totalWorldRewardCount) world badges collected")
+                        Text("\(store.stats.earnedWorldRewardCount)/\(store.stats.totalWorldRewardCount) world badges · \(store.stats.collectedRelicCount)/\(store.stats.totalRelicCount) relics")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("rewardVaultProgressText")
@@ -1229,6 +1328,20 @@ struct RewardVaultView: View {
                 HStack(spacing: 8) {
                     ForEach(badges) { badge in
                         RewardBadgeChip(badge: badge)
+                    }
+                }
+
+                if !relics.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Relic Shelf")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("relicShelfTitle")
+                        HStack(spacing: 8) {
+                            ForEach(relics) { item in
+                                RelicVaultChip(item: item)
+                            }
+                        }
                     }
                 }
             }
@@ -1273,6 +1386,39 @@ struct RewardBadgeChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(badge.title), \(badge.subtitle)")
         .accessibilityIdentifier("rewardBadge_\(badge.id)")
+    }
+}
+
+struct RelicVaultChip: View {
+    let item: RelicVaultItem
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Text(item.isCollected ? item.relic.emoji : "❔")
+                .font(.system(size: 24))
+                .frame(width: 42, height: 42)
+                .background(item.relic.subject.accentColor.opacity(item.isCollected ? 0.17 : 0.06), in: Circle())
+                .saturation(item.isCollected ? 1 : 0.2)
+                .opacity(item.isCollected ? 1 : 0.62)
+            Text(item.isCollected ? item.relic.name : "Hidden")
+                .font(.caption2.bold())
+                .foregroundStyle(item.isCollected ? .primary : .secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.70)
+            Text(item.subtitle)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.70)
+        }
+        .frame(maxWidth: .infinity, minHeight: 78)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .background(Color.primary.opacity(item.isCollected ? 0.05 : 0.03), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(item.relic.subject.accentColor.opacity(item.isCollected ? 0.20 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(item.relic.name), \(item.subtitle)")
+        .accessibilityIdentifier("relicVault_\(item.id)")
     }
 }
 

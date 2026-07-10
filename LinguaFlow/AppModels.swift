@@ -1057,6 +1057,58 @@ struct DailyBoss: Equatable {
     }
 }
 
+struct MysteryRelic: Identifiable, Equatable {
+    let id: String
+    let subject: Subject
+    let name: String
+    let emoji: String
+    let lore: String
+    let rarity: String
+
+    var title: String { "\(emoji) \(name)" }
+    var rewardLine: String { "+18 XP · +2 gems · \(rarity)" }
+}
+
+struct DailyRelic: Equatable {
+    let relic: MysteryRelic
+    let correctToday: Int
+    let target: Int
+    let isClaimedToday: Bool
+    let alreadyCollected: Bool
+
+    var isReady: Bool {
+        correctToday >= target
+    }
+
+    var progress: Double {
+        min(1, Double(correctToday) / Double(max(1, target)))
+    }
+
+    var title: String {
+        if isClaimedToday { return "Relic Secured" }
+        return isReady ? "Mystery Relic Ready" : "Mystery Relic"
+    }
+
+    var subtitle: String {
+        if isClaimedToday { return "\(relic.name) is stored in your Reward Vault." }
+        if isReady { return "Open today's find from \(relic.subject.displayName)." }
+        let remaining = max(0, target - correctToday)
+        return "\(remaining) correct \(remaining == 1 ? "move" : "moves") to reveal today's relic."
+    }
+
+    var progressText: String {
+        "\(min(correctToday, target))/\(target) reveal"
+    }
+
+    var rewardText: String {
+        alreadyCollected ? "+18 XP · +2 gems" : relic.rewardLine
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyAdventure: Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -1183,6 +1235,16 @@ struct WorldRewardBadge: Identifiable, Equatable {
     }
 }
 
+struct RelicVaultItem: Identifiable, Equatable {
+    let relic: MysteryRelic
+    let isCollected: Bool
+
+    var id: String { relic.id }
+    var subtitle: String {
+        isCollected ? "\(relic.rarity) collected" : "Hidden relic"
+    }
+}
+
 struct WorldCompletionReward: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld
@@ -1250,6 +1312,51 @@ extension Subject {
         case .culture: return "Etiquette Phantom"
         case .business: return "Market Mirage"
         case .health: return "Habit Breaker"
+        }
+    }
+
+    var mysteryRelics: [MysteryRelic] {
+        switch self {
+        case .languages:
+            return [
+                MysteryRelic(id: "languages-phrase-compass", subject: self, name: "Phrase Compass", emoji: "🧭", lore: "Points toward the next useful sentence before you need it.", rarity: "Rare"),
+                MysteryRelic(id: "languages-fluency-shell", subject: self, name: "Fluency Shell", emoji: "🐚", lore: "Keeps echoes of phrases you can actually use in conversation.", rarity: "Uncommon")
+            ]
+        case .history:
+            return [
+                MysteryRelic(id: "history-bronze-denarius", subject: self, name: "Bronze Denarius", emoji: "🪙", lore: "A grounded clue from the Roman economy, campaigns, and daily trade.", rarity: "Rare"),
+                MysteryRelic(id: "history-archive-fragment", subject: self, name: "Archive Fragment", emoji: "📜", lore: "A torn source note that links a choice to what historians can verify.", rarity: "Uncommon")
+            ]
+        case .science:
+            return [
+                MysteryRelic(id: "science-orbit-spark", subject: self, name: "Orbit Spark", emoji: "✨", lore: "A bright reminder that every mission depends on real forces and evidence.", rarity: "Rare"),
+                MysteryRelic(id: "science-field-lens", subject: self, name: "Field Lens", emoji: "🔎", lore: "Reveals the observation hiding behind a good explanation.", rarity: "Uncommon")
+            ]
+        case .geography:
+            return [
+                MysteryRelic(id: "geography-river-pin", subject: self, name: "River Pin", emoji: "📍", lore: "Marks how rivers, mountains, and routes shape real places.", rarity: "Uncommon"),
+                MysteryRelic(id: "geography-atlas-key", subject: self, name: "Atlas Key", emoji: "🗝️", lore: "Unlocks the mental map between clue, region, and capital.", rarity: "Rare")
+            ]
+        case .math:
+            return [
+                MysteryRelic(id: "math-logic-rune", subject: self, name: "Logic Rune", emoji: "🔷", lore: "Glows when a pattern becomes a rule you can reuse.", rarity: "Rare"),
+                MysteryRelic(id: "math-ratio-gear", subject: self, name: "Ratio Gear", emoji: "⚙️", lore: "Keeps equivalent relationships turning in sync.", rarity: "Uncommon")
+            ]
+        case .culture:
+            return [
+                MysteryRelic(id: "culture-festival-thread", subject: self, name: "Festival Thread", emoji: "🧵", lore: "Connects food, music, ritual, and meaning without flattening them.", rarity: "Rare"),
+                MysteryRelic(id: "culture-market-token", subject: self, name: "Market Token", emoji: "🏮", lore: "A small object from everyday culture, not a tourist stereotype.", rarity: "Uncommon")
+            ]
+        case .business:
+            return [
+                MysteryRelic(id: "business-margin-gem", subject: self, name: "Margin Gem", emoji: "💎", lore: "Shines when a decision respects cash, value, and incentives.", rarity: "Rare"),
+                MysteryRelic(id: "business-signal-card", subject: self, name: "Signal Card", emoji: "💳", lore: "Separates useful market evidence from noisy confidence.", rarity: "Uncommon")
+            ]
+        case .health:
+            return [
+                MysteryRelic(id: "health-vitality-leaf", subject: self, name: "Vitality Leaf", emoji: "🍃", lore: "Rewards practical recovery, steady energy, and small repeatable habits.", rarity: "Rare"),
+                MysteryRelic(id: "health-breath-stone", subject: self, name: "Breath Stone", emoji: "🪨", lore: "Anchors a fast reset before stress turns into avoidance.", rarity: "Uncommon")
+            ]
         }
     }
 
@@ -1670,6 +1777,8 @@ struct UserStats: Codable, Equatable {
     var notificationsEnabled: Bool = true
     var lastStreakChestClaimDate: Date? = nil
     var lastBossDefeatDate: Date? = nil
+    var lastMysteryRelicClaimDate: Date? = nil
+    var collectedRelicIds: [String]? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false
@@ -1790,6 +1899,34 @@ extension UserStats {
             .filter { !$0.isEarned }
             .sorted { $0.xpRemaining < $1.xpRemaining }
             .first
+    }
+
+    var collectedRelicSet: Set<String> {
+        Set(collectedRelicIds ?? [])
+    }
+
+    var allRelicVaultItems: [RelicVaultItem] {
+        let collected = collectedRelicSet
+        return Subject.allCases.flatMap { subject in
+            subject.mysteryRelics.map { relic in
+                RelicVaultItem(relic: relic, isCollected: collected.contains(relic.id))
+            }
+        }
+    }
+
+    var collectedRelicCount: Int {
+        allRelicVaultItems.filter(\.isCollected).count
+    }
+
+    var totalRelicCount: Int {
+        allRelicVaultItems.count
+    }
+
+    var featuredRelicVaultItems: [RelicVaultItem] {
+        let items = allRelicVaultItems
+        let collected = items.filter(\.isCollected).suffix(2)
+        let hidden = items.first { !$0.isCollected }.map { [$0] } ?? []
+        return Array(collected) + hidden
     }
 }
 

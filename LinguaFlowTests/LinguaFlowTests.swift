@@ -131,6 +131,32 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyRelicRevealsCollectibleOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.correctToday = 3
+            store.stats.xp = 100
+            store.stats.gems = 1
+
+            let relicDrop = store.dailyRelic
+            XCTAssertTrue(relicDrop.isReady)
+            XCTAssertEqual(relicDrop.relic.subject, .history)
+            XCTAssertFalse(store.stats.collectedRelicSet.contains(relicDrop.relic.id))
+
+            XCTAssertTrue(store.claimDailyRelic(now: Date()))
+            XCTAssertEqual(store.stats.xp, 118)
+            XCTAssertEqual(store.stats.gems, 3)
+            XCTAssertTrue(store.stats.collectedRelicSet.contains(relicDrop.relic.id))
+            XCTAssertEqual(store.stats.collectedRelicCount, 1)
+            XCTAssertTrue(store.feedbackMessage.contains("Relic secured"))
+
+            XCTAssertFalse(store.claimDailyRelic(now: Date()))
+            XCTAssertEqual(store.stats.xp, 118)
+            XCTAssertEqual(store.stats.gems, 3)
+        }
+    }
+
     func testPlayableSubjectsHaveGeneratedMapMetadata() {
         XCTAssertEqual(Subject.history.mapTitle, "History Map")
         XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")
