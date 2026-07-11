@@ -557,6 +557,23 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func focusAtlasNextWorld() {
+        guard let target = stats.atlasNextTarget else {
+            startRandomStudy()
+            return
+        }
+
+        stats.selectedSubject = target.subject
+        if let playableWorld = target.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+            select(worldId: playableWorld.id, for: target.subject)
+            feedbackMessage = "Atlas focused \(target.nextWorld?.name ?? playableWorld.name): \(target.nextText)."
+        } else {
+            feedbackMessage = "Atlas target found: \(target.nextText). Earn XP in any open world."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     func startRecommendedRun(_ recommendation: RecommendedRun) {
         switch recommendation.action {
         case .dailyAdventure:

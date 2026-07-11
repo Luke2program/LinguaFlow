@@ -216,6 +216,42 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.nextWorldUnlockBadge?.xpRemaining, 25)
     }
 
+    func testWorldAtlasSummarizesAllLearningDomainsAndNextUnlock() {
+        var stats = UserStats()
+        stats.xp = 275
+        stats.reviewedToday = 6
+        stats.dailyGoal = 12
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, history)
+
+        let atlas = stats.atlasSubjectProgress
+
+        XCTAssertEqual(atlas.count, Subject.allCases.count)
+        XCTAssertEqual(stats.atlasOpenWorldCount, 8)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 16)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 16.0, accuracy: 0.001)
+        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/5 missions")
+        XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
+        XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
+        XCTAssertEqual(stats.atlasNextTarget?.nextText, "25 XP to African Wonders")
+    }
+
+    func testWorldAtlasFocusJumpsToNearestUnlockSubject() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.xp = 275
+
+            store.focusAtlasNextWorld()
+
+            XCTAssertEqual(store.stats.selectedSubject, .geography)
+            XCTAssertEqual(store.currentWorld?.id, "european-capitals")
+            XCTAssertTrue(store.feedbackMessage.contains("Atlas focused African Wonders"))
+        }
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

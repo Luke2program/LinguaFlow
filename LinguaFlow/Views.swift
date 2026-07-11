@@ -190,6 +190,7 @@ struct DashboardView: View {
                     DailyQuestView()
                     StreakChestView()
                     LevelTrackView()
+                    WorldAtlasView()
                     RewardVaultView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
@@ -1277,6 +1278,149 @@ struct LevelTrackView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("levelTrackPanel")
+    }
+}
+
+struct WorldAtlasView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let stats = store.stats
+        let subjects = stats.atlasSubjectProgress
+        let nextTarget = stats.atlasNextTarget
+
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.cyan.opacity(0.24), .green.opacity(0.18), .yellow.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "map.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.cyan)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("World Atlas")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("worldAtlasTitle")
+                        Text("\(stats.atlasOpenWorldCount)/\(stats.atlasTotalWorldCount) worlds open across \(Subject.allCases.count) domains")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("worldAtlasProgressText")
+                    }
+
+                    Spacer()
+
+                    Text("\(Int(stats.atlasProgress * 100))%")
+                        .font(.caption.bold())
+                        .foregroundStyle(.cyan)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 6)
+                        .background(Color.cyan.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.cyan, .green, .yellow], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * stats.atlasProgress)
+                    }
+                }
+                .frame(height: 9)
+                .accessibilityIdentifier("worldAtlasProgress")
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    ForEach(subjects) { subjectProgress in
+                        AtlasSubjectChip(progress: subjectProgress, isSelected: subjectProgress.subject == stats.selectedSubject)
+                    }
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.focusAtlasNextWorld()
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: nextTarget == nil ? "shuffle.circle.fill" : "lock.open.fill")
+                            .font(.headline.bold())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(nextTarget.map { "Next unlock: \($0.nextWorld?.name ?? "World")" } ?? "All routes open")
+                                .font(.caption.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
+                            Text(nextTarget?.nextText ?? "Spin Quest Roulette for a fresh run.")
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .font(.caption.bold())
+                    }
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .padding(12)
+                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("worldAtlasNextButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("worldAtlasPanel")
+    }
+}
+
+struct AtlasSubjectChip: View {
+    let progress: AtlasSubjectProgress
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 7) {
+                Image(systemName: progress.subject.icon)
+                    .font(.caption.bold())
+                    .foregroundStyle(progress.subject.accentColor)
+                Text(progress.subject.displayName)
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.68)
+            }
+
+            Text(progress.routeText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.primary.opacity(0.1))
+                    Capsule()
+                        .fill(progress.subject.accentColor.opacity(0.9))
+                        .frame(width: geo.size.width * progress.progress)
+                }
+            }
+            .frame(height: 6)
+
+            Text(progress.nextText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
+        }
+        .frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
+        .padding(10)
+        .background(Color.primary.opacity(isSelected ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(progress.subject.accentColor.opacity(isSelected ? 0.26 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(progress.accessibilityLabel)
+        .accessibilityIdentifier("worldAtlasSubject_\(progress.subject.rawValue)")
     }
 }
 

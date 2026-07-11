@@ -1301,6 +1301,42 @@ struct WorldPathStop: Identifiable, Equatable {
     }
 }
 
+struct AtlasSubjectProgress: Identifiable, Equatable {
+    let subject: Subject
+    let openedWorlds: Int
+    let totalWorlds: Int
+    let completedMissions: Int
+    let totalMissions: Int
+    let nextWorld: PlayableWorld?
+    let xpRemaining: Int
+
+    var id: String { subject.rawValue }
+    var progress: Double {
+        guard totalWorlds > 0 else { return subject == .languages ? 1 : 0 }
+        return Double(openedWorlds) / Double(totalWorlds)
+    }
+    var title: String { subject.displayName }
+    var routeText: String {
+        if subject == .languages { return "Language Harbor" }
+        return "\(openedWorlds)/\(totalWorlds) worlds open"
+    }
+    var missionText: String {
+        if subject == .languages { return "Speak, type, review" }
+        guard totalMissions > 0 else { return "Route ready" }
+        return "\(completedMissions)/\(totalMissions) missions"
+    }
+    var nextText: String {
+        if subject == .languages { return "Review gate ready" }
+        if let nextWorld {
+            return "\(xpRemaining) XP to \(nextWorld.name)"
+        }
+        return "Route fully open"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(routeText). \(missionText). \(nextText)."
+    }
+}
+
 extension Subject {
     var bossName: String {
         switch self {
@@ -1927,6 +1963,59 @@ extension UserStats {
         let collected = items.filter(\.isCollected).suffix(2)
         let hidden = items.first { !$0.isCollected }.map { [$0] } ?? []
         return Array(collected) + hidden
+    }
+
+    var atlasSubjectProgress: [AtlasSubjectProgress] {
+        Subject.allCases.map { subject in
+            if subject == .languages {
+                return AtlasSubjectProgress(
+                    subject: subject,
+                    openedWorlds: 1,
+                    totalWorlds: 1,
+                    completedMissions: min(reviewedToday, max(dailyGoal, 1)),
+                    totalMissions: max(dailyGoal, 1),
+                    nextWorld: nil,
+                    xpRemaining: 0
+                )
+            }
+
+            let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+            let totalMissions = subject.worlds.reduce(0) { $0 + subject.challengeIds(for: $1.id).count }
+            let completedMissions = subject.worlds.reduce(0) { partial, world in
+                let ids = subject.challengeIds(for: world.id)
+                return partial + progress.completedChallengeIds.filter { ids.contains($0) }.count
+            }
+            let nextWorld = subject.nextLockedWorld(withXP: xp)
+            return AtlasSubjectProgress(
+                subject: subject,
+                openedWorlds: subject.unlockedWorldCount(withXP: xp),
+                totalWorlds: subject.worlds.count,
+                completedMissions: completedMissions,
+                totalMissions: totalMissions,
+                nextWorld: nextWorld,
+                xpRemaining: nextWorld?.xpRemaining(withXP: xp) ?? 0
+            )
+        }
+    }
+
+    var atlasOpenWorldCount: Int {
+        atlasSubjectProgress.reduce(0) { $0 + $1.openedWorlds }
+    }
+
+    var atlasTotalWorldCount: Int {
+        atlasSubjectProgress.reduce(0) { $0 + $1.totalWorlds }
+    }
+
+    var atlasProgress: Double {
+        guard atlasTotalWorldCount > 0 else { return 0 }
+        return Double(atlasOpenWorldCount) / Double(atlasTotalWorldCount)
+    }
+
+    var atlasNextTarget: AtlasSubjectProgress? {
+        atlasSubjectProgress
+            .filter { $0.subject != .languages && $0.nextWorld != nil }
+            .sorted { $0.xpRemaining < $1.xpRemaining }
+            .first
     }
 }
 
