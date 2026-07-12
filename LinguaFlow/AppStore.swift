@@ -97,6 +97,9 @@ final class AppStore: ObservableObject {
         }
         return DailyAdventure(subject: stats.selectedSubject, world: world, xp: stats.xp, streak: stats.streak)
     }
+    var dailyWorldEvent: DailyWorldEvent {
+        buildDailyWorldEvent(dayIndex: Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0)
+    }
     var recommendedRun: RecommendedRun {
         let chest = streakChest
         if chest.isReady && !chest.isClaimedToday {
@@ -557,6 +560,51 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func buildDailyWorldEvent(dayIndex: Int) -> DailyWorldEvent {
+        let eventNames = [
+            ("World Tour: Evidence Trail", "Clear a short chain across different subjects and make today feel like an expedition."),
+            ("World Tour: Time Gate", "Jump from maps to stories to practical decisions in one focused run."),
+            ("World Tour: Scholar Circuit", "Mix skills on purpose: memory, reasoning, context, and useful action.")
+        ]
+        let event = eventNames[abs(dayIndex) % eventNames.count]
+        let playableSubjects = Subject.allCases.filter { $0 != .languages }
+        let rotatedSubjects = rotate([Subject.languages] + playableSubjects, by: dayIndex)
+        let currentIndex = min(stats.reviewedToday, 3)
+        let chapters = rotatedSubjects.prefix(4).enumerated().map { index, subject in
+            DailyWorldChapter(
+                subject: subject,
+                world: subject.worlds.first { $0.isUnlocked(withXP: stats.xp) },
+                step: index + 1,
+                isCurrent: index == currentIndex
+            )
+        }
+
+        return DailyWorldEvent(
+            title: event.0,
+            subtitle: event.1,
+            chapters: chapters,
+            completedSteps: min(stats.reviewedToday, chapters.count)
+        )
+    }
+
+    func startDailyWorldEvent() {
+        let event = dailyWorldEvent
+        guard let chapter = event.currentChapter else {
+            startRandomStudy()
+            return
+        }
+
+        stats.selectedSubject = chapter.subject
+        if chapter.subject == .languages {
+            pickNextCard()
+        } else if let worldId = chapter.world?.id {
+            select(worldId: worldId, for: chapter.subject)
+        }
+        feedbackMessage = "World Tour opened step \(chapter.step): \(chapter.title)."
+        save()
+        objectWillChange.send()
+    }
+
     func focusAtlasNextWorld() {
         guard let target = stats.atlasNextTarget else {
             startRandomStudy()
@@ -940,6 +988,12 @@ final class AppStore: ObservableObject {
         return Double(progress.completedChallengeIds.filter { id in
             HealthData.challenges(for: worldId).contains { $0.id == id }
         }.count) / Double(total)
+    }
+
+    private func rotate<T>(_ values: [T], by offset: Int) -> [T] {
+        guard !values.isEmpty else { return [] }
+        let normalized = ((offset % values.count) + values.count) % values.count
+        return Array(values[normalized...]) + Array(values[..<normalized])
     }
 
     private func load() {

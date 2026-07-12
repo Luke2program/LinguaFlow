@@ -308,6 +308,46 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(languageAdventure.rewardLine, "+30 XP · Fluency Drop")
     }
 
+    func testDailyWorldEventBuildsCrossSubjectTour() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 0
+            store.stats.reviewedToday = 1
+
+            let event = store.buildDailyWorldEvent(dayIndex: 0)
+
+            XCTAssertEqual(event.title, "World Tour: Evidence Trail")
+            XCTAssertEqual(event.chapters.count, 4)
+            XCTAssertEqual(event.chapters.map(\.subject), [.languages, .history, .science, .geography])
+            XCTAssertEqual(event.chapters[0].title, "Language Harbor")
+            XCTAssertEqual(event.chapters[1].world?.id, "ancient-rome")
+            XCTAssertEqual(event.chapters[2].world?.id, "space-exploration")
+            XCTAssertEqual(event.progressText, "1/4 worlds")
+            XCTAssertEqual(event.currentChapter?.subject, .history)
+            XCTAssertTrue(event.chapters[1].isCurrent)
+            XCTAssertEqual(event.rewardText, "+45 XP · +4 gems · Event Crown")
+        }
+    }
+
+    func testDailyWorldEventStartOpensCurrentChapter() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.hasSeenTitle = true
+            store.stats.hasSkippedAuth = true
+            store.stats.hasSeenPetPicker = true
+            store.stats.hasSeenSubjectPicker = true
+            store.stats.reviewedToday = 0
+            store.stats.xp = 0
+            let expected = store.dailyWorldEvent.currentChapter
+
+            store.startDailyWorldEvent()
+
+            XCTAssertEqual(store.stats.selectedSubject, expected?.subject)
+            XCTAssertTrue(store.feedbackMessage.contains("World Tour opened step"))
+            XCTAssertTrue(store.feedbackMessage.contains(expected?.title ?? ""))
+        }
+    }
+
     func testStoreDailyAdventureUsesSelectedWorld() async {
         await MainActor.run {
             let store = AppStore()

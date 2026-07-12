@@ -1172,6 +1172,64 @@ struct DailyAdventure: Equatable {
     }
 }
 
+struct DailyWorldChapter: Identifiable, Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let step: Int
+    let isCurrent: Bool
+
+    var id: String {
+        "\(step)-\(subject.rawValue)-\(world?.id ?? "harbor")"
+    }
+
+    var title: String {
+        if let world { return world.name }
+        return "Language Harbor"
+    }
+
+    var subtitle: String {
+        switch subject {
+        case .languages: return "Speak and type a useful phrase"
+        case .history: return "Enter a grounded turning point"
+        case .science: return "Collect an evidence note"
+        case .geography: return "Follow a real map clue"
+        case .math: return "Crack a pattern gate"
+        case .culture: return "Read context before acting"
+        case .business: return "Choose from signal, not hype"
+        case .health: return "Pick a practical habit move"
+        }
+    }
+}
+
+struct DailyWorldEvent: Equatable {
+    let title: String
+    let subtitle: String
+    let chapters: [DailyWorldChapter]
+    let completedSteps: Int
+
+    var progress: Double {
+        guard !chapters.isEmpty else { return 0 }
+        return min(1, Double(completedSteps) / Double(chapters.count))
+    }
+
+    var progressText: String {
+        "\(min(completedSteps, chapters.count))/\(chapters.count) worlds"
+    }
+
+    var rewardText: String {
+        "+45 XP · +4 gems · Event Crown"
+    }
+
+    var currentChapter: DailyWorldChapter? {
+        guard !chapters.isEmpty else { return nil }
+        return chapters[min(completedSteps, chapters.count - 1)]
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 enum QuestBoardMissionKind: String, Equatable {
     case dailyAdventure
     case languageReview

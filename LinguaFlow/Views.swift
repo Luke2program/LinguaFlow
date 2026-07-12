@@ -174,6 +174,7 @@ struct DashboardView: View {
                     subjectHeader
                     RandomStudyView()
                     RecommendedRunView()
+                    DailyWorldEventView()
                     ChallengeUITestControls()
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
@@ -422,6 +423,135 @@ struct RecommendedRunView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(recommendation.accessibilityLabel)
         .accessibilityIdentifier("recommendedRunPanel")
+    }
+}
+
+struct DailyWorldEventView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let event = store.dailyWorldEvent
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.startDailyWorldEvent()
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(LinearGradient(colors: [.indigo.opacity(0.25), .orange.opacity(0.18), .mint.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 56, height: 56)
+                        Image(systemName: "sparkles")
+                            .font(.title3.bold())
+                            .foregroundStyle(.indigo)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Daily World Tour")
+                            .font(.caption.bold())
+                            .foregroundStyle(.indigo)
+                            .accessibilityIdentifier("dailyWorldEventEyebrow")
+                        Text(event.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyWorldEventTitle")
+                        Text(event.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.80)
+                            .accessibilityIdentifier("dailyWorldEventSubtitle")
+                    }
+
+                    Spacer()
+
+                    Label(event.currentChapter.map { "Step \($0.step)" } ?? "Spin", systemImage: "play.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.76)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(event.chapters) { chapter in
+                        DailyWorldChapterChip(chapter: chapter, isCompleted: chapter.step <= event.completedSteps)
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    Label(event.rewardText, systemImage: "crown.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(.orange)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [.indigo, .orange, .mint], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * event.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(event.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .frame(width: 68, alignment: .trailing)
+                        .accessibilityIdentifier("dailyWorldEventProgressText")
+                }
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.indigo.opacity(0.18), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(event.accessibilityLabel)
+        .accessibilityIdentifier("dailyWorldEventPanel")
+    }
+}
+
+struct DailyWorldChapterChip: View {
+    let chapter: DailyWorldChapter
+    let isCompleted: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 5) {
+                Text(isCompleted ? "✓" : (chapter.world?.emoji ?? "💧"))
+                    .font(.system(size: 16, weight: .bold))
+                Image(systemName: chapter.subject.icon)
+                    .font(.caption2.bold())
+                    .foregroundStyle(chapter.subject.accentColor)
+            }
+            Text(chapter.title)
+                .font(.caption2.bold())
+                .foregroundStyle(isCompleted ? .secondary : .primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.64)
+            Text(chapter.subtitle)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.66)
+        }
+        .frame(maxWidth: .infinity, minHeight: 90, alignment: .topLeading)
+        .padding(9)
+        .background(Color.primary.opacity(chapter.isCurrent ? 0.075 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(chapter.subject.accentColor.opacity(chapter.isCurrent ? 0.28 : 0.09), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(chapter.step), \(chapter.subject.displayName), \(chapter.title), \(chapter.subtitle)")
+        .accessibilityIdentifier("dailyWorldEventChapter_\(chapter.step)")
     }
 }
 
