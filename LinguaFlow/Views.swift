@@ -175,6 +175,7 @@ struct DashboardView: View {
                     RandomStudyView()
                     RecommendedRunView()
                     DailyWorldEventView()
+                    MasteryLeagueView()
                     ChallengeUITestControls()
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
@@ -552,6 +553,147 @@ struct DailyWorldChapterChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Step \(chapter.step), \(chapter.subject.displayName), \(chapter.title), \(chapter.subtitle)")
         .accessibilityIdentifier("dailyWorldEventChapter_\(chapter.step)")
+    }
+}
+
+struct MasteryLeagueView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let league = store.stats.masteryLeague
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.yellow.opacity(0.24), .cyan.opacity(0.18), .pink.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "trophy.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.yellow)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(league.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("masteryLeagueTitle")
+                        Text(league.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("masteryLeagueSubtitle")
+                    }
+                    Spacer()
+                    Text(league.selectedStanding?.rankText ?? "#-")
+                        .font(.caption.bold())
+                        .foregroundStyle(.yellow)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.yellow.opacity(colorScheme == .dark ? 0.22 : 0.14), in: Capsule())
+                        .accessibilityIdentifier("masteryLeagueSelectedRank")
+                }
+
+                VStack(spacing: 8) {
+                    ForEach(league.topThree) { standing in
+                        MasteryLeagueStandingRow(standing: standing)
+                    }
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.startMasteryLeagueCatchUp()
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "bolt.fill")
+                            .font(.subheadline.bold())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(league.catchUpTitle)
+                                .font(.subheadline.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
+                            Text(league.catchUpSubtitle)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .padding(12)
+                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("masteryLeagueCatchUpButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(league.accessibilityLabel)
+        .accessibilityIdentifier("masteryLeaguePanel")
+    }
+}
+
+struct MasteryLeagueStandingRow: View {
+    let standing: MasteryLeagueStanding
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(standing.rankText)
+                .font(.caption.bold())
+                .foregroundStyle(standing.subject.accentColor)
+                .frame(width: 34, alignment: .leading)
+
+            Image(systemName: standing.subject.icon)
+                .font(.subheadline.bold())
+                .foregroundStyle(standing.subject.accentColor)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(standing.subject.displayName)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+                    if standing.isSelected {
+                        Text("Active")
+                            .font(.caption2.bold())
+                            .foregroundStyle(standing.subject.accentColor)
+                    }
+                    Spacer(minLength: 6)
+                    Text(standing.scoreText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [standing.subject.accentColor, .green], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * standing.progress)
+                    }
+                }
+                .frame(height: 6)
+
+                Text(standing.detailText)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(standing.isSelected ? 0.065 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(standing.subject.accentColor.opacity(standing.isSelected ? 0.24 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(standing.accessibilityLabel)
+        .accessibilityIdentifier("masteryLeagueStanding_\(standing.subject.rawValue)")
     }
 }
 

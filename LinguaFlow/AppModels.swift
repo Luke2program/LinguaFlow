@@ -1395,6 +1395,64 @@ struct AtlasSubjectProgress: Identifiable, Equatable {
     }
 }
 
+struct MasteryLeagueStanding: Identifiable, Equatable {
+    let rank: Int
+    let subject: Subject
+    let score: Int
+    let completedMissions: Int
+    let totalMissions: Int
+    let openedWorlds: Int
+    let totalWorlds: Int
+    let collectedRelics: Int
+    let isSelected: Bool
+
+    var id: String { subject.rawValue }
+    var title: String { subject.displayName }
+    var progress: Double {
+        guard totalMissions > 0 else {
+            return totalWorlds == 0 ? min(1, Double(score) / 100.0) : Double(openedWorlds) / Double(max(1, totalWorlds))
+        }
+        return min(1, Double(completedMissions) / Double(totalMissions))
+    }
+    var rankText: String { "#\(rank)" }
+    var scoreText: String { "\(score) pts" }
+    var detailText: String {
+        if subject == .languages {
+            return "\(completedMissions)/\(totalMissions) daily reps · \(collectedRelics) relics"
+        }
+        return "\(completedMissions)/\(totalMissions) missions · \(openedWorlds)/\(totalWorlds) worlds"
+    }
+    var accessibilityLabel: String {
+        "\(rankText), \(title), \(scoreText), \(detailText)"
+    }
+}
+
+struct MasteryLeague: Equatable {
+    let standings: [MasteryLeagueStanding]
+    let selectedStanding: MasteryLeagueStanding?
+    let catchUpTarget: MasteryLeagueStanding?
+
+    var title: String { "Mastery League" }
+    var subtitle: String {
+        if let selectedStanding {
+            return "\(selectedStanding.subject.displayName) is \(selectedStanding.rankText). Keep every domain climbing."
+        }
+        return "Rank every learning domain by progress, worlds, and relics."
+    }
+    var topThree: [MasteryLeagueStanding] { Array(standings.prefix(3)) }
+    var catchUpTitle: String {
+        guard let catchUpTarget else { return "Spin a fresh domain" }
+        return "Boost \(catchUpTarget.subject.displayName)"
+    }
+    var catchUpSubtitle: String {
+        guard let catchUpTarget else { return "All domains are moving. Pick any world next." }
+        return "\(catchUpTarget.scoreText) · \(catchUpTarget.detailText)"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(catchUpTitle)."
+    }
+}
+
 extension Subject {
     var bossName: String {
         switch self {
@@ -2074,6 +2132,78 @@ extension UserStats {
             .filter { $0.subject != .languages && $0.nextWorld != nil }
             .sorted { $0.xpRemaining < $1.xpRemaining }
             .first
+    }
+
+    var masteryLeague: MasteryLeague {
+        let collectedRelics = collectedRelicSet
+        let standings = Subject.allCases.map { subject in
+            let relicCount = subject.mysteryRelics.filter { collectedRelics.contains($0.id) }.count
+
+            if subject == .languages {
+                let reps = min(reviewedToday, max(dailyGoal, 1))
+                let score = reps * 12 + relicCount * 45 + (streak * 4)
+                return MasteryLeagueStanding(
+                    rank: 0,
+                    subject: subject,
+                    score: score,
+                    completedMissions: reps,
+                    totalMissions: max(dailyGoal, 1),
+                    openedWorlds: 1,
+                    totalWorlds: 1,
+                    collectedRelics: relicCount,
+                    isSelected: selectedSubject == subject
+                )
+            }
+
+            let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+            let worldScore = progress.worldScores.values.reduce(0, +)
+            let totalMissions = subject.worlds.reduce(0) { $0 + subject.challengeIds(for: $1.id).count }
+            let completedMissions = subject.worlds.reduce(0) { partial, world in
+                let ids = subject.challengeIds(for: world.id)
+                return partial + progress.completedChallengeIds.filter { ids.contains($0) }.count
+            }
+            let openedWorlds = subject.unlockedWorldCount(withXP: xp)
+            let score = worldScore + completedMissions * 55 + openedWorlds * 30 + relicCount * 45
+            return MasteryLeagueStanding(
+                rank: 0,
+                subject: subject,
+                score: score,
+                completedMissions: completedMissions,
+                totalMissions: totalMissions,
+                openedWorlds: openedWorlds,
+                totalWorlds: subject.worlds.count,
+                collectedRelics: relicCount,
+                isSelected: selectedSubject == subject
+            )
+        }
+        .sorted {
+            if $0.score == $1.score { return $0.subject.rawValue < $1.subject.rawValue }
+            return $0.score > $1.score
+        }
+        .enumerated()
+        .map { index, standing in
+            MasteryLeagueStanding(
+                rank: index + 1,
+                subject: standing.subject,
+                score: standing.score,
+                completedMissions: standing.completedMissions,
+                totalMissions: standing.totalMissions,
+                openedWorlds: standing.openedWorlds,
+                totalWorlds: standing.totalWorlds,
+                collectedRelics: standing.collectedRelics,
+                isSelected: standing.isSelected
+            )
+        }
+
+        let selected = standings.first { $0.subject == selectedSubject }
+        let catchUp = standings
+            .filter { $0.subject != selectedSubject }
+            .sorted {
+                if $0.score == $1.score { return $0.subject.rawValue < $1.subject.rawValue }
+                return $0.score < $1.score
+            }
+            .first
+        return MasteryLeague(standings: standings, selectedStanding: selected, catchUpTarget: catchUp)
     }
 }
 

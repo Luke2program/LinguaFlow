@@ -168,6 +168,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("dailyWorldEventTitle", in: app).exists)
         XCTAssertTrue(element("dailyWorldEventChapter_1", in: app).exists)
         XCTAssertTrue(element("dailyWorldEventProgressText", in: app).exists)
+        XCTAssertTrue(element("masteryLeaguePanel", in: app).exists)
+        XCTAssertTrue(element("masteryLeagueTitle", in: app).exists)
+        XCTAssertTrue(element("masteryLeagueStanding_business", in: app).exists)
+        XCTAssertTrue(app.buttons["masteryLeagueCatchUpButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("dailyAdventurePanel", in: app).exists)
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(element("dailyComboPanel", in: app).exists)
@@ -281,6 +285,18 @@ final class LinguaFlowUITests: XCTestCase {
 
         let pickedButton = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Roulette picked")).firstMatch
         XCTAssertTrue(pickedButton.waitForExistence(timeout: 3))
+    }
+
+    func testMasteryLeagueCatchUpButtonStartsWeakestDomain() throws {
+        let app = launchReadyApp()
+
+        let catchUpButton = app.buttons["masteryLeagueCatchUpButton"].firstMatch
+        XCTAssertTrue(catchUpButton.waitForExistence(timeout: 3))
+        catchUpButton.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("Mastery League boosted"))
     }
 
     func testCanSwitchToHistorySubject() throws {

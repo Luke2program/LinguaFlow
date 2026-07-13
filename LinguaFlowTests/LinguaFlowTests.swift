@@ -252,6 +252,46 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testMasteryLeagueRanksDomainsAndSuggestsCatchUp() async {
+        await MainActor.run {
+            var stats = UserStats()
+            stats.selectedSubject = .history
+            stats.xp = 500
+            stats.streak = 0
+            stats.reviewedToday = 0
+            var history = stats.progress(for: .history)
+            history.currentWorldId = "ancient-rome"
+            history.completedChallengeIds = ["rome-01", "rome-02"]
+            history.worldScores = ["ancient-rome": 50]
+            stats.updateProgress(for: .history, history)
+            stats.collectedRelicIds = ["history-bronze-denarius"]
+
+            let league = stats.masteryLeague
+
+            XCTAssertEqual(league.standings.count, Subject.allCases.count)
+            XCTAssertEqual(league.standings.first?.subject, .history)
+            XCTAssertEqual(league.selectedStanding?.rank, 1)
+            XCTAssertEqual(league.selectedStanding?.detailText, "2/5 missions · 2/3 worlds")
+            XCTAssertEqual(league.catchUpTarget?.subject, .languages)
+            XCTAssertTrue(league.catchUpTitle.contains("Languages"))
+            XCTAssertEqual(league.topThree.count, 3)
+        }
+    }
+
+    func testMasteryLeagueCatchUpStartsTargetSubject() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .languages
+            store.stats.xp = 0
+
+            store.startMasteryLeagueCatchUp()
+
+            XCTAssertEqual(store.stats.selectedSubject, .business)
+            XCTAssertEqual(store.currentWorld?.id, "founder-guild")
+            XCTAssertTrue(store.feedbackMessage.contains("Mastery League boosted"))
+        }
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

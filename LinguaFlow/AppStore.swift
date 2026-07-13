@@ -622,6 +622,26 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func startMasteryLeagueCatchUp() {
+        guard let target = stats.masteryLeague.catchUpTarget else {
+            startRandomStudy()
+            return
+        }
+
+        stats.selectedSubject = target.subject
+        if target.subject == .languages {
+            pickNextCard()
+            feedbackMessage = "Mastery League opened Languages for a catch-up run."
+        } else if let playableWorld = target.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+            select(worldId: playableWorld.id, for: target.subject)
+            feedbackMessage = "Mastery League boosted \(target.subject.displayName) with \(playableWorld.name)."
+        } else {
+            feedbackMessage = "Mastery League target found: earn XP to open \(target.subject.displayName)."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     func startRecommendedRun(_ recommendation: RecommendedRun) {
         switch recommendation.action {
         case .dailyAdventure:
