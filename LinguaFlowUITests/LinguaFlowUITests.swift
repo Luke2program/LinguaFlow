@@ -172,6 +172,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("masteryLeagueTitle", in: app).exists)
         XCTAssertTrue(element("masteryLeagueStanding_business", in: app).exists)
         XCTAssertTrue(app.buttons["masteryLeagueCatchUpButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("learningPassportPanel", in: app).exists)
+        XCTAssertTrue(element("learningPassportTitle", in: app).exists)
+        XCTAssertTrue(element("learningPassportStamp_history", in: app).exists)
+        XCTAssertTrue(app.buttons["learningPassportNextButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("dailyAdventurePanel", in: app).exists)
         XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(element("dailyComboPanel", in: app).exists)
@@ -297,6 +301,18 @@ final class LinguaFlowUITests: XCTestCase {
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
         XCTAssertTrue(feedback.label.contains("Mastery League boosted"))
+    }
+
+    func testLearningPassportButtonStartsNextStamp() throws {
+        let app = launchReadyApp()
+
+        let passportButton = app.buttons["learningPassportNextButton"].firstMatch
+        XCTAssertTrue(passportButton.waitForExistence(timeout: 3))
+        passportButton.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("Passport opened"))
     }
 
     func testCanSwitchToHistorySubject() throws {

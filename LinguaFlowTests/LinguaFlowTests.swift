@@ -292,6 +292,43 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testLearningPassportTracksDomainStampsAndNextTarget() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.totalReviews = 3
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01"]
+        history.worldScores = ["ancient-rome": 25]
+        stats.updateProgress(for: .history, history)
+
+        let passport = stats.learningPassport
+
+        XCTAssertEqual(passport.stamps.count, Subject.allCases.count)
+        XCTAssertEqual(passport.earnedCount, 2)
+        XCTAssertEqual(passport.progressText, "2/8 stamps")
+        XCTAssertTrue(passport.stamps.first { $0.subject == .languages }?.isEarned ?? false)
+        XCTAssertTrue(passport.stamps.first { $0.subject == .history }?.subtitle.contains("1 mission") ?? false)
+        XCTAssertEqual(passport.nextStamp?.subject, .science)
+        XCTAssertEqual(passport.ctaTitle, "Stamp 🔬 Science")
+    }
+
+    func testLearningPassportButtonStartsNextUnstampedDomain() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 0
+            var history = store.stats.progress(for: .history)
+            history.completedChallengeIds = ["rome-01"]
+            store.stats.updateProgress(for: .history, history)
+
+            store.startPassportNextStamp()
+
+            XCTAssertEqual(store.stats.selectedSubject, .languages)
+            XCTAssertTrue(store.feedbackMessage.contains("Passport opened Languages"))
+        }
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

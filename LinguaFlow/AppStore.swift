@@ -642,6 +642,26 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func startPassportNextStamp() {
+        guard let stamp = stats.learningPassport.nextStamp else {
+            startRandomStudy()
+            return
+        }
+
+        stats.selectedSubject = stamp.subject
+        if stamp.subject == .languages {
+            pickNextCard()
+            feedbackMessage = "Passport opened Languages: complete a phrase review to stamp the harbor."
+        } else if let playableWorld = stamp.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+            select(worldId: playableWorld.id, for: stamp.subject)
+            feedbackMessage = "Passport route opened \(playableWorld.name) for the \(stamp.subject.displayName) stamp."
+        } else {
+            feedbackMessage = "Passport target found: earn XP to open \(stamp.subject.displayName)."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     func startRecommendedRun(_ recommendation: RecommendedRun) {
         switch recommendation.action {
         case .dailyAdventure:

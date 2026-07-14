@@ -176,6 +176,7 @@ struct DashboardView: View {
                     RecommendedRunView()
                     DailyWorldEventView()
                     MasteryLeagueView()
+                    LearningPassportView()
                     ChallengeUITestControls()
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
@@ -694,6 +695,129 @@ struct MasteryLeagueStandingRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(standing.accessibilityLabel)
         .accessibilityIdentifier("masteryLeagueStanding_\(standing.subject.rawValue)")
+    }
+}
+
+struct LearningPassportView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let passport = store.stats.learningPassport
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.mint.opacity(0.24), .orange.opacity(0.16), .blue.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "book.closed.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.mint)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(passport.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("learningPassportTitle")
+                        Text(passport.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("learningPassportSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(passport.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.mint)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.mint.opacity(colorScheme == .dark ? 0.22 : 0.14), in: Capsule())
+                        .accessibilityIdentifier("learningPassportProgressText")
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.mint, .orange, .blue], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * passport.progress)
+                    }
+                }
+                .frame(height: 8)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                    ForEach(passport.stamps) { stamp in
+                        LearningPassportStampChip(stamp: stamp)
+                    }
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.startPassportNextStamp()
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: passport.nextStamp == nil ? "shuffle.circle.fill" : "seal.fill")
+                            .font(.subheadline.bold())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(passport.ctaTitle)
+                                .font(.subheadline.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
+                            Text(passport.ctaSubtitle)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .padding(12)
+                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("learningPassportNextButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(passport.accessibilityLabel)
+        .accessibilityIdentifier("learningPassportPanel")
+    }
+}
+
+struct LearningPassportStampChip: View {
+    let stamp: LearningPassportStamp
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: stamp.systemImage)
+                .font(.subheadline.bold())
+                .foregroundStyle(stamp.isEarned ? .green : stamp.subject.accentColor)
+                .frame(width: 26, height: 22)
+            Text(stamp.subject.displayName)
+                .font(.caption2.bold())
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.58)
+            Text(stamp.progressText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 72)
+        .padding(8)
+        .background(Color.primary.opacity(stamp.isEarned ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(stamp.subject.accentColor.opacity(stamp.isEarned ? 0.24 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stamp.accessibilityLabel)
+        .accessibilityIdentifier("learningPassportStamp_\(stamp.subject.rawValue)")
     }
 }
 

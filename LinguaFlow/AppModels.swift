@@ -1453,6 +1453,51 @@ struct MasteryLeague: Equatable {
     }
 }
 
+struct LearningPassportStamp: Identifiable, Equatable {
+    let subject: Subject
+    let title: String
+    let subtitle: String
+    let systemImage: String
+    let progress: Double
+    let isEarned: Bool
+
+    var id: String { subject.rawValue }
+    var progressText: String { isEarned ? "Stamped" : "\(Int((min(1, max(0, progress)) * 100).rounded()))%" }
+    var accessibilityLabel: String {
+        "\(title), \(subtitle), \(progressText)"
+    }
+}
+
+struct LearningPassport: Equatable {
+    let stamps: [LearningPassportStamp]
+    let nextStamp: LearningPassportStamp?
+
+    var earnedCount: Int { stamps.filter(\.isEarned).count }
+    var totalCount: Int { stamps.count }
+    var progress: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(earnedCount) / Double(totalCount)
+    }
+    var progressText: String { "\(earnedCount)/\(totalCount) stamps" }
+    var title: String { "Learning Passport" }
+    var subtitle: String {
+        if earnedCount == totalCount {
+            return "Every domain has a stamp. Keep clearing worlds for rarer rewards."
+        }
+        return "Collect one stamp in every domain to turn study into a world tour."
+    }
+    var ctaTitle: String {
+        guard let nextStamp else { return "Spin a World" }
+        return "Stamp \(nextStamp.subject.displayName)"
+    }
+    var ctaSubtitle: String {
+        nextStamp?.subtitle ?? "All domains stamped. Quest Roulette is ready."
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). \(ctaTitle)."
+    }
+}
+
 extension Subject {
     var bossName: String {
         switch self {
@@ -2204,6 +2249,41 @@ extension UserStats {
             }
             .first
         return MasteryLeague(standings: standings, selectedStanding: selected, catchUpTarget: catchUp)
+    }
+
+    var learningPassport: LearningPassport {
+        let stamps = Subject.allCases.map { subject -> LearningPassportStamp in
+            if subject == .languages {
+                let target = max(1, dailyGoal)
+                let reps = min(target, max(reviewedToday, totalReviews))
+                let earned = reviewedToday > 0 || totalReviews > 0
+                return LearningPassportStamp(
+                    subject: subject,
+                    title: "Language Harbor Stamp",
+                    subtitle: earned ? "Phrase review logged" : "Complete 1 phrase review",
+                    systemImage: "book.closed.fill",
+                    progress: min(1, Double(reps) / Double(target)),
+                    isEarned: earned
+                )
+            }
+
+            let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+            let completed = progress.completedChallengeIds.count
+            let firstWorld = subject.worlds.first
+            let firstWorldTotal = firstWorld.map { max(1, subject.challengeIds(for: $0.id).count) } ?? 1
+            let earned = completed > 0 || progress.worldScores.values.contains { $0 > 0 }
+            return LearningPassportStamp(
+                subject: subject,
+                title: "\(subject.displayName) Stamp",
+                subtitle: earned ? "\(completed) mission\(completed == 1 ? "" : "s") logged" : "Start \(firstWorld?.name ?? subject.mapTitle)",
+                systemImage: earned ? "checkmark.seal.fill" : subject.icon,
+                progress: min(1, Double(completed) / Double(firstWorldTotal)),
+                isEarned: earned
+            )
+        }
+
+        let next = stamps.first { !$0.isEarned && $0.subject == selectedSubject } ?? stamps.first { !$0.isEarned }
+        return LearningPassport(stamps: stamps, nextStamp: next)
     }
 }
 
