@@ -178,6 +178,9 @@ struct DashboardView: View {
                     MasteryLeagueView()
                     LearningPassportView()
                     ChallengeUITestControls()
+                    if !store.feedbackMessage.isEmpty {
+                        FeedbackBanner(text: store.feedbackMessage)
+                    }
                     if let badge = store.newlyUnlockedWorld {
                         WorldUnlockBanner(badge: badge) { store.newlyUnlockedWorld = nil }
                     }
