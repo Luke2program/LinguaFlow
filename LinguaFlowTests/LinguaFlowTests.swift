@@ -402,7 +402,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(event.progressText, "1/4 worlds")
             XCTAssertEqual(event.currentChapter?.subject, .history)
             XCTAssertTrue(event.chapters[1].isCurrent)
-            XCTAssertEqual(event.rewardText, "+45 XP · +4 gems · Event Crown")
+            XCTAssertEqual(event.rewardText, "+45 XP · +4 gems · Crown")
         }
     }
 

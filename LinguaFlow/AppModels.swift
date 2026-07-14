@@ -1217,7 +1217,7 @@ struct DailyWorldEvent: Equatable {
     }
 
     var rewardText: String {
-        "+45 XP · +4 gems · Event Crown"
+        "+45 XP · +4 gems · Crown"
     }
 
     var currentChapter: DailyWorldChapter? {

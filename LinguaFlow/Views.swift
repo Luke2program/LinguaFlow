@@ -377,7 +377,7 @@ struct RecommendedRunView: View {
                         Text(recommendation.title)
                             .font(.headline)
                             .foregroundStyle(.primary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                             .minimumScaleFactor(0.78)
                             .accessibilityIdentifier("recommendedRunTitle")
                     }
@@ -461,7 +461,7 @@ struct DailyWorldEventView: View {
                         Text(event.title)
                             .font(.headline)
                             .foregroundStyle(.primary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                             .minimumScaleFactor(0.76)
                             .accessibilityIdentifier("dailyWorldEventTitle")
                         Text(event.subtitle)
@@ -494,7 +494,7 @@ struct DailyWorldEventView: View {
                     Label(event.rewardText, systemImage: "crown.fill")
                         .font(.caption.bold())
                         .foregroundStyle(.orange)
-                        .lineLimit(1)
+                        .lineLimit(2)
                         .minimumScaleFactor(0.72)
 
                     GeometryReader { geo in
@@ -542,7 +542,7 @@ struct DailyWorldChapterChip: View {
             Text(chapter.title)
                 .font(.caption2.bold())
                 .foregroundStyle(isCompleted ? .secondary : .primary)
-                .lineLimit(1)
+                .lineLimit(2)
                 .minimumScaleFactor(0.64)
             Text(chapter.subtitle)
                 .font(.caption2)
