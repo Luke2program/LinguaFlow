@@ -536,26 +536,29 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
-    func startRandomStudy() {
-        let options = Subject.allCases
-            .filter { $0 != .languages }
-            .flatMap { subject in
-                subject.worlds
-                    .filter { $0.isUnlocked(withXP: stats.xp) }
-                    .map { (subject: subject, world: $0) }
-            }
+    func startRandomStudy(option forcedOption: QuestRouletteOption? = nil) {
+        let roulette = stats.questRoulette
 
-        guard let pick = options.randomElement() else {
+        guard let pick = forcedOption ?? roulette.options.randomElement() else {
             select(subject: .languages)
             feedbackMessage = "Roulette picked Languages. Build XP to unlock more worlds."
             return
         }
 
-        stats.selectedSubject = pick.subject
-        var progress = stats.progress(for: pick.subject)
-        progress.currentWorldId = pick.world.id
-        stats.updateProgress(for: pick.subject, progress)
-        feedbackMessage = "Roulette picked \(pick.world.name) in \(pick.subject.displayName)."
+        if pick.subject == .languages {
+            stats.selectedSubject = .languages
+            pickNextCard()
+            feedbackMessage = "Roulette picked Language Harbor: mixed phrase run ready."
+        } else if let world = pick.world {
+            stats.selectedSubject = pick.subject
+            var progress = stats.progress(for: pick.subject)
+            progress.currentWorldId = world.id
+            stats.updateProgress(for: pick.subject, progress)
+            feedbackMessage = "Roulette picked \(world.name) in \(pick.subject.displayName)."
+        } else {
+            stats.selectedSubject = pick.subject
+            feedbackMessage = "Roulette picked \(pick.subject.displayName)."
+        }
         save()
         objectWillChange.send()
     }

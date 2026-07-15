@@ -329,6 +329,38 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testQuestRouletteIncludesLanguageAndUnlockedWorldRoutes() {
+        var stats = UserStats()
+        stats.xp = 0
+        stats.reviewedToday = 2
+
+        let roulette = stats.questRoulette
+
+        XCTAssertEqual(roulette.title, "Quest Roulette")
+        XCTAssertTrue(roulette.options.contains { $0.id == "languages-harbor" })
+        XCTAssertTrue(roulette.options.contains { $0.id == "history-ancient-rome" })
+        XCTAssertTrue(roulette.options.contains { $0.id == "business-founder-guild" })
+        XCTAssertFalse(roulette.options.contains { $0.id == "history-medieval-europe" })
+        XCTAssertEqual(roulette.featuredOptions.count, 4)
+        XCTAssertEqual(roulette.progressText, "\(roulette.options.count) live routes")
+        XCTAssertEqual(roulette.rewardText, "+30 XP · +2 gems · Surprise stamp")
+    }
+
+    func testQuestRouletteCanStartSpecificWorldOption() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 0
+            let founderGuild = store.stats.questRoulette.options.first { $0.id == "business-founder-guild" }
+            XCTAssertNotNil(founderGuild)
+
+            store.startRandomStudy(option: founderGuild)
+
+            XCTAssertEqual(store.stats.selectedSubject, .business)
+            XCTAssertEqual(store.currentWorld?.id, "founder-guild")
+            XCTAssertTrue(store.feedbackMessage.contains("Roulette picked Founder Guild"))
+        }
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

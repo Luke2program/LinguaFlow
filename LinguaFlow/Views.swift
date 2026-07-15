@@ -300,6 +300,7 @@ struct DashboardView: View {
 struct RandomStudyView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.colorScheme) private var colorScheme
+    private var roulette: QuestRoulette { store.stats.questRoulette }
 
     var body: some View {
         Button {
@@ -307,30 +308,85 @@ struct RandomStudyView: View {
                 store.startRandomStudy()
             }
         } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(LinearGradient(colors: [.purple.opacity(0.24), .cyan.opacity(0.18), .yellow.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "shuffle.circle.fill")
-                        .font(.title2.bold())
-                        .foregroundStyle(.purple)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [.purple.opacity(0.24), .cyan.opacity(0.18), .yellow.opacity(0.16)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "shuffle.circle.fill")
+                            .font(.title2.bold())
+                            .foregroundStyle(.purple)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(roulette.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("questRouletteTitle")
+                        Text(store.feedbackMessage.contains("Roulette picked") ? store.feedbackMessage : roulette.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .accessibilityIdentifier("questRouletteSubtitle")
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(roulette.progressText)
+                            .font(.caption.bold())
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("questRouletteRouteCount")
+                        Text(roulette.rewardText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("questRouletteReward")
+                    }
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Quest Roulette")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    Text(store.feedbackMessage.contains("Roulette picked") ? store.feedbackMessage : "Jump into a random unlocked world.")
-                        .font(.caption)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                    ForEach(roulette.featuredOptions) { option in
+                        HStack(spacing: 8) {
+                            Image(systemName: option.systemImage)
+                                .font(.caption.bold())
+                                .foregroundStyle(option.subject.accentColor)
+                                .frame(width: 22, height: 22)
+                                .background(option.subject.accentColor.opacity(0.12), in: Circle())
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(option.title)
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.78)
+                                Text(option.subject.displayName)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.78)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(8)
+                        .frame(minHeight: 46)
+                        .background(Color.primary.opacity(colorScheme == .dark ? 0.07 : 0.04), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .accessibilityIdentifier("questRouletteOption_\(option.id)")
+                    }
+                }
+
+                HStack {
+                    Label(roulette.ctaTitle, systemImage: "play.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                    Spacer()
+                    Text("Surprise route changes every spin")
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
-                Spacer()
-                Image(systemName: "play.fill")
-                    .font(.caption.bold())
-                    .foregroundStyle(colorScheme == .dark ? .black : .white)
-                    .frame(width: 28, height: 28)
-                    .background(Color.primary, in: Circle())
             }
             .padding(14)
             .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -338,8 +394,7 @@ struct RandomStudyView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("randomStudyButton")
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : "Quest Roulette. Jump into a random unlocked world.")
+        .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : roulette.accessibilityLabel)
     }
 }
 

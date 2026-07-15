@@ -1261,6 +1261,42 @@ struct RecommendedRun: Equatable {
     }
 }
 
+struct QuestRouletteOption: Identifiable, Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+
+    var id: String { "\(subject.rawValue)-\(world?.id ?? "harbor")" }
+    var worldId: String? { world?.id }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Reward \(reward)."
+    }
+}
+
+struct QuestRoulette: Equatable {
+    let options: [QuestRouletteOption]
+    let featuredOptions: [QuestRouletteOption]
+    let spinSeed: Int
+
+    var title: String { "Quest Roulette" }
+    var subtitle: String {
+        "Spin across languages, history, science, maps, math, culture, business, and health."
+    }
+    var progressText: String { "\(options.count) live routes" }
+    var rewardText: String { "+30 XP · +2 gems · Surprise stamp" }
+    var ctaTitle: String { "Spin" }
+    var pickedOption: QuestRouletteOption? {
+        guard !options.isEmpty else { return nil }
+        return options[abs(spinSeed) % options.count]
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct QuestBoardMission: Identifiable, Equatable {
     let id: String
     let kind: QuestBoardMissionKind
@@ -2284,6 +2320,45 @@ extension UserStats {
 
         let next = stamps.first { !$0.isEarned && $0.subject == selectedSubject } ?? stamps.first { !$0.isEarned }
         return LearningPassport(stamps: stamps, nextStamp: next)
+    }
+
+    var questRoulette: QuestRoulette {
+        let languageOption = QuestRouletteOption(
+            subject: .languages,
+            world: nil,
+            title: "Language Harbor",
+            subtitle: "Mixed speaking and typing prompts",
+            reward: "+30 XP · Fluency Drop",
+            systemImage: "textformat.abc"
+        )
+
+        let worldOptions = Subject.allCases
+            .filter { $0 != .languages }
+            .flatMap { subject in
+                subject.worlds
+                    .filter { $0.isUnlocked(withXP: xp) }
+                    .map { world in
+                        QuestRouletteOption(
+                            subject: subject,
+                            world: world,
+                            title: world.name,
+                            subtitle: "\(subject.displayName) · \(world.era)",
+                            reward: "+30 XP · \(world.rewardName)",
+                            systemImage: subject.mapSystemImage
+                        )
+                    }
+            }
+
+        let options = [languageOption] + worldOptions
+        let offset = options.isEmpty ? 0 : abs(xp + reviewedToday + correctToday + streak) % options.count
+        let featured = Array(Self.rotated(options, by: offset).prefix(4))
+        return QuestRoulette(options: options, featuredOptions: featured, spinSeed: offset)
+    }
+
+    private static func rotated<T>(_ values: [T], by offset: Int) -> [T] {
+        guard !values.isEmpty else { return [] }
+        let normalized = ((offset % values.count) + values.count) % values.count
+        return Array(values[normalized...]) + Array(values[..<normalized])
     }
 }
 
