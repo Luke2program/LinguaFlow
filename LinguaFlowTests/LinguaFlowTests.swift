@@ -252,6 +252,44 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testCampaignSpotlightShowsNextGroundedHistoryEncounter() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 125
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = ["rome-01", "rome-02"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "Ancient Rome Campaign")
+            XCTAssertEqual(spotlight.encounter.title, "Crisis · 476 CE")
+            XCTAssertTrue(spotlight.encounter.context.contains("Odoacer"))
+            XCTAssertEqual(spotlight.progressText, "2/5 encounters cleared")
+            XCTAssertEqual(spotlight.rewardText, "+25 XP · Chronicle Page")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testContinueCampaignSpotlightRoutesToCurrentWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 150
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            store.stats.updateProgress(for: .health, progress)
+
+            store.continueCampaignSpotlight()
+
+            XCTAssertEqual(store.stats.selectedSubject, .health)
+            XCTAssertEqual(store.currentWorld?.id, "energy-clinic")
+            XCTAssertTrue(store.feedbackMessage.contains("Campaign continued"))
+        }
+    }
+
     func testMasteryLeagueRanksDomainsAndSuggestsCatchUp() async {
         await MainActor.run {
             var stats = UserStats()

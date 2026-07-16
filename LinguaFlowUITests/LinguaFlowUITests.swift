@@ -173,6 +173,11 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("dailyWorldEventTitle", in: app).exists)
         XCTAssertTrue(element("dailyWorldEventChapter_1", in: app).exists)
         XCTAssertTrue(element("dailyWorldEventProgressText", in: app).exists)
+        XCTAssertTrue(element("campaignSpotlightPanel", in: app).exists)
+        XCTAssertTrue(element("campaignSpotlightTitle", in: app).label.contains("Language Harbor Campaign"))
+        XCTAssertTrue(element("campaignEncounterTitle", in: app).exists)
+        XCTAssertTrue(element("campaignEncounterClue", in: app).exists)
+        XCTAssertTrue(element("campaignSpotlightProgressText", in: app).exists)
         XCTAssertTrue(element("masteryLeaguePanel", in: app).exists)
         XCTAssertTrue(element("masteryLeagueTitle", in: app).exists)
         XCTAssertTrue(element("masteryLeagueStanding_business", in: app).exists)
@@ -234,6 +239,19 @@ final class LinguaFlowUITests: XCTestCase {
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
         XCTAssertTrue(feedback.label.contains("Recommended run opened"))
+    }
+
+    func testCampaignSpotlightContinuesHistoryWorld() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+
+        let panel = element("campaignSpotlightPanel", in: app)
+        XCTAssertTrue(element("campaignSpotlightTitle", in: app).label.contains("Ancient Rome Campaign"))
+        XCTAssertTrue(element("campaignEncounterContext", in: app).label.contains("Caesar"))
+        panel.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("Campaign continued"))
     }
 
     func testCanClaimReadyStreakChest() throws {

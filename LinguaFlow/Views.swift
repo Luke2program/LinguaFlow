@@ -175,6 +175,7 @@ struct DashboardView: View {
                     RandomStudyView()
                     RecommendedRunView()
                     DailyWorldEventView()
+                    CampaignSpotlightView()
                     MasteryLeagueView()
                     LearningPassportView()
                     ChallengeUITestControls()
@@ -612,6 +613,132 @@ struct DailyWorldChapterChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Step \(chapter.step), \(chapter.subject.displayName), \(chapter.title), \(chapter.subtitle)")
         .accessibilityIdentifier("dailyWorldEventChapter_\(chapter.step)")
+    }
+}
+
+struct CampaignSpotlightView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let spotlight = store.campaignSpotlight
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.continueCampaignSpotlight()
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                spotlight.subject.accentColor.opacity(0.27),
+                                .cyan.opacity(0.16),
+                                .orange.opacity(0.15)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 56, height: 56)
+                        Text(spotlight.world?.emoji ?? "💧")
+                            .font(.system(size: 28, weight: .bold))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Campaign Map")
+                            .font(.caption.bold())
+                            .foregroundStyle(spotlight.subject.accentColor)
+                            .accessibilityIdentifier("campaignSpotlightEyebrow")
+                        Text(spotlight.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("campaignSpotlightTitle")
+                        Text(spotlight.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("campaignSpotlightSubtitle")
+                    }
+
+                    Spacer()
+
+                    Label(spotlight.ctaTitle, systemImage: spotlight.isComplete ? "arrow.triangle.branch" : "play.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                        .accessibilityIdentifier("campaignSpotlightCTA")
+                }
+
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: spotlight.systemImage)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(spotlight.subject.accentColor)
+                        .frame(width: 28, height: 28)
+                        .background(spotlight.subject.accentColor.opacity(0.12), in: Circle())
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(spotlight.encounter.title)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("campaignEncounterTitle")
+                        Text(spotlight.encounter.context)
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.80)
+                            .accessibilityIdentifier("campaignEncounterContext")
+                        Text(spotlight.encounter.clue)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("campaignEncounterClue")
+                    }
+                }
+                .padding(11)
+                .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                HStack(spacing: 10) {
+                    Label(spotlight.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(spotlight.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .accessibilityIdentifier("campaignSpotlightReward")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [spotlight.subject.accentColor, .cyan, .orange], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * spotlight.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(spotlight.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .frame(width: 96, alignment: .trailing)
+                        .accessibilityIdentifier("campaignSpotlightProgressText")
+                }
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(spotlight.subject.accentColor.opacity(0.22), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(spotlight.accessibilityLabel)
+        .accessibilityIdentifier("campaignSpotlightPanel")
     }
 }
 

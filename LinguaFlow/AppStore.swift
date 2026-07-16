@@ -100,6 +100,74 @@ final class AppStore: ObservableObject {
     var dailyWorldEvent: DailyWorldEvent {
         buildDailyWorldEvent(dayIndex: Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0)
     }
+    var campaignSpotlight: CampaignSpotlight {
+        if stats.selectedSubject == .languages {
+            let total = max(availableCards.count, 1)
+            let started = min(total, max(learnedCount, masteredCount))
+            let prompt = currentPrompt.isEmpty ? "Mixed phrase review" : currentPrompt
+            return CampaignSpotlight(
+                subject: .languages,
+                world: nil,
+                title: "Language Harbor Campaign",
+                subtitle: "\(stats.selectedLanguagePair.displayName) · speak, type, review, repeat",
+                encounter: CampaignEncounterPreview(
+                    title: challengeMode == .sentence ? "Sentence Gate" : "Word Dock",
+                    context: "Next prompt: \(prompt)",
+                    clue: dueCount > 0 ? "\(dueCount) due cards are waiting." : "Fresh cards are ready for exploration."
+                ),
+                progress: min(1, Double(started) / Double(total)),
+                progressText: "\(started)/\(total) cards started",
+                rewardText: "+20 XP · Fluency Drop",
+                ctaTitle: "Review",
+                systemImage: "textformat.abc",
+                isComplete: started >= total
+            )
+        }
+
+        let subject = stats.selectedSubject
+        let progress = stats.progress(for: subject)
+        let world = currentWorld ?? subject.worlds.first { $0.isUnlocked(withXP: stats.xp) } ?? subject.worlds.first
+        guard let world else {
+            return CampaignSpotlight(
+                subject: subject,
+                world: nil,
+                title: "\(subject.mapTitle) Campaign",
+                subtitle: subject.subtitle,
+                encounter: CampaignEncounterPreview(title: "Route locked", context: "Earn XP in any open subject to reveal this campaign.", clue: "Quest Roulette can always find a live route."),
+                progress: 0,
+                progressText: "0/0 encounters",
+                rewardText: "+30 XP · Route key",
+                ctaTitle: "Spin",
+                systemImage: subject.mapSystemImage,
+                isComplete: false
+            )
+        }
+
+        let challengeIds = subject.challengeIds(for: world.id)
+        let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+        let total = max(challengeIds.count, 1)
+        let isComplete = !challengeIds.isEmpty && completed >= challengeIds.count
+        let encounter = subject.encounterPreview(for: world.id, completedIds: progress.completedChallengeIds)
+            ?? CampaignEncounterPreview(
+                title: isComplete ? "World cleared" : "Route briefing",
+                context: isComplete ? "\(world.name) is complete. Chase the next unlock or spin into a different domain." : "This world is open, but new encounters are still being prepared.",
+                clue: subject.nextLockedWorld(withXP: stats.xp).map { "\($0.xpRemaining(withXP: stats.xp)) XP to unlock \($0.name)." } ?? "All current \(subject.displayName) worlds are open."
+            )
+
+        return CampaignSpotlight(
+            subject: subject,
+            world: world,
+            title: "\(world.name) Campaign",
+            subtitle: "\(subject.displayName) · \(world.era)",
+            encounter: encounter,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(total) encounters cleared",
+            rewardText: isComplete ? world.rewardName : "+25 XP · \(DailyAdventure(subject: subject, world: world, xp: stats.xp, streak: stats.streak).rewardName)",
+            ctaTitle: isComplete ? "Next Route" : "Continue",
+            systemImage: subject.mapSystemImage,
+            isComplete: isComplete
+        )
+    }
     var recommendedRun: RecommendedRun {
         let chest = streakChest
         if chest.isReady && !chest.isClaimedToday {
@@ -604,6 +672,32 @@ final class AppStore: ObservableObject {
             select(worldId: worldId, for: chapter.subject)
         }
         feedbackMessage = "World Tour opened step \(chapter.step): \(chapter.title)."
+        save()
+        objectWillChange.send()
+    }
+
+    func continueCampaignSpotlight() {
+        let spotlight = campaignSpotlight
+        if spotlight.subject == .languages {
+            stats.selectedSubject = .languages
+            pickNextCard()
+            feedbackMessage = "Campaign continued: Language Harbor review gate."
+        } else if spotlight.isComplete {
+            if let next = spotlight.subject.nextLockedWorld(withXP: stats.xp) {
+                stats.selectedSubject = spotlight.subject
+                feedbackMessage = "Campaign target set: \(next.name) needs \(next.xpRemaining(withXP: stats.xp)) XP."
+            } else {
+                startRandomStudy()
+                return
+            }
+        } else if let world = spotlight.world {
+            stats.selectedSubject = spotlight.subject
+            select(worldId: world.id, for: spotlight.subject)
+            feedbackMessage = "Campaign continued: \(world.name)."
+        } else {
+            startRandomStudy()
+            return
+        }
         save()
         objectWillChange.send()
     }

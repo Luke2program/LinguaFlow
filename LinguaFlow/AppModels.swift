@@ -1230,6 +1230,30 @@ struct DailyWorldEvent: Equatable {
     }
 }
 
+struct CampaignEncounterPreview: Equatable {
+    let title: String
+    let context: String
+    let clue: String
+}
+
+struct CampaignSpotlight: Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let title: String
+    let subtitle: String
+    let encounter: CampaignEncounterPreview
+    let progress: Double
+    let progressText: String
+    let rewardText: String
+    let ctaTitle: String
+    let systemImage: String
+    let isComplete: Bool
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Next encounter: \(encounter.title). \(progressText). Reward \(rewardText)."
+    }
+}
+
 enum QuestBoardMissionKind: String, Equatable {
     case dailyAdventure
     case languageReview
@@ -1612,6 +1636,51 @@ extension Subject {
         case .health:
             return HealthData.challenges(for: worldId).map(\.id)
         }
+    }
+
+    func encounterPreview(for worldId: String, completedIds: [String]) -> CampaignEncounterPreview? {
+        switch self {
+        case .languages:
+            return CampaignEncounterPreview(
+                title: "Review Gate",
+                context: "A mixed speaking and typing prompt is ready.",
+                clue: "Type, speak, then bank the fluency drop."
+            )
+        case .history:
+            return HistoryData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.era) · \($0.yearLabel)", context: $0.question, clue: $0.context) }
+        case .science:
+            return ScienceData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.field) · \($0.era)", context: $0.question, clue: $0.context) }
+        case .geography:
+            return GeographyData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.region) · \(String($0.mapTargetLabel.prefix(18)))", context: $0.question, clue: $0.mapClue) }
+        case .math:
+            return MathData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.domain) Gate", context: $0.question, clue: $0.patternClue) }
+        case .culture:
+            return CultureData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.region) Scene", context: $0.question, clue: $0.traditionClue) }
+        case .business:
+            return BusinessData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.domain) Decision", context: $0.question, clue: $0.marketSignal) }
+        case .health:
+            return HealthData.challenges(for: worldId)
+                .first { !completedIds.contains($0.id) }
+                .map { CampaignEncounterPreview(title: "\($0.domain) Habit", context: $0.question, clue: $0.bodySignal) }
+        }
+    }
+}
+
+extension HistoryChallenge {
+    var yearLabel: String {
+        year < 0 ? "\(abs(year)) BCE" : "\(year) CE"
     }
 }
 
