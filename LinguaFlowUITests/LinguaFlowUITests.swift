@@ -215,6 +215,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("rewardVaultPanel", in: app).exists)
         XCTAssertTrue(app.staticTexts["7/15 world badges · 0/16 relics"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Relic Shelf"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("rewardShopPanel", in: app).exists)
+        XCTAssertTrue(element("rewardShopTitle", in: app).label.contains("Reward Shop"))
+        XCTAssertTrue(element("rewardShopItem_aura-trail-starter", in: app).exists)
+        XCTAssertTrue(element("rewardShopAffordability", in: app).exists)
     }
 
     func testQuestBoardMissionTapStartsReviewGate() throws {

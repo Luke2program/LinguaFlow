@@ -1363,6 +1363,81 @@ struct RelicVaultItem: Identifiable, Equatable {
     }
 }
 
+enum RewardShopItemKind: String, Codable, Equatable {
+    case avatarAura
+    case mapSkin
+    case studyTrail
+}
+
+struct RewardShopItem: Identifiable, Equatable {
+    let id: String
+    let kind: RewardShopItemKind
+    let name: String
+    let emoji: String
+    let subject: Subject
+    let costGems: Int
+    let requirementText: String
+    let isUnlocked: Bool
+    let isOwned: Bool
+    let isEquipped: Bool
+
+    var title: String { "\(emoji) \(name)" }
+    var statusText: String {
+        if isEquipped { return "Equipped" }
+        if isOwned { return "Owned" }
+        if isUnlocked { return "\(costGems) gems" }
+        return requirementText
+    }
+    var ctaTitle: String {
+        if isEquipped { return "Equipped" }
+        if isOwned { return "Equip" }
+        if isUnlocked { return "Unlock" }
+        return "Locked"
+    }
+    var systemImage: String {
+        switch kind {
+        case .avatarAura: return "sparkles"
+        case .mapSkin: return "map.fill"
+        case .studyTrail: return "point.3.connected.trianglepath.dotted"
+        }
+    }
+    var accessibilityLabel: String {
+        "\(title). \(statusText). \(ctaTitle)."
+    }
+}
+
+struct RewardShop: Equatable {
+    let gems: Int
+    let items: [RewardShopItem]
+    let featuredItem: RewardShopItem?
+
+    var title: String { "Reward Shop" }
+    var subtitle: String {
+        if let featuredItem {
+            if featuredItem.isEquipped { return "\(featuredItem.name) is active on your profile." }
+            if featuredItem.isOwned { return "Equip \(featuredItem.name) to personalize your next run." }
+            if featuredItem.isUnlocked { return "Spend gems on visible cosmetics earned through study." }
+            return "Keep learning to reveal the next cosmetic reward."
+        }
+        return "Cosmetics appear as you level up, earn stamps, and collect relics."
+    }
+    var ownedCount: Int { items.filter(\.isOwned).count }
+    var totalCount: Int { items.count }
+    var progress: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(ownedCount) / Double(totalCount)
+    }
+    var progressText: String { "\(ownedCount)/\(totalCount) owned" }
+    var affordabilityText: String {
+        guard let featuredItem, featuredItem.isUnlocked, !featuredItem.isOwned else { return "\(gems) gems" }
+        let remaining = max(0, featuredItem.costGems - gems)
+        return remaining == 0 ? "Ready to unlock" : "\(remaining) gems needed"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). \(affordabilityText)."
+    }
+}
+
 struct WorldCompletionReward: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld
@@ -2081,6 +2156,8 @@ struct UserStats: Codable, Equatable {
     var lastBossDefeatDate: Date? = nil
     var lastMysteryRelicClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
+    var ownedRewardIds: [String]? = nil
+    var equippedRewardId: String? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false
@@ -2229,6 +2306,39 @@ extension UserStats {
         let collected = items.filter(\.isCollected).suffix(2)
         let hidden = items.first { !$0.isCollected }.map { [$0] } ?? []
         return Array(collected) + hidden
+    }
+
+    var rewardShop: RewardShop {
+        let passport = learningPassport
+        let baseItems: [(id: String, kind: RewardShopItemKind, name: String, emoji: String, subject: Subject, cost: Int, unlocked: Bool, requirement: String)] = [
+            ("aura-trail-starter", .avatarAura, "Trail Starter Aura", "✨", selectedSubject, 6, learningLevel >= 2, "Reach level 2"),
+            ("map-ancient-parchment", .mapSkin, "Ancient Parchment Map", "🗺️", .history, 10, earnedWorldRewardCount >= 2, "Collect 2 world badges"),
+            ("trail-scholar-circuit", .studyTrail, "Scholar Circuit Trail", "🔷", .science, 12, passport.earnedCount >= 3, "Earn 3 passport stamps"),
+            ("aura-relic-glow", .avatarAura, "Relic Glow Aura", "💎", .culture, 16, collectedRelicCount >= 1, "Collect 1 relic")
+        ]
+
+        let items = baseItems.map { item in
+            RewardShopItem(
+                id: item.id,
+                kind: item.kind,
+                name: item.name,
+                emoji: item.emoji,
+                subject: item.subject,
+                costGems: item.cost,
+                requirementText: item.requirement,
+                isUnlocked: item.unlocked,
+                isOwned: (ownedRewardIds ?? []).contains(item.id),
+                isEquipped: equippedRewardId == item.id
+            )
+        }
+
+        let featured = items.first { $0.isEquipped }
+            ?? items.first { $0.isOwned }
+            ?? items.first { $0.isUnlocked && gems >= $0.costGems }
+            ?? items.first { $0.isUnlocked }
+            ?? items.first
+
+        return RewardShop(gems: gems, items: items, featuredItem: featured)
     }
 
     var atlasSubjectProgress: [AtlasSubjectProgress] {

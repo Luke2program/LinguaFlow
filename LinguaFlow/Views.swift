@@ -199,6 +199,7 @@ struct DashboardView: View {
                     LevelTrackView()
                     WorldAtlasView()
                     RewardVaultView()
+                    RewardShopView()
                     PetView()
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
@@ -2144,6 +2145,125 @@ struct RelicVaultChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(item.relic.name), \(item.subtitle)")
         .accessibilityIdentifier("relicVault_\(item.id)")
+    }
+}
+
+struct RewardShopView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let shop = store.stats.rewardShop
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.pink.opacity(0.22), .yellow.opacity(0.18), .mint.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "sparkles.rectangle.stack.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.pink)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(shop.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("rewardShopTitle")
+                        Text(shop.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("rewardShopSubtitle")
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(shop.progressText)
+                            .font(.caption.bold())
+                            .foregroundStyle(.pink)
+                            .accessibilityIdentifier("rewardShopProgressText")
+                        Text(shop.affordabilityText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .accessibilityIdentifier("rewardShopAffordability")
+                    }
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.pink, .yellow, .mint], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * shop.progress)
+                    }
+                }
+                .frame(height: 8)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                    ForEach(shop.items) { item in
+                        RewardShopItemButton(item: item) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                _ = store.activateRewardShopItem(item)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(shop.accessibilityLabel)
+        .accessibilityIdentifier("rewardShopPanel")
+    }
+}
+
+struct RewardShopItemButton: View {
+    let item: RewardShopItem
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 9) {
+                Text(item.emoji)
+                    .font(.system(size: 24))
+                    .frame(width: 38, height: 38)
+                    .background(item.subject.accentColor.opacity(item.isUnlocked ? 0.16 : 0.06), in: Circle())
+                    .saturation(item.isUnlocked ? 1 : 0.18)
+                    .opacity(item.isUnlocked ? 1 : 0.64)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.name)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                    Text(item.statusText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.68)
+                }
+
+                Spacer(minLength: 2)
+
+                Image(systemName: item.isEquipped ? "checkmark.seal.fill" : (item.isOwned ? "arrow.up.circle.fill" : item.systemImage))
+                    .font(.caption.bold())
+                    .foregroundStyle(item.isEquipped ? .green : item.subject.accentColor)
+            }
+            .padding(10)
+            .frame(minHeight: 62)
+            .background(Color.primary.opacity(item.isEquipped ? 0.075 : 0.035), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(item.subject.accentColor.opacity(item.isEquipped ? 0.25 : 0.09), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(!item.isUnlocked)
+        .accessibilityLabel(item.accessibilityLabel)
+        .accessibilityIdentifier("rewardShopItem_\(item.id)")
     }
 }
 

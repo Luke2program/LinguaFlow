@@ -702,6 +702,48 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testRewardShopUnlocksAndEquipsAffordableCosmetic() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 125
+            store.stats.gems = 8
+
+            let shop = store.stats.rewardShop
+            XCTAssertEqual(shop.items.count, 4)
+            XCTAssertEqual(shop.featuredItem?.id, "aura-trail-starter")
+            XCTAssertEqual(shop.affordabilityText, "Ready to unlock")
+
+            let item = shop.items.first { $0.id == "aura-trail-starter" }!
+            XCTAssertTrue(store.activateRewardShopItem(item))
+
+            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertEqual(store.stats.ownedRewardIds ?? [], ["aura-trail-starter"])
+            XCTAssertEqual(store.stats.equippedRewardId, "aura-trail-starter")
+            XCTAssertEqual(store.stats.rewardShop.progressText, "1/4 owned")
+            XCTAssertTrue(store.feedbackMessage.contains("Unlocked and equipped"))
+        }
+    }
+
+    func testRewardShopBlocksLockedAndUnaffordableItems() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 0
+            store.stats.gems = 0
+
+            let locked = store.stats.rewardShop.items.first { $0.id == "aura-trail-starter" }!
+            XCTAssertFalse(locked.isUnlocked)
+            XCTAssertFalse(store.activateRewardShopItem(locked))
+            XCTAssertTrue(store.feedbackMessage.contains("locked"))
+
+            store.stats.xp = 100
+            let unaffordable = store.stats.rewardShop.items.first { $0.id == "aura-trail-starter" }!
+            XCTAssertTrue(unaffordable.isUnlocked)
+            XCTAssertFalse(store.activateRewardShopItem(unaffordable))
+            XCTAssertTrue(store.feedbackMessage.contains("more gems"))
+        }
+    }
+
     func testCompletingWorldGrantsOneTimeCompletionReward() async {
         await MainActor.run {
             let store = AppStore()

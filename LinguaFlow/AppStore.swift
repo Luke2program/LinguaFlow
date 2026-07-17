@@ -759,6 +759,38 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    @discardableResult
+    func activateRewardShopItem(_ item: RewardShopItem) -> Bool {
+        guard item.isUnlocked else {
+            feedbackMessage = "\(item.name) is locked: \(item.requirementText)."
+            return false
+        }
+
+        if (stats.ownedRewardIds ?? []).contains(item.id) {
+            stats.equippedRewardId = item.id
+            feedbackMessage = "Equipped \(item.title)."
+            save()
+            objectWillChange.send()
+            return true
+        }
+
+        guard stats.gems >= item.costGems else {
+            let needed = max(0, item.costGems - stats.gems)
+            feedbackMessage = "\(needed) more gems to unlock \(item.name)."
+            return false
+        }
+
+        stats.gems -= item.costGems
+        var owned = stats.ownedRewardIds ?? []
+        owned.append(item.id)
+        stats.ownedRewardIds = owned
+        stats.equippedRewardId = item.id
+        feedbackMessage = "Unlocked and equipped \(item.title)."
+        save()
+        objectWillChange.send()
+        return true
+    }
+
     func startRecommendedRun(_ recommendation: RecommendedRun) {
         switch recommendation.action {
         case .dailyAdventure:
