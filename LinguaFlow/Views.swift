@@ -258,6 +258,7 @@ struct DashboardView: View {
                 Text("Today's Quest").font(.largeTitle.bold()).foregroundStyle(.primary)
                 Text("\(store.stats.selectedSubject.displayName) · \(store.stats.streak > 1 ? "🔥 \(store.stats.streak)-day streak" : "Start a streak today.")")
                     .font(.subheadline).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("dashboardSubjectSummary")
             }
             Spacer()
             Button { showSubjectPicker = true } label: {

@@ -139,8 +139,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(doneButton.waitForExistence(timeout: 5))
         doneButton.tap()
 
-        let historyHeader = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "History")).firstMatch
-        XCTAssertTrue(historyHeader.waitForExistence(timeout: 3))
+        let subjectSummary = app.staticTexts["dashboardSubjectSummary"].firstMatch
+        XCTAssertTrue(subjectSummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(subjectSummary.label.contains("History"))
     }
 
     func testCanOpenLoginAgainAfterSkippingAccount() throws {
