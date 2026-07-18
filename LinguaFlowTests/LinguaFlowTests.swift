@@ -1318,7 +1318,10 @@ final class LinguaFlowTests: XCTestCase {
             store.stats.hasSeenSubjectPicker = true
             store.stats.xp = 0
 
-            store.startRandomStudy()
+            let worldOption = store.stats.questRoulette.options.first { $0.subject != .languages && $0.world != nil }
+            XCTAssertNotNil(worldOption)
+
+            store.startRandomStudy(option: worldOption)
 
             XCTAssertNotEqual(store.stats.selectedSubject, .languages)
             XCTAssertNotNil(store.currentWorld)
