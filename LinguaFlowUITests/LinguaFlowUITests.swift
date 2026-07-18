@@ -108,7 +108,7 @@ final class LinguaFlowUITests: XCTestCase {
         let learningPicker = app.descendants(matching: .any)["learningLanguagePicker"].firstMatch
         XCTAssertTrue(learningPicker.waitForExistence(timeout: 3))
         learningPicker.tap()
-        let frenchOption = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "French")).firstMatch
+        let frenchOption = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "🇫🇷 French")).firstMatch
         XCTAssertTrue(frenchOption.waitForExistence(timeout: 3))
         frenchOption.tap()
 
@@ -131,7 +131,7 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(subjectPicker.waitForExistence(timeout: 3))
         subjectPicker.tap()
 
-        let historyOption = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "History")).firstMatch
+        let historyOption = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "🏛️ History")).firstMatch
         XCTAssertTrue(historyOption.waitForExistence(timeout: 3))
         historyOption.tap()
 
