@@ -1633,6 +1633,48 @@ struct LearningPassport: Equatable {
     }
 }
 
+struct KnowledgeCodexEntry: Identifiable, Equatable {
+    let id: String
+    let subject: Subject
+    let worldName: String?
+    let title: String
+    let subtitle: String
+    let body: String
+    let source: String
+    let systemImage: String
+    let isUnlocked: Bool
+
+    var displayTitle: String { isUnlocked ? title : "Hidden Lesson" }
+    var displayBody: String { isUnlocked ? body : "Complete this encounter to add the lesson to your codex." }
+    var statusText: String { isUnlocked ? "Collected" : "Locked" }
+    var accessibilityLabel: String {
+        "\(displayTitle). \(subtitle). \(statusText). \(displayBody)"
+    }
+}
+
+struct KnowledgeCodex: Equatable {
+    let entries: [KnowledgeCodexEntry]
+    let featuredEntries: [KnowledgeCodexEntry]
+
+    var unlockedCount: Int { entries.filter(\.isUnlocked).count }
+    var totalCount: Int { entries.count }
+    var progress: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(unlockedCount) / Double(totalCount)
+    }
+    var title: String { "Knowledge Codex" }
+    var progressText: String { "\(unlockedCount)/\(totalCount) lessons" }
+    var subtitle: String {
+        if unlockedCount == 0 {
+            return "Every completed mission becomes a collectible lesson card."
+        }
+        return "Review the facts, rules, and practical ideas earned from your runs."
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText)."
+    }
+}
+
 extension Subject {
     var bossName: String {
         switch self {
@@ -1749,6 +1791,125 @@ extension Subject {
             return HealthData.challenges(for: worldId)
                 .first { !completedIds.contains($0.id) }
                 .map { CampaignEncounterPreview(title: "\($0.domain) Habit", context: $0.question, clue: $0.bodySignal) }
+        }
+    }
+
+    func codexEntries(for progress: SubjectProgress) -> [KnowledgeCodexEntry] {
+        switch self {
+        case .languages:
+            return []
+        case .history:
+            return worlds.flatMap { world in
+                HistoryData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.era) · \(challenge.yearLabel)",
+                        subtitle: world.name,
+                        body: challenge.historicalFact,
+                        source: challenge.sourceCitation,
+                        systemImage: "scroll.fill",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .science:
+            return worlds.flatMap { world in
+                ScienceData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.field) · \(challenge.era)",
+                        subtitle: world.name,
+                        body: challenge.funFact,
+                        source: "Evidence note",
+                        systemImage: "atom",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .geography:
+            return worlds.flatMap { world in
+                GeographyData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.region) · \(challenge.mapTargetLabel)",
+                        subtitle: world.name,
+                        body: challenge.fieldNote,
+                        source: challenge.mapClue,
+                        systemImage: "map.fill",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .math:
+            return worlds.flatMap { world in
+                MathData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.domain) Rule",
+                        subtitle: world.name,
+                        body: challenge.ruleExplanation,
+                        source: challenge.patternClue,
+                        systemImage: "function",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .culture:
+            return worlds.flatMap { world in
+                CultureData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.region) Context",
+                        subtitle: world.name,
+                        body: challenge.culturalNote,
+                        source: challenge.traditionClue,
+                        systemImage: "theatermasks.fill",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .business:
+            return worlds.flatMap { world in
+                BusinessData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.domain) Principle",
+                        subtitle: world.name,
+                        body: challenge.lesson,
+                        source: challenge.marketSignal,
+                        systemImage: "chart.line.uptrend.xyaxis",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
+        case .health:
+            return worlds.flatMap { world in
+                HealthData.challenges(for: world.id).map { challenge in
+                    KnowledgeCodexEntry(
+                        id: challenge.id,
+                        subject: self,
+                        worldName: world.name,
+                        title: "\(challenge.domain) Habit",
+                        subtitle: world.name,
+                        body: challenge.habitLesson,
+                        source: challenge.bodySignal,
+                        systemImage: "heart.text.square.fill",
+                        isUnlocked: progress.completedChallengeIds.contains(challenge.id)
+                    )
+                }
+            }
         }
     }
 }
@@ -2499,6 +2660,32 @@ extension UserStats {
 
         let next = stamps.first { !$0.isEarned && $0.subject == selectedSubject } ?? stamps.first { !$0.isEarned }
         return LearningPassport(stamps: stamps, nextStamp: next)
+    }
+
+    var knowledgeCodex: KnowledgeCodex {
+        let languageEntry = KnowledgeCodexEntry(
+            id: "languages-review-gate",
+            subject: .languages,
+            worldName: "Language Harbor",
+            title: "Spaced Review Loop",
+            subtitle: selectedLanguagePair.displayName,
+            body: "Speaking, typing, and spaced repetition turn recognition into usable recall.",
+            source: "Review gate",
+            systemImage: "textformat.abc",
+            isUnlocked: totalReviews > 0 || reviewedToday > 0
+        )
+
+        let subjectEntries = Subject.allCases
+            .filter { $0 != .languages }
+            .flatMap { subject in
+                subject.codexEntries(for: subjectProgress[subject.rawValue] ?? SubjectProgress())
+            }
+        let entries = [languageEntry] + subjectEntries
+        let unlocked = entries.filter(\.isUnlocked).suffix(2)
+        let selectedLocked = entries.first { !$0.isUnlocked && $0.subject == selectedSubject }
+        let nextLocked = selectedLocked ?? entries.first { !$0.isUnlocked }
+        let featured = Array(unlocked) + (nextLocked.map { [$0] } ?? [])
+        return KnowledgeCodex(entries: entries, featuredEntries: Array(featured.prefix(3)))
     }
 
     var questRoulette: QuestRoulette {

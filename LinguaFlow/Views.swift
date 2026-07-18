@@ -178,6 +178,7 @@ struct DashboardView: View {
                     CampaignSpotlightView()
                     MasteryLeagueView()
                     LearningPassportView()
+                    KnowledgeCodexView()
                     ChallengeUITestControls()
                     if !store.feedbackMessage.isEmpty {
                         FeedbackBanner(text: store.feedbackMessage)
@@ -1004,6 +1005,120 @@ struct LearningPassportStampChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(stamp.accessibilityLabel)
         .accessibilityIdentifier("learningPassportStamp_\(stamp.subject.rawValue)")
+    }
+}
+
+struct KnowledgeCodexView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let codex = store.stats.knowledgeCodex
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.indigo.opacity(0.24), .orange.opacity(0.17), .mint.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "books.vertical.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.indigo)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(codex.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("knowledgeCodexTitle")
+                        Text(codex.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("knowledgeCodexSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(codex.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.indigo)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.indigo.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("knowledgeCodexProgressText")
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.indigo, .orange, .mint], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * codex.progress)
+                    }
+                }
+                .frame(height: 8)
+
+                VStack(spacing: 8) {
+                    ForEach(codex.featuredEntries) { entry in
+                        KnowledgeCodexEntryRow(entry: entry)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(codex.accessibilityLabel)
+        .accessibilityIdentifier("knowledgeCodexPanel")
+    }
+}
+
+struct KnowledgeCodexEntryRow: View {
+    let entry: KnowledgeCodexEntry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(entry.subject.accentColor.opacity(entry.isUnlocked ? 0.16 : 0.07))
+                    .frame(width: 38, height: 38)
+                Image(systemName: entry.isUnlocked ? entry.systemImage : "lock.fill")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(entry.isUnlocked ? entry.subject.accentColor : .secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(entry.displayTitle)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(entry.isUnlocked ? .primary : .secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+                    Spacer(minLength: 6)
+                    Text(entry.statusText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(entry.isUnlocked ? entry.subject.accentColor : .secondary)
+                }
+
+                Text(entry.subtitle)
+                    .font(.caption2.bold())
+                    .foregroundStyle(entry.subject.accentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+
+                Text(entry.displayBody)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.78)
+            }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(entry.isUnlocked ? 0.055 : 0.03), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(entry.subject.accentColor.opacity(entry.isUnlocked ? 0.22 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(entry.accessibilityLabel)
+        .accessibilityIdentifier("knowledgeCodexEntry_\(entry.id)")
     }
 }
 

@@ -367,6 +367,26 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testKnowledgeCodexCollectsCompletedMissionLessons() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.totalReviews = 1
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, history)
+
+        let codex = stats.knowledgeCodex
+
+        XCTAssertEqual(codex.title, "Knowledge Codex")
+        XCTAssertGreaterThan(codex.totalCount, 20)
+        XCTAssertEqual(codex.unlockedCount, 3)
+        XCTAssertEqual(codex.progressText, "3/\(codex.totalCount) lessons")
+        XCTAssertTrue(codex.entries.contains { $0.id == "rome-01" && $0.isUnlocked && $0.body.contains("Rubicon") })
+        XCTAssertTrue(codex.entries.contains { $0.id == "languages-review-gate" && $0.isUnlocked })
+        XCTAssertTrue(codex.featuredEntries.contains { $0.id == "rome-01" || $0.id == "rome-02" })
+    }
+
     func testQuestRouletteIncludesLanguageAndUnlockedWorldRoutes() {
         var stats = UserStats()
         stats.xp = 0
