@@ -1172,6 +1172,35 @@ struct DailyAdventure: Equatable {
     }
 }
 
+struct WorldJournal: Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let sceneTitle: String
+    let sceneText: String
+    let objective: String
+    let choiceText: String
+    let rewardText: String
+    let progress: Double
+    let progressText: String
+    let nextUnlockText: String
+
+    var title: String {
+        world.map { "\($0.name) Journal" } ?? "Language Harbor Journal"
+    }
+
+    var eyebrow: String {
+        subject == .languages ? "Playable Lesson" : "\(subject.mapTitle) Expedition"
+    }
+
+    var iconText: String {
+        world?.emoji ?? "💧"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(sceneTitle). \(sceneText). Objective: \(objective). Choice: \(choiceText). \(progressText). Reward \(rewardText). \(nextUnlockText)."
+    }
+}
+
 struct DailyWorldChapter: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -1838,6 +1867,61 @@ extension Subject {
         }
     }
 
+    func journalSceneTitle(for world: PlayableWorld?) -> String {
+        switch self {
+        case .languages: return "Harbor Gate"
+        case .history: return world?.name == "Ancient Rome" ? "Forum at a Turning Point" : "Source Room"
+        case .science: return "Mission Control Briefing"
+        case .geography: return "Compass Table"
+        case .math: return "Pattern Vault"
+        case .culture: return "Living Context"
+        case .business: return "Founder Desk"
+        case .health: return "Energy Check-In"
+        }
+    }
+
+    func journalSceneText(for world: PlayableWorld?) -> String {
+        switch self {
+        case .languages:
+            return "A short deck of speaking and typing prompts is waiting at the dock."
+        case .history:
+            return "Step into \(world?.era ?? "a real era") through grounded choices, sources, and consequences."
+        case .science:
+            return "Read the evidence, test the idea, and leave with a reusable explanation."
+        case .geography:
+            return "Use rivers, borders, routes, and place clues to build a mental map."
+        case .math:
+            return "Turn the visible pattern into a rule before choosing the key."
+        case .culture:
+            return "Slow down, read the social setting, and learn why the respectful move fits."
+        case .business:
+            return "Separate signal from noise before spending time, money, or trust."
+        case .health:
+            return "Choose the small practical move that improves energy today and can repeat tomorrow."
+        }
+    }
+
+    func journalChoiceText(for world: PlayableWorld?) -> String {
+        switch self {
+        case .languages:
+            return "Speak first, then type from memory."
+        case .history:
+            return "Choose the action, then compare it with what actually happened."
+        case .science:
+            return "Pick the explanation that matches the evidence."
+        case .geography:
+            return "Follow the map clue before picking the place."
+        case .math:
+            return "Name the rule, solve the gate, keep the pattern."
+        case .culture:
+            return "Act from context, not from a tourist shortcut."
+        case .business:
+            return "Choose the move a durable operator would make."
+        case .health:
+            return "Pick the habit decision that is useful, modest, and repeatable."
+        }
+    }
+
     func codexEntries(for progress: SubjectProgress) -> [KnowledgeCodexEntry] {
         switch self {
         case .languages:
@@ -2390,6 +2474,47 @@ struct UserStats: Codable, Equatable {
 extension UserStats {
     func currentWorldId(for subject: Subject) -> String? {
         subjectProgress[subject.rawValue]?.currentWorldId ?? subject.worlds.first?.id
+    }
+
+    var worldJournal: WorldJournal {
+        if selectedSubject == .languages {
+            let total = max(dailyGoal, 1)
+            let completed = min(reviewedToday, total)
+            return WorldJournal(
+                subject: .languages,
+                world: nil,
+                sceneTitle: "Harbor Gate",
+                sceneText: "A short deck of speaking and typing prompts is waiting at the dock.",
+                objective: "Clear \(max(1, total - completed)) more mixed prompts to fill today's fluency drop.",
+                choiceText: "Speak first, then type from memory.",
+                rewardText: "+30 XP · Fluency Drop",
+                progress: min(1, Double(completed) / Double(total)),
+                progressText: "\(completed)/\(total) prompts",
+                nextUnlockText: nextWorldUnlockBadge.map { "\($0.xpRemaining) XP to \($0.world.name)." } ?? "All current worlds are open."
+            )
+        }
+
+        let progress = subjectProgress[selectedSubject.rawValue] ?? SubjectProgress()
+        let world = selectedSubject.worlds.first { $0.id == (progress.currentWorldId ?? "") }
+            ?? selectedSubject.worlds.first { $0.isUnlocked(withXP: xp) }
+            ?? selectedSubject.worlds.first
+        let challengeIds = world.map { selectedSubject.challengeIds(for: $0.id) } ?? []
+        let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+        let total = max(challengeIds.count, 1)
+        let remaining = max(0, total - completed)
+
+        return WorldJournal(
+            subject: selectedSubject,
+            world: world,
+            sceneTitle: selectedSubject.journalSceneTitle(for: world),
+            sceneText: selectedSubject.journalSceneText(for: world),
+            objective: remaining == 0 ? "World cleared. Chase the next unlock or spin into a different domain." : "Complete \(remaining) more \(remaining == 1 ? "mission" : "missions") to close this world chapter.",
+            choiceText: selectedSubject.journalChoiceText(for: world),
+            rewardText: "+30 XP · \(DailyAdventure(subject: selectedSubject, world: world, xp: xp, streak: streak).rewardName)",
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(min(completed, total))/\(total) missions",
+            nextUnlockText: selectedSubject.nextLockedWorld(withXP: xp).map { "\($0.xpRemaining(withXP: xp)) XP to unlock \($0.name)." } ?? "All \(selectedSubject.displayName) worlds are open."
+        )
     }
 
     func worldPathStops(for subject: Subject) -> [WorldPathStop] {

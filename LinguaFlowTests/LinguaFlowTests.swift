@@ -273,6 +273,67 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldJournalFramesCurrentHistoryWorldAsExpedition() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.xp = 125
+        stats.streak = 2
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, history)
+
+        let journal = stats.worldJournal
+
+        XCTAssertEqual(journal.title, "Ancient Rome Journal")
+        XCTAssertEqual(journal.eyebrow, "History Map Expedition")
+        XCTAssertEqual(journal.sceneTitle, "Forum at a Turning Point")
+        XCTAssertTrue(journal.sceneText.contains("grounded choices"))
+        XCTAssertEqual(journal.objective, "Complete 3 more missions to close this world chapter.")
+        XCTAssertTrue(journal.choiceText.contains("actually happened"))
+        XCTAssertEqual(journal.progressText, "2/5 missions")
+        XCTAssertEqual(journal.progress, 0.4, accuracy: 0.001)
+        XCTAssertEqual(journal.rewardText, "+30 XP · Chronicle Page")
+        XCTAssertEqual(journal.nextUnlockText, "375 XP to unlock Medieval Europe.")
+    }
+
+    func testWorldJournalLanguageRouteUsesDailyPromptProgressAndNextUnlock() {
+        var stats = UserStats()
+        stats.selectedSubject = .languages
+        stats.dailyGoal = 12
+        stats.reviewedToday = 5
+        stats.xp = 275
+
+        let journal = stats.worldJournal
+
+        XCTAssertEqual(journal.title, "Language Harbor Journal")
+        XCTAssertEqual(journal.eyebrow, "Playable Lesson")
+        XCTAssertEqual(journal.sceneTitle, "Harbor Gate")
+        XCTAssertEqual(journal.objective, "Clear 7 more mixed prompts to fill today's fluency drop.")
+        XCTAssertEqual(journal.choiceText, "Speak first, then type from memory.")
+        XCTAssertEqual(journal.progressText, "5/12 prompts")
+        XCTAssertEqual(journal.progress, 5.0 / 12.0, accuracy: 0.001)
+        XCTAssertEqual(journal.nextUnlockText, "25 XP to African Wonders.")
+    }
+
+    func testStartWorldJournalRoutesToCurrentWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .business
+            store.stats.xp = 0
+            var progress = store.stats.progress(for: .business)
+            progress.currentWorldId = "founder-guild"
+            store.stats.updateProgress(for: .business, progress)
+
+            store.startWorldJournal()
+
+            XCTAssertEqual(store.stats.selectedSubject, .business)
+            XCTAssertEqual(store.currentWorld?.id, "founder-guild")
+            XCTAssertTrue(store.feedbackMessage.contains("World Journal opened"))
+            XCTAssertTrue(store.feedbackMessage.contains("Founder Guild Journal"))
+        }
+    }
+
     func testContinueCampaignSpotlightRoutesToCurrentWorld() async {
         await MainActor.run {
             let store = AppStore()

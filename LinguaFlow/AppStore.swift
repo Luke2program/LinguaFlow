@@ -723,6 +723,19 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func startWorldJournal() {
+        let journal = stats.worldJournal
+        stats.selectedSubject = journal.subject
+        if journal.subject == .languages {
+            pickNextCard()
+        } else if let world = journal.world {
+            select(worldId: world.id, for: journal.subject)
+        }
+        feedbackMessage = "World Journal opened: \(journal.title). \(journal.choiceText)"
+        save()
+        objectWillChange.send()
+    }
+
     func continueCampaignSpotlight() {
         let spotlight = campaignSpotlight
         if spotlight.subject == .languages {

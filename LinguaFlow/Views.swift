@@ -176,6 +176,7 @@ struct DashboardView: View {
                     RecommendedRunView()
                     DailyWorldEventView()
                     CampaignSpotlightView()
+                    WorldJournalView()
                     MasteryLeagueView()
                     LearningPassportView()
                     KnowledgeCodexView()
@@ -869,6 +870,136 @@ struct CampaignSpotlightView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(spotlight.accessibilityLabel)
         .accessibilityIdentifier("campaignSpotlightPanel")
+    }
+}
+
+struct WorldJournalView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let journal = store.stats.worldJournal
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.startWorldJournal()
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                journal.subject.accentColor.opacity(0.28),
+                                .yellow.opacity(0.16),
+                                .green.opacity(0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 58, height: 58)
+                        Text(journal.iconText)
+                            .font(.system(size: 29, weight: .bold))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(journal.eyebrow)
+                            .font(.caption.bold())
+                            .foregroundStyle(journal.subject.accentColor)
+                            .accessibilityIdentifier("worldJournalEyebrow")
+                        Text(journal.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("worldJournalTitle")
+                        Text(journal.sceneTitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("worldJournalSceneTitle")
+                    }
+
+                    Spacer()
+
+                    Label("Enter", systemImage: "book.pages.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(journal.sceneText)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                        .accessibilityIdentifier("worldJournalSceneText")
+
+                    HStack(alignment: .top, spacing: 8) {
+                        Label(journal.objective, systemImage: "scope")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("worldJournalObjective")
+                        Spacer(minLength: 8)
+                        Label(journal.choiceText, systemImage: "arrow.triangle.branch")
+                            .font(.caption)
+                            .foregroundStyle(journal.subject.accentColor)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.74)
+                            .frame(maxWidth: 138, alignment: .trailing)
+                            .multilineTextAlignment(.trailing)
+                            .accessibilityIdentifier("worldJournalChoice")
+                    }
+                }
+                .padding(12)
+                .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                HStack(spacing: 10) {
+                    Label(journal.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(journal.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .accessibilityIdentifier("worldJournalReward")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [journal.subject.accentColor, .yellow, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * journal.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(journal.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .frame(width: 74, alignment: .trailing)
+                        .accessibilityIdentifier("worldJournalProgressText")
+                }
+
+                Text(journal.nextUnlockText)
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.76)
+                    .accessibilityIdentifier("worldJournalNextUnlock")
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(journal.subject.accentColor.opacity(0.22), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(journal.accessibilityLabel)
+        .accessibilityIdentifier("worldJournalPanel")
     }
 }
 
