@@ -172,7 +172,6 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
-                    DailyTrainingPlanView()
                     RandomStudyView()
                     RecommendedRunView()
                     DailyWorldEventView()
@@ -432,6 +431,7 @@ struct RandomStudyView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.colorScheme) private var colorScheme
     private var roulette: QuestRoulette { store.stats.questRoulette }
+    private var plan: DailyTrainingPlan { store.dailyTrainingPlan }
 
     var body: some View {
         Button {
@@ -474,6 +474,55 @@ struct RandomStudyView: View {
                             .accessibilityIdentifier("questRouletteReward")
                     }
                 }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Today's Plan", systemImage: "checklist.checked")
+                            .font(.caption.bold())
+                            .foregroundStyle(.green)
+                            .accessibilityIdentifier("questRouletteTrainingPlanTitle")
+                        Spacer()
+                        Text(plan.progressText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("questRouletteTrainingPlanProgress")
+                    }
+
+                    ForEach(plan.cards) { card in
+                        HStack(spacing: 8) {
+                            Image(systemName: card.systemImage)
+                                .font(.caption.bold())
+                                .foregroundStyle(card.subject.accentColor)
+                                .frame(width: 22, height: 22)
+                                .background(card.subject.accentColor.opacity(0.12), in: Circle())
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(card.title)
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.72)
+                                Text("\(card.eyebrow) · \(card.reward)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.68)
+                            }
+                            Spacer(minLength: 0)
+                            Text(card.progressText)
+                                .font(.caption2.bold())
+                                .foregroundStyle(card.subject.accentColor)
+                        }
+                        .padding(8)
+                        .background(Color.primary.opacity(card.isPrimary ? 0.075 : 0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(card.accessibilityLabel)
+                        .accessibilityIdentifier("questRouletteTrainingPlanCard_\(card.id)")
+                    }
+                }
+                .padding(10)
+                .background(Color.primary.opacity(colorScheme == .dark ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.green.opacity(0.16), lineWidth: 1))
+                .accessibilityIdentifier("questRouletteTrainingPlanStrip")
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
                     ForEach(roulette.featuredOptions) { option in
