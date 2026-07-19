@@ -700,6 +700,49 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyTrainingPlanBuildsActionableRunCards() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .languages
+            store.stats.xp = 0
+            store.stats.reviewedToday = 1
+
+            let plan = store.dailyTrainingPlan
+
+            XCTAssertEqual(plan.title, "Daily Training Plan")
+            XCTAssertEqual(plan.cards.count, 3)
+            XCTAssertEqual(plan.cards.map(\.id), ["best-run", "cross-train", "world-tour"])
+            XCTAssertEqual(plan.cards[0].action, .recommendedRun)
+            XCTAssertTrue(plan.cards[0].isPrimary)
+            XCTAssertEqual(plan.cards[1].action, .masteryCatchUp)
+            XCTAssertEqual(plan.cards[2].action, .worldTour)
+            XCTAssertEqual(plan.progressText, "3 live routes")
+            XCTAssertTrue(plan.subtitle.contains(plan.cards[0].title))
+        }
+    }
+
+    func testDailyTrainingPlanCardRoutesToWorldTour() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 0
+            store.stats.reviewedToday = 1
+            let worldTour = store.dailyTrainingPlan.cards.first { $0.action == .worldTour }
+            XCTAssertNotNil(worldTour)
+            let expectedSubject = worldTour!.subject
+            let expectedWorld = expectedSubject.worlds.first { $0.isUnlocked(withXP: store.stats.xp) }
+
+            store.startTrainingPlanCard(worldTour!)
+
+            XCTAssertEqual(store.stats.selectedSubject, expectedSubject)
+            if expectedSubject == .languages {
+                XCTAssertNil(store.currentWorld)
+            } else {
+                XCTAssertEqual(store.currentWorld?.id, expectedWorld?.id)
+            }
+            XCTAssertTrue(store.feedbackMessage.contains("World Tour opened step 2"))
+        }
+    }
+
     func testRepeatedSubjectChallengeDoesNotDuplicateUnlockBanner() async {
         await MainActor.run {
             let store = AppStore()

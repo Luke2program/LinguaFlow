@@ -1269,6 +1269,12 @@ enum RecommendedRunAction: String, Equatable {
     case roulette
 }
 
+enum TrainingPlanAction: String, Equatable {
+    case recommendedRun
+    case masteryCatchUp
+    case worldTour
+}
+
 struct RecommendedRun: Equatable {
     let action: RecommendedRunAction
     let title: String
@@ -1282,6 +1288,44 @@ struct RecommendedRun: Equatable {
 
     var accessibilityLabel: String {
         "\(title). \(subtitle). Reward \(reward). \(ctaTitle)."
+    }
+}
+
+struct TrainingPlanCard: Identifiable, Equatable {
+    let id: String
+    let action: TrainingPlanAction
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let subject: Subject
+    let progress: Double
+    let isPrimary: Bool
+
+    var progressText: String {
+        "\(Int((min(1, max(0, progress)) * 100).rounded()))%"
+    }
+
+    var accessibilityLabel: String {
+        "\(eyebrow). \(title). \(subtitle). Reward \(reward). Progress \(progressText)."
+    }
+}
+
+struct DailyTrainingPlan: Equatable {
+    let cards: [TrainingPlanCard]
+
+    var title: String { "Daily Training Plan" }
+    var subtitle: String {
+        guard let primary = cards.first else { return "Pick a route to start learning." }
+        return "Best next move: \(primary.title)"
+    }
+    var progressText: String {
+        guard !cards.isEmpty else { return "0 routes" }
+        return "\(cards.count) live routes"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText)."
     }
 }
 

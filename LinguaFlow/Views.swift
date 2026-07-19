@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    DailyTrainingPlanView()
                     RandomStudyView()
                     RecommendedRunView()
                     DailyWorldEventView()
@@ -298,6 +299,132 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct DailyTrainingPlanView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let plan = store.dailyTrainingPlan
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.green.opacity(0.24), .blue.opacity(0.17), .yellow.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "checklist.checked")
+                            .font(.title3.bold())
+                            .foregroundStyle(.green)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(plan.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyTrainingPlanTitle")
+                        Text(plan.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("dailyTrainingPlanSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(plan.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.green)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("dailyTrainingPlanProgressText")
+                }
+
+                VStack(spacing: 8) {
+                    ForEach(plan.cards) { card in
+                        DailyTrainingPlanCardView(card: card) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startTrainingPlanCard(card)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(plan.accessibilityLabel)
+        .accessibilityIdentifier("dailyTrainingPlanPanel")
+    }
+}
+
+struct DailyTrainingPlanCardView: View {
+    let card: TrainingPlanCard
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(card.subject.accentColor.opacity(card.isPrimary ? 0.20 : 0.11))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: card.systemImage)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(card.subject.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(card.eyebrow)
+                            .font(.caption2.bold())
+                            .foregroundStyle(card.subject.accentColor)
+                        Text(card.progressText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 6)
+                    }
+
+                    Text(card.title)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+
+                    Text(card.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.76)
+                }
+
+                Spacer(minLength: 0)
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Image(systemName: card.isPrimary ? "play.circle.fill" : "arrow.right.circle.fill")
+                        .font(.headline.bold())
+                        .foregroundStyle(card.subject.accentColor)
+                    Text(card.reward)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.66)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 82, alignment: .trailing)
+                }
+            }
+            .padding(10)
+            .frame(minHeight: 74)
+            .background(Color.primary.opacity(card.isPrimary ? 0.065 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(card.subject.accentColor.opacity(card.isPrimary ? 0.25 : 0.09), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.accessibilityLabel)
+        .accessibilityIdentifier("dailyTrainingPlanCard_\(card.id)")
     }
 }
 

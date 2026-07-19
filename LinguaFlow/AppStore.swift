@@ -226,6 +226,53 @@ final class AppStore: ObservableObject {
             progress: 1
         )
     }
+    var dailyTrainingPlan: DailyTrainingPlan {
+        let recommendation = recommendedRun
+        let primary = TrainingPlanCard(
+            id: "best-run",
+            action: .recommendedRun,
+            eyebrow: "Best Run",
+            title: recommendation.title,
+            subtitle: recommendation.subtitle,
+            reward: recommendation.reward,
+            systemImage: recommendation.systemImage,
+            subject: recommendation.subject,
+            progress: recommendation.progress,
+            isPrimary: true
+        )
+
+        let league = stats.masteryLeague
+        let catchUpSubject = league.catchUpTarget?.subject ?? stats.selectedSubject
+        let catchUp = TrainingPlanCard(
+            id: "cross-train",
+            action: .masteryCatchUp,
+            eyebrow: "Cross-Train",
+            title: league.catchUpTitle,
+            subtitle: league.catchUpSubtitle,
+            reward: "+22 XP · League boost",
+            systemImage: "bolt.fill",
+            subject: catchUpSubject,
+            progress: league.catchUpTarget?.progress ?? league.selectedStanding?.progress ?? 1,
+            isPrimary: false
+        )
+
+        let event = dailyWorldEvent
+        let chapter = event.currentChapter
+        let worldTour = TrainingPlanCard(
+            id: "world-tour",
+            action: .worldTour,
+            eyebrow: "World Tour",
+            title: chapter.map { "Step \($0.step): \($0.title)" } ?? event.title,
+            subtitle: chapter?.subtitle ?? event.subtitle,
+            reward: event.rewardText,
+            systemImage: chapter?.subject.mapSystemImage ?? "sparkles",
+            subject: chapter?.subject ?? stats.selectedSubject,
+            progress: event.progress,
+            isPrimary: false
+        )
+
+        return DailyTrainingPlan(cards: [primary, catchUp, worldTour])
+    }
     var questBoardMissions: [QuestBoardMission] {
         let subject = stats.selectedSubject
         let adventure = dailyAdventure
@@ -818,6 +865,17 @@ final class AppStore: ObservableObject {
         }
         save()
         objectWillChange.send()
+    }
+
+    func startTrainingPlanCard(_ card: TrainingPlanCard) {
+        switch card.action {
+        case .recommendedRun:
+            startRecommendedRun(recommendedRun)
+        case .masteryCatchUp:
+            startMasteryLeagueCatchUp()
+        case .worldTour:
+            startDailyWorldEvent()
+        }
     }
 
     func startQuestBoardMission(_ mission: QuestBoardMission) {

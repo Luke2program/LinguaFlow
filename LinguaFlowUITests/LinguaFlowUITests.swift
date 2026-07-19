@@ -162,6 +162,12 @@ final class LinguaFlowUITests: XCTestCase {
         let app = launchReadyApp()
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(element("dailyTrainingPlanPanel", in: app).exists)
+        XCTAssertTrue(element("dailyTrainingPlanTitle", in: app).label.contains("Daily Training Plan"))
+        XCTAssertTrue(element("dailyTrainingPlanProgressText", in: app).label.contains("live routes"))
+        XCTAssertTrue(app.buttons["dailyTrainingPlanCard_best-run"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["dailyTrainingPlanCard_cross-train"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["dailyTrainingPlanCard_world-tour"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["questRouletteTitle"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["questRouletteRouteCount"].label.contains("live routes"))
