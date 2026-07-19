@@ -450,11 +450,11 @@ struct RandomStudyView: View {
                             .foregroundStyle(.purple)
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(roulette.title)
+                        Text(plan.title)
                             .font(.headline)
                             .foregroundStyle(.primary)
                             .accessibilityIdentifier("questRouletteTitle")
-                        Text(store.feedbackMessage.contains("Roulette picked") ? store.feedbackMessage : roulette.subtitle)
+                        Text(store.feedbackMessage.contains("Roulette picked") ? store.feedbackMessage : plan.subtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
@@ -462,7 +462,7 @@ struct RandomStudyView: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text(roulette.progressText)
+                        Text(plan.progressText)
                             .font(.caption.bold())
                             .foregroundStyle(.primary)
                             .accessibilityIdentifier("questRouletteRouteCount")
@@ -474,28 +474,6 @@ struct RandomStudyView: View {
                             .accessibilityIdentifier("questRouletteReward")
                     }
                 }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Label("Today's Plan", systemImage: "checklist.checked")
-                            .font(.caption.bold())
-                            .foregroundStyle(.green)
-                            .accessibilityIdentifier("questRouletteTrainingPlanTitle")
-                        Spacer()
-                        Text(plan.progressText)
-                            .font(.caption2.bold())
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("questRouletteTrainingPlanProgress")
-                    }
-
-                    ForEach(plan.cards) { card in
-                        QuestRoulettePlanRow(card: card)
-                    }
-                }
-                .padding(10)
-                .background(Color.primary.opacity(colorScheme == .dark ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.green.opacity(0.16), lineWidth: 1))
-                .accessibilityIdentifier("questRouletteTrainingPlanStrip")
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
                     ForEach(roulette.featuredOptions) { option in
@@ -548,45 +526,6 @@ struct RandomStudyView: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("randomStudyButton")
         .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : roulette.accessibilityLabel)
-    }
-}
-
-struct QuestRoulettePlanRow: View {
-    let card: TrainingPlanCard
-
-    private var rowOpacity: Double {
-        card.isPrimary ? 0.075 : 0.035
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: card.systemImage)
-                .font(.caption.bold())
-                .foregroundStyle(card.subject.accentColor)
-                .frame(width: 22, height: 22)
-                .background(card.subject.accentColor.opacity(0.12), in: Circle())
-            VStack(alignment: .leading, spacing: 1) {
-                Text(card.title)
-                    .font(.caption.bold())
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                Text("\(card.eyebrow) · \(card.reward)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.68)
-            }
-            Spacer(minLength: 0)
-            Text(card.progressText)
-                .font(.caption2.bold())
-                .foregroundStyle(card.subject.accentColor)
-        }
-        .padding(8)
-        .background(Color.primary.opacity(rowOpacity), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(card.accessibilityLabel)
-        .accessibilityIdentifier("questRouletteTrainingPlanCard_\(card.id)")
     }
 }
 
