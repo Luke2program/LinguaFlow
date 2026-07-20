@@ -1304,6 +1304,44 @@ enum TrainingPlanAction: String, Equatable {
     case worldTour
 }
 
+enum PlayMenuModeKind: String, Equatable {
+    case sprint
+    case expedition
+    case boss
+}
+
+struct PlayMenuMode: Identifiable, Equatable {
+    let id: String
+    let kind: PlayMenuModeKind
+    let title: String
+    let subtitle: String
+    let reward: String
+    let ctaTitle: String
+    let systemImage: String
+    let subject: Subject
+    let worldId: String?
+    let progress: Double
+    let tint: Subject
+
+    var progressText: String {
+        "\(Int((min(1, max(0, progress)) * 100).rounded()))%"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Reward \(reward). Progress \(progressText). \(ctaTitle)."
+    }
+}
+
+struct PlayMenu: Equatable {
+    let modes: [PlayMenuMode]
+
+    var title: String { "Choose Your Run" }
+    var subtitle: String { "Pick a fast XP burst, continue the world story, or charge a reward boss." }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(modes.count) playable modes."
+    }
+}
+
 struct RecommendedRun: Equatable {
     let action: RecommendedRunAction
     let title: String
@@ -2474,6 +2512,67 @@ struct UserStats: Codable, Equatable {
 extension UserStats {
     func currentWorldId(for subject: Subject) -> String? {
         subjectProgress[subject.rawValue]?.currentWorldId ?? subject.worlds.first?.id
+    }
+
+    var playMenu: PlayMenu {
+        let subject = selectedSubject
+        let worldId = currentWorldId(for: subject)
+        let world = subject.worlds.first { $0.id == worldId } ?? subject.worlds.first { $0.isUnlocked(withXP: xp) }
+        let journal = worldJournal
+        let boss = DailyBoss(subject: subject, correctToday: correctToday, target: 5, isDefeatedToday: lastBossDefeatDate.map { Calendar.current.isDateInToday($0) } ?? false)
+        let sprintTitle: String
+        let sprintSubtitle: String
+        if subject == .languages {
+            sprintTitle = "XP Sprint"
+            sprintSubtitle = "Five mixed speak-and-type prompts."
+        } else {
+            sprintTitle = "\(subject.displayName) Sprint"
+            sprintSubtitle = world.map { "Jump into \($0.name) for one fast mission." } ?? "Spin into the first open mission."
+        }
+
+        let modes = [
+            PlayMenuMode(
+                id: "sprint",
+                kind: .sprint,
+                title: sprintTitle,
+                subtitle: sprintSubtitle,
+                reward: "+12 XP · combo charge",
+                ctaTitle: "Play",
+                systemImage: "bolt.fill",
+                subject: subject,
+                worldId: world?.id,
+                progress: min(1, Double(reviewedToday) / Double(max(1, dailyGoal))),
+                tint: subject
+            ),
+            PlayMenuMode(
+                id: "expedition",
+                kind: .expedition,
+                title: journal.title,
+                subtitle: journal.sceneTitle,
+                reward: journal.rewardText,
+                ctaTitle: "Explore",
+                systemImage: subject.mapSystemImage,
+                subject: journal.subject,
+                worldId: journal.world?.id,
+                progress: journal.progress,
+                tint: journal.subject
+            ),
+            PlayMenuMode(
+                id: "boss",
+                kind: .boss,
+                title: boss.title,
+                subtitle: boss.subtitle,
+                reward: boss.rewardText,
+                ctaTitle: boss.isReady && !boss.isDefeatedToday ? "Fight" : "Charge",
+                systemImage: "flame.fill",
+                subject: subject,
+                worldId: world?.id,
+                progress: boss.progress,
+                tint: subject
+            )
+        ]
+
+        return PlayMenu(modes: modes)
     }
 
     var worldJournal: WorldJournal {

@@ -316,6 +316,57 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(journal.nextUnlockText, "25 XP to African Wonders.")
     }
 
+    func testPlayMenuBuildsSprintExpeditionAndBossModes() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.xp = 125
+        stats.correctToday = 4
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, history)
+
+        let menu = stats.playMenu
+
+        XCTAssertEqual(menu.title, "Choose Your Run")
+        XCTAssertEqual(menu.modes.map(\.kind), [.sprint, .expedition, .boss])
+        XCTAssertEqual(menu.modes[0].title, "🏛️ History Sprint")
+        XCTAssertEqual(menu.modes[0].worldId, "ancient-rome")
+        XCTAssertEqual(menu.modes[1].title, "Ancient Rome Journal")
+        XCTAssertEqual(menu.modes[1].progress, 0.4, accuracy: 0.001)
+        XCTAssertEqual(menu.modes[2].title, "Timeline Warden Appears")
+        XCTAssertEqual(menu.modes[2].ctaTitle, "Charge")
+        XCTAssertEqual(menu.modes[2].progress, 0.8, accuracy: 0.001)
+    }
+
+    func testPlayMenuModeRoutesSprintAndReadyBoss() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.correctToday = 5
+            store.stats.xp = 100
+            store.stats.gems = 0
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            store.stats.updateProgress(for: .health, progress)
+
+            let sprint = store.stats.playMenu.modes.first { $0.kind == .sprint }!
+            store.startPlayMenuMode(sprint)
+
+            XCTAssertEqual(store.stats.selectedSubject, .health)
+            XCTAssertEqual(store.currentWorld?.id, "energy-clinic")
+            XCTAssertTrue(store.feedbackMessage.contains("Sprint opened"))
+
+            let boss = store.stats.playMenu.modes.first { $0.kind == .boss }!
+            store.startPlayMenuMode(boss)
+
+            XCTAssertEqual(store.stats.xp, 135)
+            XCTAssertEqual(store.stats.gems, 3)
+            XCTAssertTrue(store.dailyBoss.isDefeatedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Boss defeated"))
+        }
+    }
+
     func testStartWorldJournalRoutesToCurrentWorld() async {
         await MainActor.run {
             let store = AppStore()

@@ -891,6 +891,40 @@ final class AppStore: ObservableObject {
         }
     }
 
+    func startPlayMenuMode(_ mode: PlayMenuMode) {
+        switch mode.kind {
+        case .sprint:
+            stats.selectedSubject = mode.subject
+            if mode.subject == .languages {
+                pickNextCard()
+                feedbackMessage = "Sprint opened: five mixed language prompts."
+            } else if let worldId = mode.worldId {
+                select(worldId: worldId, for: mode.subject)
+                feedbackMessage = "Sprint opened: \(mode.title)."
+            } else {
+                startRandomStudy()
+                return
+            }
+        case .expedition:
+            startWorldJournal()
+            return
+        case .boss:
+            if dailyBoss.isReady && !dailyBoss.isDefeatedToday {
+                _ = defeatDailyBoss()
+                return
+            }
+            stats.selectedSubject = mode.subject
+            if mode.subject == .languages {
+                pickNextCard()
+            } else if let worldId = mode.worldId {
+                select(worldId: worldId, for: mode.subject)
+            }
+            feedbackMessage = "Boss charge opened: \(dailyBoss.progressText)."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     func startQuestBoardMission(_ mission: QuestBoardMission) {
         switch mission.kind {
         case .dailyAdventure:

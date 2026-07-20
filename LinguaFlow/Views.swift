@@ -173,6 +173,7 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     RandomStudyView()
+                    PlayMenuView()
                     RecommendedRunView()
                     DailyWorldEventView()
                     CampaignSpotlightView()
@@ -527,6 +528,96 @@ struct RandomStudyView: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("randomStudyButton")
         .accessibilityLabel(store.feedbackMessage.contains("Roulette picked") ? "Quest Roulette. \(store.feedbackMessage)" : roulette.accessibilityLabel)
+    }
+}
+
+struct PlayMenuView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let menu = store.stats.playMenu
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.orange.opacity(0.24), .cyan.opacity(0.17), .green.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "gamecontroller.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.orange)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(menu.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("playMenuTitle")
+                        Text(menu.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("playMenuSubtitle")
+                    }
+                    Spacer()
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(menu.modes) { mode in
+                        PlayMenuModeButton(mode: mode) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startPlayMenuMode(mode)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(menu.accessibilityLabel)
+        .accessibilityIdentifier("playMenuPanel")
+    }
+}
+
+struct PlayMenuModeButton: View {
+    let mode: PlayMenuMode
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 6) {
+                    Image(systemName: mode.systemImage)
+                        .font(.caption.bold())
+                    Spacer(minLength: 2)
+                    Text(mode.progressText)
+                        .font(.caption2.bold())
+                }
+                .foregroundStyle(mode.tint.accentColor)
+
+                Text(mode.title)
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.66)
+                    .frame(minHeight: 28, alignment: .topLeading)
+
+                Text(mode.ctaTitle)
+                    .font(.caption2.bold())
+                    .foregroundStyle(mode.tint.accentColor)
+                    .lineLimit(1)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
+            .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(mode.tint.accentColor.opacity(0.18), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(mode.accessibilityLabel)
+        .accessibilityIdentifier("playMenuMode_\(mode.id)")
     }
 }
 
