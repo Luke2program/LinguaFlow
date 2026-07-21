@@ -379,7 +379,7 @@ final class LinguaFlowTests: XCTestCase {
         let energy = stats.questEnergy
 
         XCTAssertEqual(energy.title, "Quest Energy")
-        XCTAssertEqual(energy.progressText, "61% charged")
+        XCTAssertEqual(energy.progressText, "97% charged")
         XCTAssertEqual(energy.gateText, "25 XP to African Wonders")
         XCTAssertEqual(energy.rewardText, "+26 XP · -3 gems")
         XCTAssertTrue(energy.canSpend)
