@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    QuestEnergyView()
                     RandomStudyView()
                     PlayMenuView()
                     RecommendedRunView()
@@ -300,6 +301,98 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct QuestEnergyView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let energy = store.stats.questEnergy
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                energy.subject.accentColor.opacity(0.27),
+                                .yellow.opacity(0.18),
+                                .green.opacity(0.16)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "bolt.badge.clock.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(energy.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(energy.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("questEnergyTitle")
+                        Text(energy.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.spendQuestEnergyBoost()
+                        }
+                    } label: {
+                        Label(energy.ctaTitle, systemImage: energy.canSpend ? "bolt.fill" : "diamond.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(Color.primary, in: Capsule())
+                    }
+                    .accessibilityIdentifier("questEnergyButton")
+                }
+
+                HStack(spacing: 10) {
+                    Text(energy.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(energy.subject.accentColor)
+                        .frame(width: 88, alignment: .leading)
+                        .accessibilityIdentifier("questEnergyProgressText")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [energy.subject.accentColor, .yellow, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * energy.progress)
+                        }
+                    }
+                    .frame(height: 9)
+
+                    Text(energy.rewardText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.68)
+                        .frame(width: 92, alignment: .trailing)
+                }
+
+                Label(energy.gateText, systemImage: "lock.open.fill")
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.76)
+                    .accessibilityIdentifier("questEnergyGateText")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(energy.accessibilityLabel)
+        .accessibilityIdentifier("questEnergyPanel")
     }
 }
 

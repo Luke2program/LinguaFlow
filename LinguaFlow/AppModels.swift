@@ -1342,6 +1342,46 @@ struct PlayMenu: Equatable {
     }
 }
 
+struct QuestEnergy: Equatable {
+    let subject: Subject
+    let xp: Int
+    let gems: Int
+    let streak: Int
+    let reviewedToday: Int
+    let correctToday: Int
+    let nextUnlock: WorldRewardBadge?
+
+    var title: String { "Quest Energy" }
+    var energy: Int {
+        let activity = reviewedToday * 8
+        let accuracy = correctToday * 10
+        let streakCharge = min(24, streak * 4)
+        let gemCharge = min(18, gems * 3)
+        let levelCharge = xp % 100
+        return min(100, max(0, activity + accuracy + streakCharge + gemCharge + levelCharge / 2))
+    }
+    var progress: Double { Double(energy) / 100.0 }
+    var progressText: String { "\(energy)% charged" }
+    var gateText: String {
+        guard let nextUnlock else { return "All current world gates are open." }
+        return "\(nextUnlock.xpRemaining) XP to \(nextUnlock.world.name)"
+    }
+    var spendCost: Int { 3 }
+    var boostXP: Int { 20 + min(10, max(0, streak * 2)) }
+    var canSpend: Bool { gems >= spendCost }
+    var ctaTitle: String { canSpend ? "Boost Gate" : "\(max(0, spendCost - gems)) gems short" }
+    var rewardText: String { "+\(boostXP) XP · -\(spendCost) gems" }
+    var subtitle: String {
+        if let nextUnlock {
+            return "Charge runs, then spend gems to push toward \(nextUnlock.world.name)."
+        }
+        return "Keep energy high for streaks, bosses, relics, and reward shop unlocks."
+    }
+    var accessibilityLabel: String {
+        "\(title). \(progressText). \(gateText). \(rewardText). \(ctaTitle)."
+    }
+}
+
 struct RecommendedRun: Equatable {
     let action: RecommendedRunAction
     let title: String
@@ -2512,6 +2552,18 @@ struct UserStats: Codable, Equatable {
 extension UserStats {
     func currentWorldId(for subject: Subject) -> String? {
         subjectProgress[subject.rawValue]?.currentWorldId ?? subject.worlds.first?.id
+    }
+
+    var questEnergy: QuestEnergy {
+        QuestEnergy(
+            subject: selectedSubject,
+            xp: xp,
+            gems: gems,
+            streak: streak,
+            reviewedToday: reviewedToday,
+            correctToday: correctToday,
+            nextUnlock: nextWorldUnlockBadge
+        )
     }
 
     var playMenu: PlayMenu {

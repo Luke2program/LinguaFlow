@@ -891,6 +891,33 @@ final class AppStore: ObservableObject {
         }
     }
 
+    @discardableResult
+    func spendQuestEnergyBoost() -> Bool {
+        let energy = stats.questEnergy
+        guard energy.canSpend else {
+            feedbackMessage = "Earn \(max(0, energy.spendCost - stats.gems)) more gems to boost the next world gate."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.gems -= energy.spendCost
+        stats.xp += energy.boostXP
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Quest Energy boosted +\(energy.boostXP) XP. \(unlocked.world.name) unlocked."
+        } else if let next = stats.nextWorldUnlockBadge {
+            feedbackMessage = "Quest Energy boosted +\(energy.boostXP) XP. \(next.xpRemaining) XP to \(next.world.name)."
+        } else {
+            feedbackMessage = "Quest Energy boosted +\(energy.boostXP) XP. All current gates are open."
+        }
+
+        save()
+        objectWillChange.send()
+        return true
+    }
+
     func startPlayMenuMode(_ mode: PlayMenuMode) {
         switch mode.kind {
         case .sprint:

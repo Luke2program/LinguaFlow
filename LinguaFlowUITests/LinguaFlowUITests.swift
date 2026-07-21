@@ -163,6 +163,11 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("questEnergyPanel", in: app).exists)
+        XCTAssertTrue(element("questEnergyTitle", in: app).label.contains("Quest Energy"))
+        XCTAssertTrue(element("questEnergyProgressText", in: app).exists)
+        XCTAssertTrue(element("questEnergyGateText", in: app).exists)
+        XCTAssertTrue(app.buttons["questEnergyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["questRouletteTitle"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["questRouletteTitle"].label.contains("Daily Training Plan"))
         XCTAssertTrue(app.staticTexts["questRouletteSubtitle"].label.contains("Best next move"))

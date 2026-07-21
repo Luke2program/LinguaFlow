@@ -367,6 +367,42 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testQuestEnergyTracksGateProgressAndSpendState() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.xp = 275
+        stats.gems = 4
+        stats.streak = 3
+        stats.reviewedToday = 2
+        stats.correctToday = 2
+
+        let energy = stats.questEnergy
+
+        XCTAssertEqual(energy.title, "Quest Energy")
+        XCTAssertEqual(energy.progressText, "61% charged")
+        XCTAssertEqual(energy.gateText, "25 XP to African Wonders")
+        XCTAssertEqual(energy.rewardText, "+26 XP · -3 gems")
+        XCTAssertTrue(energy.canSpend)
+        XCTAssertEqual(energy.ctaTitle, "Boost Gate")
+    }
+
+    func testQuestEnergyBoostSpendsGemsAndCanUnlockWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.stats.xp = 280
+            store.stats.gems = 3
+            store.stats.streak = 3
+
+            XCTAssertTrue(store.spendQuestEnergyBoost())
+            XCTAssertEqual(store.stats.gems, 0)
+            XCTAssertEqual(store.stats.xp, 306)
+            XCTAssertEqual(store.newlyUnlockedWorld?.world.name, "African Wonders")
+            XCTAssertTrue(store.feedbackMessage.contains("Quest Energy boosted +26 XP"))
+            XCTAssertTrue(store.feedbackMessage.contains("African Wonders unlocked"))
+        }
+    }
+
     func testStartWorldJournalRoutesToCurrentWorld() async {
         await MainActor.run {
             let store = AppStore()
