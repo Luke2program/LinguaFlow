@@ -157,6 +157,39 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyFinaleRequiresAllGatesAndClaimsOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.dailyGoal = 12
+            store.stats.reviewedToday = 5
+            store.stats.correctToday = 3
+            store.stats.xp = 140
+            store.stats.gems = 2
+
+            XCTAssertFalse(store.dailyFinale.isReady)
+            XCTAssertEqual(store.dailyFinale.completedCount, 2)
+            XCTAssertEqual(store.dailyFinale.progressText, "2/3 gates")
+            XCTAssertFalse(store.claimDailyFinale(now: Date()))
+            XCTAssertEqual(store.stats.xp, 140)
+            XCTAssertTrue(store.feedbackMessage.contains("1 more finale gates"))
+
+            store.stats.reviewedToday = 6
+
+            XCTAssertTrue(store.dailyFinale.isReady)
+            XCTAssertEqual(store.dailyFinale.rewardXP, 60)
+            XCTAssertTrue(store.claimDailyFinale(now: Date()))
+            XCTAssertEqual(store.stats.xp, 200)
+            XCTAssertEqual(store.stats.gems, 7)
+            XCTAssertTrue(store.dailyFinale.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Finale crown claimed"))
+
+            XCTAssertFalse(store.claimDailyFinale(now: Date()))
+            XCTAssertEqual(store.stats.xp, 200)
+            XCTAssertEqual(store.stats.gems, 7)
+        }
+    }
+
     func testPlayableSubjectsHaveGeneratedMapMetadata() {
         XCTAssertEqual(Subject.history.mapTitle, "History Map")
         XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")

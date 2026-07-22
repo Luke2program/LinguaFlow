@@ -1436,6 +1436,79 @@ struct DailyTrainingPlan: Equatable {
     }
 }
 
+struct DailyFinaleObjective: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let isComplete: Bool
+
+    var systemImage: String {
+        isComplete ? "checkmark.seal.fill" : "circle.dashed"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(isComplete ? "Complete" : "Incomplete")."
+    }
+}
+
+struct DailyFinale: Equatable {
+    let subject: Subject
+    let reviewedToday: Int
+    let correctToday: Int
+    let dailyQuest: DailyQuest
+    let combo: DailyCombo
+    let relic: DailyRelic
+    let isClaimedToday: Bool
+
+    var objectives: [DailyFinaleObjective] {
+        [
+            DailyFinaleObjective(
+                id: "quest",
+                title: "Finish Daily Quest",
+                subtitle: dailyQuest.progressText,
+                isComplete: dailyQuest.progress >= 1
+            ),
+            DailyFinaleObjective(
+                id: "combo",
+                title: "Land a Focus Combo",
+                subtitle: combo.progressText,
+                isComplete: combo.completedCombos >= 1
+            ),
+            DailyFinaleObjective(
+                id: "relic",
+                title: "Reveal a Lesson Relic",
+                subtitle: relic.progressText,
+                isComplete: relic.isReady || relic.isClaimedToday
+            )
+        ]
+    }
+
+    var completedCount: Int { objectives.filter(\.isComplete).count }
+    var totalCount: Int { objectives.count }
+    var progress: Double { Double(completedCount) / Double(max(1, totalCount)) }
+    var progressText: String { "\(completedCount)/\(totalCount) gates" }
+    var isReady: Bool { completedCount == totalCount }
+    var rewardXP: Int { 50 + min(25, max(0, dailyQuest.target - 4) * 5) }
+    var rewardGems: Int { 5 }
+    var title: String {
+        if isClaimedToday { return "Finale Crown Claimed" }
+        return isReady ? "Daily Finale Ready" : "Daily Finale"
+    }
+    var subtitle: String {
+        if isClaimedToday { return "Today's \(subject.displayName) run is sealed. Spin a new route or keep leveling." }
+        if isReady { return "Claim the crown reward for finishing the main study loop." }
+        return "Finish the quest, combo, and relic gates to make today's run feel complete."
+    }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gems · Crown" }
+    var ctaTitle: String {
+        if isClaimedToday { return "Claimed" }
+        return isReady ? "Claim Crown" : "\(max(0, totalCount - completedCount)) gates left"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct QuestRouletteOption: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -2522,6 +2595,7 @@ struct UserStats: Codable, Equatable {
     var lastStreakChestClaimDate: Date? = nil
     var lastBossDefeatDate: Date? = nil
     var lastMysteryRelicClaimDate: Date? = nil
+    var lastDailyFinaleClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil

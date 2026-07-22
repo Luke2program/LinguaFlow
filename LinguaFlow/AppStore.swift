@@ -87,6 +87,18 @@ final class AppStore: ObservableObject {
             alreadyCollected: stats.collectedRelicSet.contains(relic.id)
         )
     }
+    var dailyFinale: DailyFinale {
+        let claimedToday = stats.lastDailyFinaleClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        return DailyFinale(
+            subject: stats.selectedSubject,
+            reviewedToday: stats.reviewedToday,
+            correctToday: stats.correctToday,
+            dailyQuest: dailyQuest,
+            combo: dailyCombo,
+            relic: dailyRelic,
+            isClaimedToday: claimedToday
+        )
+    }
     var dailyAdventure: DailyAdventure {
         let world: PlayableWorld?
         if stats.selectedSubject == .languages {
@@ -1055,6 +1067,32 @@ final class AppStore: ObservableObject {
         }
         stats.collectedRelicIds = collected
         feedbackMessage = "Relic secured: \(relicDrop.relic.title). \(relicDrop.relic.lore)"
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimDailyFinale(now: Date = Date()) -> Bool {
+        let finale = dailyFinale
+        guard finale.isReady, !finale.isClaimedToday else {
+            feedbackMessage = finale.isClaimedToday ? "Today's finale crown is already claimed." : "Finish \(max(0, finale.totalCount - finale.completedCount)) more finale gates first."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += finale.rewardXP
+        stats.gems += finale.rewardGems
+        stats.lastDailyFinaleClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == finale.subject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Finale crown claimed: \(finale.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Finale crown claimed: \(finale.rewardText)."
+        }
+
         save()
         objectWillChange.send()
         return true

@@ -173,6 +173,8 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     QuestEnergyView()
+                    DailyTrainingPlanView()
+                    DailyFinaleView()
                     RandomStudyView()
                     PlayMenuView()
                     RecommendedRunView()
@@ -519,6 +521,120 @@ struct DailyTrainingPlanCardView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(card.accessibilityLabel)
         .accessibilityIdentifier("dailyTrainingPlanCard_\(card.id)")
+    }
+}
+
+struct DailyFinaleView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let finale = store.dailyFinale
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                .yellow.opacity(0.27),
+                                finale.subject.accentColor.opacity(0.18),
+                                .orange.opacity(0.15)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: finale.isClaimedToday ? "crown.fill" : "crown")
+                            .font(.title3.bold())
+                            .foregroundStyle(.yellow)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(finale.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyFinaleTitle")
+                        Text(finale.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyFinaleSubtitle")
+                    }
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimDailyFinale()
+                        }
+                    } label: {
+                        Label(finale.ctaTitle, systemImage: finale.isReady && !finale.isClaimedToday ? "crown.fill" : "flag.checkered")
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.66)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(finale.isReady && !finale.isClaimedToday ? Color.yellow : Color.primary, in: Capsule())
+                    }
+                    .disabled(finale.isClaimedToday)
+                    .accessibilityIdentifier("dailyFinaleButton")
+                }
+
+                HStack(spacing: 10) {
+                    Text(finale.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(finale.subject.accentColor)
+                        .frame(width: 82, alignment: .leading)
+                        .accessibilityIdentifier("dailyFinaleProgressText")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [.yellow, finale.subject.accentColor, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * finale.progress)
+                        }
+                    }
+                    .frame(height: 9)
+
+                    Text(finale.rewardText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.62)
+                        .frame(width: 116, alignment: .trailing)
+                        .accessibilityIdentifier("dailyFinaleReward")
+                }
+
+                VStack(spacing: 7) {
+                    ForEach(finale.objectives) { objective in
+                        HStack(spacing: 9) {
+                            Image(systemName: objective.systemImage)
+                                .font(.caption.bold())
+                                .foregroundStyle(objective.isComplete ? .green : .secondary)
+                                .frame(width: 20)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(objective.title)
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.primary)
+                                Text(objective.subtitle)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary.opacity(objective.isComplete ? 0.055 : 0.03), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(objective.accessibilityLabel)
+                        .accessibilityIdentifier("dailyFinaleObjective_\(objective.id)")
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(finale.accessibilityLabel)
+        .accessibilityIdentifier("dailyFinalePanel")
     }
 }
 
