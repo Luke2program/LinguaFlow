@@ -214,6 +214,16 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(rubicon?.choices.count, 2)
         XCTAssertTrue(rubicon?.choices.contains { $0.isCorrect } ?? false)
     }
+
+    func testMedievalEuropeChallengesLoadedAsGroundedCampaign() {
+        let challenges = HistoryData.challenges(for: "medieval-europe")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "medieval-01")
+        XCTAssertEqual(challenges.first?.year, 800)
+        XCTAssertTrue(challenges.first?.question.contains("Charlemagne") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "medieval-04" && $0.historicalFact.contains("Statute of Labourers") })
+        XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "medieval-03" })
+    }
     
     func testWorldUnlockRequirement() {
         let unlocked = PlayableWorld(id: "test", name: "Test", emoji: "🧪", era: "Now", description: "Test", unlockRequirement: .none)
@@ -265,7 +275,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
         XCTAssertEqual(stats.atlasTotalWorldCount, 16)
         XCTAssertEqual(stats.atlasProgress, 8.0 / 16.0, accuracy: 0.001)
-        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/5 missions")
+        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/9 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
         XCTAssertEqual(stats.atlasNextTarget?.nextText, "25 XP to African Wonders")
@@ -302,6 +312,27 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(spotlight.encounter.context.contains("Odoacer"))
             XCTAssertEqual(spotlight.progressText, "2/5 encounters cleared")
             XCTAssertEqual(spotlight.rewardText, "+25 XP · Chronicle Page")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesMedievalEuropeAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 520
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "medieval-europe"
+            progress.completedChallengeIds = ["medieval-01"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "Medieval Europe Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🏛️ History · 500 – 1500 CE")
+            XCTAssertEqual(spotlight.encounter.title, "Norman Conquest · 1066 CE")
+            XCTAssertTrue(spotlight.encounter.context.contains("William of Normandy"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertFalse(spotlight.isComplete)
         }
     }
@@ -490,7 +521,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(league.standings.count, Subject.allCases.count)
             XCTAssertEqual(league.standings.first?.subject, .history)
             XCTAssertEqual(league.selectedStanding?.rank, 1)
-            XCTAssertEqual(league.selectedStanding?.detailText, "2/5 missions · 2/3 worlds")
+            XCTAssertEqual(league.selectedStanding?.detailText, "2/9 missions · 2/3 worlds")
             XCTAssertEqual(league.catchUpTarget?.subject, .languages)
             XCTAssertTrue(league.catchUpTitle.contains("Languages"))
             XCTAssertEqual(league.topThree.count, 3)
@@ -564,6 +595,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(codex.unlockedCount, 3)
         XCTAssertEqual(codex.progressText, "3/\(codex.totalCount) lessons")
         XCTAssertTrue(codex.entries.contains { $0.id == "rome-01" && $0.isUnlocked && $0.body.contains("Rubicon") })
+        XCTAssertTrue(codex.entries.contains { $0.id == "medieval-02" && !$0.isUnlocked && $0.body.contains("Domesday Book") })
         XCTAssertTrue(codex.entries.contains { $0.id == "languages-review-gate" && $0.isUnlocked })
         XCTAssertTrue(codex.featuredEntries.contains { $0.id == "rome-01" || $0.id == "rome-02" })
     }

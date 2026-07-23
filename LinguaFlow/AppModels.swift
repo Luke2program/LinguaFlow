@@ -286,17 +286,77 @@ enum HistoryData {
             sourceCitation: "Cassius Dio, Roman History; Birley, Hadrian: The Restless Emperor"
         )
     ]
+
+    static let medievalEuropeChallenges: [HistoryChallenge] = [
+        HistoryChallenge(
+            id: "medieval-01",
+            worldId: "medieval-europe",
+            era: "Early Middle Ages",
+            year: 800,
+            question: "Charlemagne is crowned emperor in Rome. What does the coronation change?",
+            context: "On Christmas Day in 800 CE, Pope Leo III crowned the Frankish king Charlemagne as emperor. The title tied Frankish power, Roman memory, and the Latin Church together in a new western imperial project.",
+            choices: [
+                HistoryChoice(id: "a", text: "It restores the old Western Roman Empire exactly as it was", consequence: "The title returns, but the world is different: power is Frankish, Christian, feudal, and negotiated with the pope.", isCorrect: false, historicalOutcome: "Charlemagne's empire was not a direct restoration of the ancient Western Roman state. It blended Frankish kingship, Christian authority, and Roman symbolism."),
+                HistoryChoice(id: "b", text: "It creates a new western imperial model linked to the Church", consequence: "You see how legitimacy now flows through kings, bishops, monasteries, and Roman memory rather than ancient Roman institutions alone.", isCorrect: true, historicalOutcome: "The coronation helped shape the idea of a Christian emperor in western Europe and later influenced the Holy Roman Empire.")
+            ],
+            historicalFact: "Charlemagne's coronation did not revive ancient Rome as a state, but it made Roman imperial language useful again in medieval western politics.",
+            sourceCitation: "Einhard, Life of Charlemagne; Royal Frankish Annals"
+        ),
+        HistoryChallenge(
+            id: "medieval-02",
+            worldId: "medieval-europe",
+            era: "Norman Conquest",
+            year: 1066,
+            question: "William of Normandy wins at Hastings. What is his best next move to control England?",
+            context: "After defeating Harold Godwinson at the Battle of Hastings, William still needed to turn a military victory into durable rule over a kingdom with local elites, shires, and resistance.",
+            choices: [
+                HistoryChoice(id: "a", text: "Replace key elites, build castles, and record obligations", consequence: "Control tightens. Castles project power, Norman lords replace many Anglo-Saxon landholders, and records make taxation and service visible.", isCorrect: true, historicalOutcome: "William redistributed land, built castles, and ordered the Domesday survey in 1086 to document landholding and resources."),
+                HistoryChoice(id: "b", text: "Leave all local power untouched and sail home", consequence: "Resistance hardens. A distant conqueror with no garrisons, loyal nobles, or administrative grip would struggle to hold the kingdom.", isCorrect: false, historicalOutcome: "William spent years suppressing rebellions and reshaping English landholding. Conquest required administration, not only one battlefield victory.")
+            ],
+            historicalFact: "The Domesday Book shows how conquest became administration: land, tenants, livestock, mills, and taxable value were recorded across much of England.",
+            sourceCitation: "Anglo-Saxon Chronicle; Domesday Book"
+        ),
+        HistoryChallenge(
+            id: "medieval-03",
+            worldId: "medieval-europe",
+            era: "Magna Carta",
+            year: 1215,
+            question: "King John faces rebel barons at Runnymede. Why does Magna Carta matter?",
+            context: "John's military failures, taxes, and conflict with nobles created a crisis. The charter was meant to settle immediate baronial demands, but later generations gave it wider constitutional meaning.",
+            choices: [
+                HistoryChoice(id: "a", text: "It instantly creates modern democracy for everyone", consequence: "That sounds satisfying, but it skips the messy history. Most people in 1215 had little political voice.", isCorrect: false, historicalOutcome: "Magna Carta mainly protected elite rights at first. Its later importance grew through reinterpretation and reuse in legal and political struggles."),
+                HistoryChoice(id: "b", text: "It limits royal power through law and precedent", consequence: "You spot the long-term lesson: even a king can be forced to negotiate rules that outlive the crisis.", isCorrect: true, historicalOutcome: "Magna Carta became a symbol of lawful limits on rulers, especially through later reissues and legal traditions.")
+            ],
+            historicalFact: "Magna Carta was annulled within weeks by Pope Innocent III, but reissued versions helped it survive as a powerful legal symbol.",
+            sourceCitation: "Magna Carta 1215; Carpenter, Magna Carta"
+        ),
+        HistoryChallenge(
+            id: "medieval-04",
+            worldId: "medieval-europe",
+            era: "Black Death",
+            year: 1348,
+            question: "Plague reaches your town. What does the disaster do to medieval society?",
+            context: "The Black Death killed a huge share of Europe's population between 1347 and 1351. Communities faced fear, labor shortages, disrupted trade, religious anxiety, and violence against scapegoated minorities.",
+            choices: [
+                HistoryChoice(id: "a", text: "It leaves the social order unchanged after the bodies are buried", consequence: "The old structures survive on paper, but wages, labor bargaining, piety, taxation, and authority all come under pressure.", isCorrect: false, historicalOutcome: "The plague changed labor markets and social expectations. Elites tried to freeze wages and duties, but scarcity made workers more valuable."),
+                HistoryChoice(id: "b", text: "It shakes labor, faith, and authority across Europe", consequence: "You connect the human catastrophe to structural change: fewer workers can demand more, while rulers and churches face hard questions.", isCorrect: true, historicalOutcome: "The Black Death contributed to labor shortages, wage pressure, social unrest, and new religious responses, while also intensifying persecution of Jewish communities in many places.")
+            ],
+            historicalFact: "After the plague, England's Statute of Labourers tried to hold wages near pre-plague levels, showing how deeply labor conditions had shifted.",
+            sourceCitation: "Boccaccio, Decameron; Statute of Labourers 1351"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [HistoryChallenge] {
         switch worldId {
         case "ancient-rome": return ancientRomeChallenges
+        case "medieval-europe": return medievalEuropeChallenges
         default: return []
         }
     }
     
     static func allChallenges(for subject: Subject) -> [HistoryChallenge] {
         switch subject {
-        case .history: return ancientRomeChallenges
+        case .history: return ancientRomeChallenges + medievalEuropeChallenges
         default: return []
         }
     }
