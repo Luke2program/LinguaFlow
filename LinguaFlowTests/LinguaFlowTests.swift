@@ -1197,6 +1197,37 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(vienna?.choices.contains { $0.isCorrect && $0.text == "Vienna" } ?? false)
     }
 
+    func testAfricanWondersChallengesLoadedAsPlayableRoute() {
+        let challenges = GeographyData.challenges(for: "african-wonders")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "geo-africa-01")
+        XCTAssertEqual(challenges.first?.region, "Nile Basin")
+        XCTAssertEqual(challenges.first?.mapTargetLabel, "Nile Valley")
+        XCTAssertTrue(challenges.first?.choices.contains { $0.isCorrect && $0.text == "The Nile" } ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "geo-africa-04" && $0.fieldNote.contains("Mosi-oa-Tunya") })
+    }
+
+    func testCampaignSpotlightUsesAfricanWondersAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.stats.xp = 320
+            var progress = store.stats.progress(for: .geography)
+            progress.currentWorldId = "african-wonders"
+            progress.completedChallengeIds = ["geo-africa-01"]
+            store.stats.updateProgress(for: .geography, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "African Wonders Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🗺️ Geography · Ancient – Modern")
+            XCTAssertEqual(spotlight.encounter.title, "East African Rift · Kilimanjaro")
+            XCTAssertTrue(spotlight.encounter.context.contains("Africa's highest peak"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
     func testGeographyChallengeScoring() async {
         await MainActor.run {
             let store = AppStore()

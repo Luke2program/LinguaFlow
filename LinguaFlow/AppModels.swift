@@ -591,9 +591,93 @@ enum GeographyData {
         )
     ]
 
+    static let africanWondersChallenges: [GeographyChallenge] = [
+        GeographyChallenge(
+            id: "geo-africa-01",
+            worldId: "african-wonders",
+            region: "Nile Basin",
+            question: "Which river valley linked ancient Egyptian cities with farming, transport, and predictable flood cycles?",
+            context: "Your field map shows a green corridor through desert. Settlements, temples, and grain stores cluster near a river that flows north toward the Mediterranean.",
+            choices: [
+                GeographyChoice(id: "a", text: "The Nile", isCorrect: true, explanation: "Correct. The Nile supported agriculture, transport, and state power in ancient Egypt, especially through its annual flood cycle."),
+                GeographyChoice(id: "b", text: "The Niger", isCorrect: false, explanation: "The Niger is vital in West Africa, but it is not the river valley of ancient Egypt."),
+                GeographyChoice(id: "c", text: "The Zambezi", isCorrect: false, explanation: "The Zambezi flows in southern Africa and is famous for Victoria Falls, not Egyptian agriculture."),
+                GeographyChoice(id: "d", text: "The Congo", isCorrect: false, explanation: "The Congo drains central Africa's rainforest basin, far from the Egyptian Nile valley.")
+            ],
+            mapClue: "Trace the long river corridor from northeast Africa to the Mediterranean delta.",
+            mapTargetLabel: "Nile Valley",
+            mapStartX: 0.58,
+            mapStartY: 0.66,
+            mapTargetX: 0.62,
+            mapTargetY: 0.30,
+            fieldNote: "The Nile made dense farming possible in a dry region, helping Egypt sustain cities, officials, armies, and monumental building."
+        ),
+        GeographyChallenge(
+            id: "geo-africa-02",
+            worldId: "african-wonders",
+            region: "East African Rift",
+            question: "Which mountain is Africa's highest peak and rises near the East African Rift?",
+            context: "The expedition turns toward volcanic highlands. Snow can appear near the summit even though the mountain stands close to the equator.",
+            choices: [
+                GeographyChoice(id: "a", text: "Mount Kilimanjaro", isCorrect: true, explanation: "Correct. Kilimanjaro in Tanzania is Africa's highest mountain at 5,895 meters."),
+                GeographyChoice(id: "b", text: "Table Mountain", isCorrect: false, explanation: "Table Mountain overlooks Cape Town, but it is much lower and far south."),
+                GeographyChoice(id: "c", text: "Mount Toubkal", isCorrect: false, explanation: "Toubkal is the highest peak in the Atlas Mountains of Morocco, not Africa's highest overall."),
+                GeographyChoice(id: "d", text: "Drakensberg", isCorrect: false, explanation: "The Drakensberg range is important in southern Africa, but Kilimanjaro is higher.")
+            ],
+            mapClue: "Look for the equatorial volcano in northern Tanzania, near Kenya and the Rift Valley.",
+            mapTargetLabel: "Kilimanjaro",
+            mapStartX: 0.52,
+            mapStartY: 0.50,
+            mapTargetX: 0.65,
+            mapTargetY: 0.54,
+            fieldNote: "Kilimanjaro is a volcanic massif with distinct climate zones, from cultivated foothills to alpine desert and summit ice."
+        ),
+        GeographyChallenge(
+            id: "geo-africa-03",
+            worldId: "african-wonders",
+            region: "Sahara",
+            question: "Why did historic caravan routes often depend on oasis towns across the Sahara?",
+            context: "Your route crosses a huge dry belt. Traders carried salt, gold, books, and textiles, but survival depended on reliable water and resting points.",
+            choices: [
+                GeographyChoice(id: "a", text: "Oases provided water, shade, and trade stops", isCorrect: true, explanation: "Correct. Oasis towns made desert crossings possible by supplying water, food, rest, and exchange points."),
+                GeographyChoice(id: "b", text: "Oases made the Sahara humid everywhere", isCorrect: false, explanation: "Oases are local water sources. They do not change the climate of the whole desert."),
+                GeographyChoice(id: "c", text: "Caravans avoided all towns by design", isCorrect: false, explanation: "Caravans needed networks of settlements and guides because desert travel was risky."),
+                GeographyChoice(id: "d", text: "Trade routes only followed rivers", isCorrect: false, explanation: "Some routes connected rivers, but long Sahara crossings depended heavily on wells and oases.")
+            ],
+            mapClue: "Follow the desert belt between North Africa and the Sahel, where small water nodes matter.",
+            mapTargetLabel: "Sahara Oases",
+            mapStartX: 0.45,
+            mapStartY: 0.62,
+            mapTargetX: 0.48,
+            mapTargetY: 0.38,
+            fieldNote: "Trans-Saharan routes connected Mediterranean markets with West African kingdoms and helped cities such as Timbuktu become centers of trade and learning."
+        ),
+        GeographyChallenge(
+            id: "geo-africa-04",
+            worldId: "african-wonders",
+            region: "Southern Africa",
+            question: "Which waterfall forms where the Zambezi River drops into a deep gorge on the Zambia-Zimbabwe border?",
+            context: "The map clue is not just a dot. It is a river, a border, spray visible from far away, and a gorge system carved by moving water.",
+            choices: [
+                GeographyChoice(id: "a", text: "Victoria Falls", isCorrect: true, explanation: "Correct. Victoria Falls sits on the Zambezi River at the border of Zambia and Zimbabwe."),
+                GeographyChoice(id: "b", text: "Angel Falls", isCorrect: false, explanation: "Angel Falls is in Venezuela, not Africa."),
+                GeographyChoice(id: "c", text: "Niagara Falls", isCorrect: false, explanation: "Niagara Falls is on the US-Canada border."),
+                GeographyChoice(id: "d", text: "Tugela Falls", isCorrect: false, explanation: "Tugela Falls is in South Africa's Drakensberg, not on the Zambezi border gorge.")
+            ],
+            mapClue: "Track the Zambezi through southern Africa until it drops between Zambia and Zimbabwe.",
+            mapTargetLabel: "Victoria Falls",
+            mapStartX: 0.60,
+            mapStartY: 0.52,
+            mapTargetX: 0.58,
+            mapTargetY: 0.76,
+            fieldNote: "Victoria Falls is one of the world's largest waterfall systems by combined width and height, and its local Lozi name, Mosi-oa-Tunya, means 'the smoke that thunders.'"
+        )
+    ]
+
     static func challenges(for worldId: String) -> [GeographyChallenge] {
         switch worldId {
         case "european-capitals": return europeanCapitalsChallenges
+        case "african-wonders": return africanWondersChallenges
         default: return []
         }
     }
