@@ -474,10 +474,74 @@ enum ScienceData {
             field: "Engineering"
         )
     ]
+
+    static let quantumRealmChallenges: [ScienceChallenge] = [
+        ScienceChallenge(
+            id: "quantum-01",
+            worldId: "quantum-realm",
+            era: "1900",
+            question: "Why did Max Planck introduce the idea of energy quanta?",
+            context: "A blackbody oven glowed with a spectrum classical physics could not explain. Planck found that the math worked if energy came in small packets rather than any continuous amount.",
+            choices: [
+                ScienceChoice(id: "a", text: "To explain blackbody radiation", isCorrect: true, explanation: "Correct. Planck modeled energy exchange in discrete packets, later called quanta, to match the observed blackbody spectrum."),
+                ScienceChoice(id: "b", text: "To prove atoms do not exist", isCorrect: false, explanation: "Quantum theory did not disprove atoms. It became part of the evidence-rich physics used to explain atomic behavior."),
+                ScienceChoice(id: "c", text: "To describe planetary orbits around the Sun", isCorrect: false, explanation: "Planetary motion is described well by gravity. Planck was working on thermal radiation from hot objects."),
+                ScienceChoice(id: "d", text: "To make light travel faster than normal", isCorrect: false, explanation: "Quantum theory did not change the speed limit of light. It changed how physicists understood energy and matter at small scales.")
+            ],
+            funFact: "Planck originally treated quantization as a mathematical move, but it opened the door to modern quantum physics.",
+            field: "Quantum Origins"
+        ),
+        ScienceChallenge(
+            id: "quantum-02",
+            worldId: "quantum-realm",
+            era: "1905",
+            question: "What did Einstein argue in his explanation of the photoelectric effect?",
+            context: "Metal plates release electrons when hit by light, but only if the light has high enough frequency. Brighter low-frequency light still fails to eject them.",
+            choices: [
+                ScienceChoice(id: "a", text: "Light can act as packets of energy", isCorrect: true, explanation: "Correct. Einstein explained the effect by treating light as photons whose energy depends on frequency."),
+                ScienceChoice(id: "b", text: "Only sound waves can move electrons", isCorrect: false, explanation: "The photoelectric effect is caused by light interacting with electrons, not sound."),
+                ScienceChoice(id: "c", text: "Electron energy depends only on brightness", isCorrect: false, explanation: "Brightness affects how many photons arrive, but frequency determines whether each photon has enough energy to eject an electron."),
+                ScienceChoice(id: "d", text: "Metals glow because they are radioactive", isCorrect: false, explanation: "The photoelectric effect does not require radioactivity. It is an interaction between light and electrons in a material.")
+            ],
+            funFact: "Einstein received the 1921 Nobel Prize in Physics especially for explaining the photoelectric effect, not for relativity.",
+            field: "Photons"
+        ),
+        ScienceChallenge(
+            id: "quantum-03",
+            worldId: "quantum-realm",
+            era: "1927",
+            question: "What does Heisenberg's uncertainty principle say?",
+            context: "In the quantum vault, a particle is not a tiny billiard ball with every property sharply fixed before measurement. Some pairs of properties trade precision.",
+            choices: [
+                ScienceChoice(id: "a", text: "Position and momentum cannot both be known exactly", isCorrect: true, explanation: "Correct. The more precisely position is known, the less precisely momentum can be known, and vice versa."),
+                ScienceChoice(id: "b", text: "Scientists are uncertain only because tools are bad", isCorrect: false, explanation: "Better tools do not remove the limit. The uncertainty principle is built into quantum mechanics."),
+                ScienceChoice(id: "c", text: "Particles randomly ignore all physical laws", isCorrect: false, explanation: "Quantum mechanics is highly predictive. It uses probabilities, not lawless randomness."),
+                ScienceChoice(id: "d", text: "Gravity stops working inside atoms", isCorrect: false, explanation: "Gravity still exists, but it is extremely weak compared with electromagnetic and nuclear forces at atomic scales.")
+            ],
+            funFact: "The uncertainty principle is not just measurement error; it follows from the wave-like math of quantum states.",
+            field: "Measurement"
+        ),
+        ScienceChallenge(
+            id: "quantum-04",
+            worldId: "quantum-realm",
+            era: "Modern",
+            question: "Why can quantum tunneling matter in real technology?",
+            context: "A particle reaches a barrier it does not seem to have enough energy to cross. In quantum mechanics, there can still be a small chance it appears on the other side.",
+            choices: [
+                ScienceChoice(id: "a", text: "It allows particles to pass through barriers probabilistically", isCorrect: true, explanation: "Correct. Tunneling lets particles cross barriers with a probability set by the barrier and the particle's quantum state."),
+                ScienceChoice(id: "b", text: "It lets large objects walk through walls on command", isCorrect: false, explanation: "Tunneling is important at tiny scales. For large everyday objects, the probability is effectively zero."),
+                ScienceChoice(id: "c", text: "It proves energy is never conserved", isCorrect: false, explanation: "Quantum tunneling does not break energy conservation. It changes how barriers and wavefunctions are understood."),
+                ScienceChoice(id: "d", text: "It only happens in science fiction", isCorrect: false, explanation: "Tunneling is real and used to explain alpha decay, scanning tunneling microscopes, and behavior in some electronic devices.")
+            ],
+            funFact: "Scanning tunneling microscopes use tunneling current to image surfaces with atomic-scale detail.",
+            field: "Quantum Technology"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [ScienceChallenge] {
         switch worldId {
         case "space-exploration": return spaceExplorationChallenges
+        case "quantum-realm": return quantumRealmChallenges
         default: return []
         }
     }

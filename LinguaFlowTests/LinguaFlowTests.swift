@@ -224,6 +224,16 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "medieval-04" && $0.historicalFact.contains("Statute of Labourers") })
         XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "medieval-03" })
     }
+
+    func testQuantumRealmChallengesLoadedAsGroundedScienceCampaign() {
+        let challenges = ScienceData.challenges(for: "quantum-realm")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "quantum-01")
+        XCTAssertEqual(challenges.first?.field, "Quantum Origins")
+        XCTAssertTrue(challenges.first?.question.contains("Planck") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "quantum-04" && $0.funFact.contains("Scanning tunneling microscopes") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
     
     func testWorldUnlockRequirement() {
         let unlocked = PlayableWorld(id: "test", name: "Test", emoji: "🧪", era: "Now", description: "Test", unlockRequirement: .none)
@@ -333,6 +343,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.encounter.title, "Norman Conquest · 1066 CE")
             XCTAssertTrue(spotlight.encounter.context.contains("William of Normandy"))
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesQuantumRealmAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.xp = 780
+            var progress = store.stats.progress(for: .science)
+            progress.currentWorldId = "quantum-realm"
+            progress.completedChallengeIds = ["quantum-01"]
+            store.stats.updateProgress(for: .science, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Quantum Realm Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🔬 Science · 1900 – Present")
+            XCTAssertEqual(spotlight.encounter.title, "Photons · 1905")
+            XCTAssertTrue(spotlight.encounter.context.contains("photoelectric effect"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextScienceChallenge?.id, "quantum-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "quantum-04" && $0.worldName == "Quantum Realm" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
