@@ -830,9 +830,73 @@ enum MathData {
         )
     ]
 
+    static let probabilityCasinoChallenges: [MathChallenge] = [
+        MathChallenge(
+            id: "math-probability-01",
+            worldId: "probability-casino",
+            domain: "Expected Value",
+            question: "A game pays 12 chips on a win, but you win only 1 time in 6. It costs 3 chips to play. Is the game fair?",
+            context: "The table is bright, loud, and designed to make the jackpot feel close. Ignore the lights. Compare the average payout with the entry cost.",
+            choices: [
+                MathChoice(id: "a", text: "No, the expected payout is 2 chips, below the 3-chip cost", isCorrect: true, explanation: "Correct. 12 x 1/6 = 2 chips on average, so paying 3 chips loses 1 chip per play over time."),
+                MathChoice(id: "b", text: "Yes, because 12 is bigger than 3", isCorrect: false, explanation: "The prize is bigger than the cost, but it happens rarely. Probability must be included."),
+                MathChoice(id: "c", text: "Yes, because every sixth play must win", isCorrect: false, explanation: "A 1-in-6 chance does not guarantee one win in each block of six. Random results can cluster."),
+                MathChoice(id: "d", text: "No, because winning is impossible", isCorrect: false, explanation: "Winning is possible. The problem is that the average return is lower than the cost.")
+            ],
+            patternClue: "Expected value = payout x probability, then compare it with cost.",
+            ruleExplanation: "Expected value is the long-run average result. A positive-looking jackpot can still be a bad bet when the probability is low."
+        ),
+        MathChallenge(
+            id: "math-probability-02",
+            worldId: "probability-casino",
+            domain: "Independent Events",
+            question: "A fair coin lands heads five times in a row. What is the chance the next flip is heads?",
+            context: "The dealer says tails is due. The crowd nods. Your job is to separate memory from math.",
+            choices: [
+                MathChoice(id: "a", text: "1/2", isCorrect: true, explanation: "Correct. For a fair coin, each flip is independent. Previous heads do not change the next flip."),
+                MathChoice(id: "b", text: "Almost 0, because heads already happened too much", isCorrect: false, explanation: "That is the gambler's fallacy. Past independent flips do not force balance on the next flip."),
+                MathChoice(id: "c", text: "5/6", isCorrect: false, explanation: "The streak length is not the numerator of the next-flip chance."),
+                MathChoice(id: "d", text: "1/6", isCorrect: false, explanation: "There are only two equally likely coin outcomes, not six.")
+            ],
+            patternClue: "Ask whether the next event remembers the previous event.",
+            ruleExplanation: "Independent events do not affect each other. A fair coin has a 1/2 chance of heads on every flip, even after a long streak."
+        ),
+        MathChallenge(
+            id: "math-probability-03",
+            worldId: "probability-casino",
+            domain: "Conditional Probability",
+            question: "A bag has 3 red gems and 2 blue gems. You draw one red gem and do not replace it. What is the chance the next gem is red?",
+            context: "The vault removes each gem after it is drawn. The second draw depends on what happened first.",
+            choices: [
+                MathChoice(id: "a", text: "2/4", isCorrect: true, explanation: "Correct. After one red is removed, 2 red gems remain out of 4 total gems."),
+                MathChoice(id: "b", text: "3/5", isCorrect: false, explanation: "That was the chance before drawing. The bag changed after the first red gem was removed."),
+                MathChoice(id: "c", text: "1/5", isCorrect: false, explanation: "Only one gem was removed, and two red gems still remain."),
+                MathChoice(id: "d", text: "0", isCorrect: false, explanation: "Red is still possible because the bag started with three red gems.")
+            ],
+            patternClue: "Update the counts after the first draw.",
+            ruleExplanation: "Without replacement, probabilities change because the sample space changes. Conditional probability uses the information you already have."
+        ),
+        MathChallenge(
+            id: "math-probability-04",
+            worldId: "probability-casino",
+            domain: "Risk",
+            question: "Two offers have the same average payout: a guaranteed 5 chips, or a 50% chance at 10 chips and 50% chance at 0. What differs?",
+            context: "Both offers average to 5 chips, but one keeps your mission stable and the other can leave you empty.",
+            choices: [
+                MathChoice(id: "a", text: "Risk and variance", isCorrect: true, explanation: "Correct. The average payout is the same, but the second option has more spread and more downside risk."),
+                MathChoice(id: "b", text: "The guaranteed offer has no value", isCorrect: false, explanation: "A guaranteed 5 chips has an expected value of 5 and no payout variance."),
+                MathChoice(id: "c", text: "The risky offer must pay 10 every other turn", isCorrect: false, explanation: "A 50% chance does not force a perfect alternating pattern."),
+                MathChoice(id: "d", text: "Nothing at all differs", isCorrect: false, explanation: "Expected value is the same, but the possible outcomes and emotional/business risk are different.")
+            ],
+            patternClue: "Same average does not mean same ride.",
+            ruleExplanation: "Variance describes spread around the average. Decisions often need both expected value and risk, especially when losses matter."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [MathChallenge] {
         switch worldId {
         case "logic-gates": return logicGateChallenges
+        case "probability-casino": return probabilityCasinoChallenges
         default: return []
         }
     }

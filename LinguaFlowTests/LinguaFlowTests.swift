@@ -1323,6 +1323,38 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(doubling?.choices.contains { $0.isCorrect && $0.text == "48" } ?? false)
     }
 
+    func testProbabilityCasinoChallengesLoadedAsGroundedMathCampaign() {
+        let challenges = MathData.challenges(for: "probability-casino")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "math-probability-01")
+        XCTAssertEqual(challenges.first?.domain, "Expected Value")
+        XCTAssertTrue(challenges.first?.question.contains("fair") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "math-probability-04" && $0.ruleExplanation.contains("Variance") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "probability-casino" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testCampaignSpotlightUsesProbabilityCasinoAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.xp = 450
+            var progress = store.stats.progress(for: .math)
+            progress.currentWorldId = "probability-casino"
+            progress.completedChallengeIds = ["math-probability-01"]
+            store.stats.updateProgress(for: .math, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "Probability Casino Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🔢 Math · Chance")
+            XCTAssertEqual(spotlight.encounter.title, "Independent Events Gate")
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextMathChallenge?.id, "math-probability-02")
+            XCTAssertTrue(store.stats.knowledgeCodex.entries.contains { $0.id == "math-probability-01" && $0.isUnlocked && $0.body.contains("Expected value") })
+        }
+    }
+
     func testMathChallengeScoring() async {
         await MainActor.run {
             let store = AppStore()
