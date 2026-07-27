@@ -1477,6 +1477,39 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(discovery?.choices.contains { $0.isCorrect && $0.text.contains("Interview") } ?? false)
     }
 
+    func testWallStreetDeskChallengesLoadedAsMarketCampaign() {
+        let challenges = BusinessData.challenges(for: "wall-street-desk")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "business-wallstreet-01")
+        XCTAssertEqual(challenges.first?.domain, "Diversification")
+        XCTAssertTrue(challenges.first?.marketSignal.contains("concentration risk") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "business-wallstreet-04" && $0.lesson.contains("Risk management") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "wall-street-desk" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testCampaignSpotlightUsesWallStreetDeskAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .business
+            store.stats.xp = 600
+            var progress = store.stats.progress(for: .business)
+            progress.currentWorldId = "wall-street-desk"
+            progress.completedChallengeIds = ["business-wallstreet-01"]
+            store.stats.updateProgress(for: .business, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "Wall Street Desk Campaign")
+            XCTAssertEqual(spotlight.subtitle, "📈 Business · Markets")
+            XCTAssertEqual(spotlight.encounter.title, "Liquidity Decision")
+            XCTAssertTrue(spotlight.encounter.clue.contains("shallow order book"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextBusinessChallenge?.id, "business-wallstreet-02")
+            XCTAssertTrue(store.stats.knowledgeCodex.entries.contains { $0.id == "business-wallstreet-01" && $0.worldName == "Wall Street Desk" })
+        }
+    }
+
     func testBusinessChallengeScoring() async {
         await MainActor.run {
             let store = AppStore()

@@ -1076,9 +1076,73 @@ enum BusinessData {
         )
     ]
 
+    static let wallStreetDeskChallenges: [BusinessChallenge] = [
+        BusinessChallenge(
+            id: "business-wallstreet-01",
+            worldId: "wall-street-desk",
+            domain: "Diversification",
+            question: "A trader wants to put the whole portfolio into one hot stock after a viral earnings clip. What is the sharper move?",
+            context: "The stock may keep rising, but the desk has limited capital and one bad headline could wipe out months of progress.",
+            choices: [
+                BusinessChoice(id: "a", text: "Size the position and keep exposure diversified", isCorrect: true, explanation: "Correct. Position sizing and diversification reduce single-company risk while still allowing upside."),
+                BusinessChoice(id: "b", text: "Go all-in because the clip sounds confident", isCorrect: false, explanation: "Confidence is not a risk control. One concentrated bet can dominate the whole outcome."),
+                BusinessChoice(id: "c", text: "Ignore all financial statements and follow comments", isCorrect: false, explanation: "Comments can reveal sentiment, but they are weak evidence without fundamentals, valuation, and risk context."),
+                BusinessChoice(id: "d", text: "Short every competitor immediately", isCorrect: false, explanation: "A strong company does not automatically make every competitor a good short.")
+            ],
+            marketSignal: "High excitement, single-name concentration risk, limited capital.",
+            lesson: "Diversification is not about avoiding conviction. It is about surviving uncertainty when any one thesis can be wrong."
+        ),
+        BusinessChallenge(
+            id: "business-wallstreet-02",
+            worldId: "wall-street-desk",
+            domain: "Liquidity",
+            question: "A fund owns a thinly traded asset that looks cheap on paper. What hidden risk matters most?",
+            context: "The screen price looks attractive, but only a small number of buyers trade the asset each day.",
+            choices: [
+                BusinessChoice(id: "a", text: "You may not be able to exit near the quoted price", isCorrect: true, explanation: "Correct. Low liquidity can turn a paper gain into a bad exit when size meets a shallow market."),
+                BusinessChoice(id: "b", text: "Liquidity means the asset is guaranteed to rise", isCorrect: false, explanation: "Liquidity describes how easily something trades, not whether its price will rise."),
+                BusinessChoice(id: "c", text: "The quote removes all risk", isCorrect: false, explanation: "A quote is not a promise that a large order can trade there."),
+                BusinessChoice(id: "d", text: "Thin markets always have zero value", isCorrect: false, explanation: "Illiquid assets can be valuable, but they need a margin of safety and exit plan.")
+            ],
+            marketSignal: "Cheap valuation, shallow order book, uncertain exit path.",
+            lesson: "Liquidity is part of risk. The price you see is less useful if you cannot actually trade meaningful size at that price."
+        ),
+        BusinessChallenge(
+            id: "business-wallstreet-03",
+            worldId: "wall-street-desk",
+            domain: "Incentives",
+            question: "A broker pushes a complex product with a large upfront commission. What should the investor ask first?",
+            context: "The brochure promises protection and upside, but the fee structure is hard to read and the salesperson is rushing the decision.",
+            choices: [
+                BusinessChoice(id: "a", text: "How is the seller paid, and what fees reduce my return?", isCorrect: true, explanation: "Correct. Incentives and fees can explain why a product is being pushed and how much return leaks away."),
+                BusinessChoice(id: "b", text: "Can I sign before reading the documents?", isCorrect: false, explanation: "Complexity plus urgency is a warning sign. Slow down before committing capital."),
+                BusinessChoice(id: "c", text: "Does the product have the longest name?", isCorrect: false, explanation: "A sophisticated name says little about suitability or cost."),
+                BusinessChoice(id: "d", text: "Can the broker promise no losses forever?", isCorrect: false, explanation: "Guaranteed language needs careful scrutiny. Risks often move into fees, lockups, credit exposure, or capped upside.")
+            ],
+            marketSignal: "Complex payoff, rushed sale, high commission.",
+            lesson: "In finance, incentives shape behavior. Before trusting advice, understand who gets paid, when, and from which pocket."
+        ),
+        BusinessChallenge(
+            id: "business-wallstreet-04",
+            worldId: "wall-street-desk",
+            domain: "Risk Management",
+            question: "Your trade thesis is still possible, but new evidence weakens it. What should a disciplined desk do?",
+            context: "The original plan had a stop level and a reason to exit. Now the market is moving against you and the news contradicts your base case.",
+            choices: [
+                BusinessChoice(id: "a", text: "Recheck the thesis, reduce or exit if the reason for the trade broke", isCorrect: true, explanation: "Correct. A trade is not a loyalty test. When the evidence changes, risk should change too."),
+                BusinessChoice(id: "b", text: "Double the position to avoid admitting a mistake", isCorrect: false, explanation: "Averaging down without a valid thesis can turn a manageable loss into a portfolio problem."),
+                BusinessChoice(id: "c", text: "Delete the plan so the loss feels temporary", isCorrect: false, explanation: "Removing the plan removes discipline, not risk."),
+                BusinessChoice(id: "d", text: "Only look at opinions that agree with you", isCorrect: false, explanation: "Confirmation bias makes bad decisions feel comfortable while the risk keeps growing.")
+            ],
+            marketSignal: "Thesis weakening, adverse move, prewritten exit rules.",
+            lesson: "Risk management turns learning into action. The question is not whether you were wrong, but how fast you update when facts change."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [BusinessChallenge] {
         switch worldId {
         case "founder-guild": return founderGuildChallenges
+        case "wall-street-desk": return wallStreetDeskChallenges
         default: return []
         }
     }
