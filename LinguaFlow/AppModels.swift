@@ -1231,9 +1231,73 @@ enum HealthData {
         )
     ]
 
+    static let resilienceGymChallenges: [HealthChallenge] = [
+        HealthChallenge(
+            id: "health-resilience-01",
+            worldId: "resilience-gym",
+            domain: "Recovery",
+            question: "You wake up after a short night and have a demanding day. What is the strongest recovery plan?",
+            context: "You cannot erase the bad night. The goal is to protect energy without creating another late-night crash.",
+            choices: [
+                HealthChoice(id: "a", text: "Get morning light, keep caffeine early, and plan a slightly easier evening", isCorrect: true, explanation: "Correct. Light helps anchor the body clock, early caffeine limits sleep disruption, and a lighter evening protects recovery."),
+                HealthChoice(id: "b", text: "Drink caffeine all afternoon to force normal output", isCorrect: false, explanation: "That can postpone tiredness and make the next sleep window harder."),
+                HealthChoice(id: "c", text: "Cancel every useful habit because the day is ruined", isCorrect: false, explanation: "A rough day still benefits from small anchors like meals, movement, and a realistic bedtime."),
+                HealthChoice(id: "d", text: "Take a late long nap and start serious work at midnight", isCorrect: false, explanation: "Long late naps can reduce sleep pressure and shift the problem into the next day.")
+            ],
+            bodySignal: "Sleep debt, heavy eyes, fragile focus, high temptation for late caffeine.",
+            habitLesson: "Resilience is often a recovery adjustment, not heroic output. Morning light, early caffeine limits, lighter plans, and consistent sleep cues help the next night recover."
+        ),
+        HealthChallenge(
+            id: "health-resilience-02",
+            worldId: "resilience-gym",
+            domain: "Focus",
+            question: "Your attention keeps jumping between tabs. What move makes the next 25 minutes most likely to work?",
+            context: "The task is important but fuzzy. You feel busy without moving the outcome forward.",
+            choices: [
+                HealthChoice(id: "a", text: "Write one tiny finish line, close extra tabs, and start a timed focus block", isCorrect: true, explanation: "Correct. A visible finish line plus fewer cues gives attention a smaller target to defend."),
+                HealthChoice(id: "b", text: "Keep every tab open so you do not miss anything", isCorrect: false, explanation: "More open loops compete for attention and make the important task harder to start."),
+                HealthChoice(id: "c", text: "Wait until motivation appears naturally", isCorrect: false, explanation: "Motivation often follows a clear first action, not the other way around."),
+                HealthChoice(id: "d", text: "Switch tasks whenever the current one feels uncomfortable", isCorrect: false, explanation: "That trains escape from friction instead of building focus tolerance.")
+            ],
+            bodySignal: "Restless hands, scattered tabs, vague task, no clear finish line.",
+            habitLesson: "Focus improves when the environment has fewer cues and the next action is concrete. Timed blocks work best with a small finish line, not a vague intention."
+        ),
+        HealthChallenge(
+            id: "health-resilience-03",
+            worldId: "resilience-gym",
+            domain: "Emotion Regulation",
+            question: "A criticism lands hard and you want to fire back immediately. What response protects the relationship and your judgment?",
+            context: "Your body is already mobilized. The message may be unfair, but reacting at peak arousal usually narrows thinking.",
+            choices: [
+                HealthChoice(id: "a", text: "Pause, name the feeling, draft a reply, and send only after rereading", isCorrect: true, explanation: "Correct. Naming the feeling and delaying the send creates space for a response instead of a reflex."),
+                HealthChoice(id: "b", text: "Reply instantly with the sharpest comeback", isCorrect: false, explanation: "A quick comeback can feel satisfying while making the real problem harder to solve."),
+                HealthChoice(id: "c", text: "Pretend you feel nothing and ignore the issue forever", isCorrect: false, explanation: "Suppression can delay the reaction, but it does not resolve the need for a clear response."),
+                HealthChoice(id: "d", text: "Read the message repeatedly until you are more angry", isCorrect: false, explanation: "Replaying the trigger usually increases arousal and reduces perspective.")
+            ],
+            bodySignal: "Tense chest, urge to reply, narrow attention, defensive thoughts.",
+            habitLesson: "Emotion regulation is not pretending. It means noticing arousal, creating a delay, and choosing a response that still fits your values after the intensity drops."
+        ),
+        HealthChallenge(
+            id: "health-resilience-04",
+            worldId: "resilience-gym",
+            domain: "Sustainable Progress",
+            question: "You miss a habit two days in a row. What is the best way to restart without turning it into a shame spiral?",
+            context: "The original plan was too large for a busy week. You still care about the habit, but the streak is gone.",
+            choices: [
+                HealthChoice(id: "a", text: "Shrink the habit to a two-minute version and restart today", isCorrect: true, explanation: "Correct. A small restart keeps identity and momentum alive while you rebuild capacity."),
+                HealthChoice(id: "b", text: "Double the habit tomorrow as punishment", isCorrect: false, explanation: "Punishment makes the habit heavier and can increase avoidance."),
+                HealthChoice(id: "c", text: "Quit because one missed streak proves failure", isCorrect: false, explanation: "Misses are data. The plan needs resizing, not a verdict on you."),
+                HealthChoice(id: "d", text: "Wait for a perfect Monday with no stress", isCorrect: false, explanation: "Real habits need imperfect restarts. Waiting for perfect conditions delays learning.")
+            ],
+            bodySignal: "Avoidance, guilt, all-or-nothing thinking, plan too large for the week.",
+            habitLesson: "A resilient habit has a restart protocol. Shrink the action, do it today, and use the miss as information about friction and capacity."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [HealthChallenge] {
         switch worldId {
         case "energy-clinic": return energyClinicChallenges
+        case "resilience-gym": return resilienceGymChallenges
         default: return []
         }
     }

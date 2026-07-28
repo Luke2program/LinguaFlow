@@ -1571,6 +1571,41 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(sleep?.choices.contains { $0.isCorrect && $0.text.contains("Dim lights") } ?? false)
     }
 
+    func testResilienceGymChallengesLoadedAsPracticalHealthCampaign() {
+        let challenges = HealthData.challenges(for: "resilience-gym")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "health-resilience-01")
+        XCTAssertEqual(challenges.first?.domain, "Recovery")
+        XCTAssertTrue(challenges.first?.question.contains("short night") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "health-resilience-03" && $0.habitLesson.contains("Emotion regulation") })
+        XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.count == 4 })
+        XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.contains { choice in choice.isCorrect } })
+    }
+
+    func testCampaignSpotlightUsesResilienceGymAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 540
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "resilience-gym"
+            progress.completedChallengeIds = ["health-resilience-01"]
+            store.stats.updateProgress(for: .health, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Resilience Gym Campaign")
+            XCTAssertEqual(spotlight.subtitle, "💚 Health · Mind and recovery")
+            XCTAssertEqual(spotlight.encounter.title, "Focus Habit")
+            XCTAssertTrue(spotlight.encounter.context.contains("attention keeps jumping"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextHealthChallenge?.id, "health-resilience-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "health-resilience-04" && $0.worldName == "Resilience Gym" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
     func testHealthChallengeScoring() async {
         await MainActor.run {
             let store = AppStore()
