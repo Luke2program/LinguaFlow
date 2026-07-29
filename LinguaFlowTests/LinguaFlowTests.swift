@@ -1416,6 +1416,43 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(ramen?.choices.contains { $0.isCorrect && $0.text.contains("Slurp") } ?? false)
     }
 
+    func testFestivalRoadsChallengesLoadedAsPlayableCultureCampaign() {
+        let challenges = CultureData.challenges(for: "festival-roads")
+
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "culture-festival-01")
+        XCTAssertEqual(challenges.first?.region, "Día de Muertos · Mexico")
+        XCTAssertTrue(challenges.first?.question.contains("ofrenda") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "culture-festival-04" && $0.culturalNote.contains("community art") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "festival-roads" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 && $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testCampaignSpotlightUsesFestivalRoadsAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .culture
+            store.stats.xp = 480
+            var progress = store.stats.progress(for: .culture)
+            progress.currentWorldId = "festival-roads"
+            progress.completedChallengeIds = ["culture-festival-01"]
+            store.stats.updateProgress(for: .culture, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Festival Roads Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🎭 Culture · Seasonal cycles")
+            XCTAssertEqual(spotlight.encounter.title, "Songkran · Thailand Scene")
+            XCTAssertTrue(spotlight.encounter.context.contains("Songkran"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextCultureChallenge?.id, "culture-festival-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-festival-04" && $0.worldName == "Festival Roads" })
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-festival-01" && $0.isUnlocked && $0.body.contains("Día de Muertos") })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
     func testCultureChallengeScoring() async {
         await MainActor.run {
             let store = AppStore()

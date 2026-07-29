@@ -985,9 +985,73 @@ enum CultureData {
         )
     ]
 
+    static let festivalRoadsChallenges: [CultureChallenge] = [
+        CultureChallenge(
+            id: "culture-festival-01",
+            worldId: "festival-roads",
+            region: "Día de Muertos · Mexico",
+            question: "A family invites you to visit their ofrenda. What is the most respectful first move?",
+            context: "Candles, marigolds, photos, food, and personal objects are arranged for relatives who have died. The space is colorful, but it is also intimate family memory.",
+            choices: [
+                CultureChoice(id: "a", text: "Ask before taking photos and listen to the story behind the altar", isCorrect: true, explanation: "Correct. Ofrendas are acts of remembrance. Asking first and listening treats the altar as a family memorial, not just decoration."),
+                CultureChoice(id: "b", text: "Move objects around to make the altar look better", isCorrect: false, explanation: "The objects were placed intentionally. Rearranging them would be intrusive and disrespectful."),
+                CultureChoice(id: "c", text: "Call it a Mexican Halloween party", isCorrect: false, explanation: "That flattens a distinct tradition. Día de Muertos centers remembrance, return, food, and family bonds."),
+                CultureChoice(id: "d", text: "Take food from the altar without asking", isCorrect: false, explanation: "Offerings have meaning. You should wait for the host to explain what can be shared.")
+            ],
+            traditionClue: "Bright colors can still belong to a serious act of remembrance.",
+            culturalNote: "Día de Muertos blends Indigenous and Catholic elements and focuses on welcoming the dead through memory, food, scent, and family presence."
+        ),
+        CultureChallenge(
+            id: "culture-festival-02",
+            worldId: "festival-roads",
+            region: "Songkran · Thailand",
+            question: "During Songkran, why should you avoid splashing monks, elders, or people who clearly opt out?",
+            context: "The Thai New Year is famous for public water fights, but it also includes temple visits, family respect, and ritual water pouring for blessing and renewal.",
+            choices: [
+                CultureChoice(id: "a", text: "Because the festival includes respect rituals, not only street play", isCorrect: true, explanation: "Correct. Water can symbolize cleansing and blessing, but consent and respect matter, especially around elders, monks, and religious spaces."),
+                CultureChoice(id: "b", text: "Because water has no cultural meaning during Songkran", isCorrect: false, explanation: "Water is central to Songkran. The issue is context: playful splashing is not appropriate everywhere or for everyone."),
+                CultureChoice(id: "c", text: "Because only tourists participate in water events", isCorrect: false, explanation: "Many locals participate too. The respectful move is to read the setting and the person's consent."),
+                CultureChoice(id: "d", text: "Because the festival is only held indoors", isCorrect: false, explanation: "Songkran includes public outdoor celebrations as well as family and temple practices.")
+            ],
+            traditionClue: "A playful ritual still has boundaries.",
+            culturalNote: "Songkran marks the Thai New Year. Water rituals connect cleansing, blessing, family respect, and public celebration."
+        ),
+        CultureChallenge(
+            id: "culture-festival-03",
+            worldId: "festival-roads",
+            region: "Diwali · India",
+            question: "A neighbor invites you for Diwali. Which interpretation best captures the lamps, sweets, and visits?",
+            context: "Homes are cleaned, lamps are lit, sweets are shared, and families may worship Lakshmi. Customs vary by region and religion across South Asia and the diaspora.",
+            choices: [
+                CultureChoice(id: "a", text: "Light overcoming darkness, renewal, hospitality, and shared prosperity", isCorrect: true, explanation: "Correct. Diwali is often framed around light, renewal, good fortune, family, and community, though meanings vary across traditions."),
+                CultureChoice(id: "b", text: "A single identical ritual practiced the same way everywhere", isCorrect: false, explanation: "Diwali practices vary widely by region, religion, language, and family tradition."),
+                CultureChoice(id: "c", text: "A private event where visitors should never bring greetings", isCorrect: false, explanation: "Visits, greetings, and sweets are common in many Diwali settings, though hosts' customs should guide you."),
+                CultureChoice(id: "d", text: "Only a fireworks competition", isCorrect: false, explanation: "Fireworks can appear, but reducing Diwali to noise misses its themes of light, worship, family, and renewal.")
+            ],
+            traditionClue: "A lamp can be ritual, welcome, and symbol at once.",
+            culturalNote: "Diwali is celebrated by Hindus, Jains, Sikhs, and others in different ways; good cultural learning notices variation instead of forcing one script."
+        ),
+        CultureChallenge(
+            id: "culture-festival-04",
+            worldId: "festival-roads",
+            region: "Carnival · Brazil",
+            question: "At a samba school parade in Rio, what are you actually watching besides costumes and music?",
+            context: "Samba schools prepare a theme, floats, choreography, percussion, costumes, and community labor for months before entering the Sambadrome competition.",
+            choices: [
+                CultureChoice(id: "a", text: "A community-built performance with story, rhythm, craft, and competition", isCorrect: true, explanation: "Correct. Carnival parades are staged by organized samba schools whose performances combine neighborhood identity, artistic labor, music, and judged storytelling."),
+                CultureChoice(id: "b", text: "A spontaneous parade with no planning or structure", isCorrect: false, explanation: "Samba school parades are highly planned and judged across categories such as theme, harmony, costumes, floats, and percussion."),
+                CultureChoice(id: "c", text: "A tradition that exists only for foreign visitors", isCorrect: false, explanation: "Tourism is visible, but samba schools are rooted in local communities, histories, and identities."),
+                CultureChoice(id: "d", text: "A ceremony where silence is the main sign of respect", isCorrect: false, explanation: "Rhythm, singing, movement, and crowd energy are central; respect means understanding the performance and community behind it.")
+            ],
+            traditionClue: "Follow the drumline, then look for the story it carries.",
+            culturalNote: "Brazilian Carnival includes many regional forms. Rio's samba school parade is both spectacle and organized community art."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [CultureChallenge] {
         switch worldId {
         case "heritage-kitchens": return heritageKitchenChallenges
+        case "festival-roads": return festivalRoadsChallenges
         default: return []
         }
     }
