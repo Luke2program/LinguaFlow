@@ -345,18 +345,78 @@ enum HistoryData {
             sourceCitation: "Boccaccio, Decameron; Statute of Labourers 1351"
         )
     ]
+
+    static let ageDiscoveryChallenges: [HistoryChallenge] = [
+        HistoryChallenge(
+            id: "discovery-01",
+            worldId: "age-discovery",
+            era: "Atlantic Navigation",
+            year: 1492,
+            question: "Columbus reaches Caribbean islands while seeking Asia. What should a careful explorer report?",
+            context: "In 1492, Christopher Columbus crossed the Atlantic under the Spanish crown. He did not reach Asia; he landed in the Caribbean, where Indigenous societies already had long histories, trade, farming, and political life.",
+            choices: [
+                HistoryChoice(id: "a", text: "Claim you reached Asia and ignore the people already there", consequence: "You please sponsors in the short term, but your report erases real societies and spreads a false map of the world.", isCorrect: false, historicalOutcome: "Columbus insisted he had reached lands near Asia. European naming and conquest often erased Indigenous geography, sovereignty, and knowledge."),
+                HistoryChoice(id: "b", text: "Record a new Atlantic encounter and describe Indigenous societies accurately", consequence: "Your chart becomes more truthful: this is not an empty world, but a contact zone with people, power, and consequences.", isCorrect: true, historicalOutcome: "The voyages opened sustained contact between Europe, Africa, and the Americas, reshaping global history while bringing conquest, disease, forced labor, and resistance.")
+            ],
+            historicalFact: "The Taino and other Caribbean peoples had complex communities before European arrival; the encounter was not a discovery of empty land.",
+            sourceCitation: "Columbus, Journal of the First Voyage; Las Casas, History of the Indies"
+        ),
+        HistoryChallenge(
+            id: "discovery-02",
+            worldId: "age-discovery",
+            era: "Indian Ocean Trade",
+            year: 1498,
+            question: "Vasco da Gama reaches Calicut by sea. What does this route change?",
+            context: "Portuguese ships rounded the Cape of Good Hope and entered the Indian Ocean, where Arab, Persian, Indian, Malay, Chinese, and East African traders were already connected by monsoon routes.",
+            choices: [
+                HistoryChoice(id: "a", text: "It enters an existing trade network and militarizes parts of it", consequence: "You understand the world map better: Portugal did not create Indian Ocean trade, but tried to force advantage with ships, cannon, forts, and licenses.", isCorrect: true, historicalOutcome: "The Portuguese Estado da India built fortified posts and used naval power to redirect some spice trade, though older networks continued and adapted."),
+                HistoryChoice(id: "b", text: "It invents ocean trade from scratch", consequence: "That misses centuries of movement. Merchants, pilgrims, sailors, and scholars had crossed the Indian Ocean long before Portuguese arrival.", isCorrect: false, historicalOutcome: "Indian Ocean commerce was ancient and sophisticated. European sea routes changed power balances but did not create the network.")
+            ],
+            historicalFact: "Monsoon wind patterns helped connect East Africa, Arabia, India, and Southeast Asia across regular sailing seasons.",
+            sourceCitation: "The Book of Duarte Barbosa; Subrahmanyam, The Career and Legend of Vasco da Gama"
+        ),
+        HistoryChallenge(
+            id: "discovery-03",
+            worldId: "age-discovery",
+            era: "Conquest of Mexico",
+            year: 1521,
+            question: "Tenochtitlan falls after siege, alliance, and disease. What best explains the Spanish victory?",
+            context: "Hernan Cortes did not conquer the Mexica Empire alone. Indigenous allies, especially Tlaxcalans, played decisive roles, while smallpox devastated communities with no prior immunity.",
+            choices: [
+                HistoryChoice(id: "a", text: "A handful of Spaniards defeated an empire by themselves", consequence: "That myth hides the real forces: local rivalries, alliances, epidemic disease, siege warfare, and Indigenous strategy.", isCorrect: false, historicalOutcome: "Spanish accounts often exaggerated European superiority. Modern histories emphasize Indigenous allies and the catastrophic impact of disease."),
+                HistoryChoice(id: "b", text: "Alliances, epidemic disease, and siege conditions broke Mexica power", consequence: "You see the conquest as a collision of politics and biology, not a simple duel between two armies.", isCorrect: true, historicalOutcome: "Tenochtitlan fell in 1521 after months of siege. Indigenous allies supplied large forces, and smallpox severely weakened the city.")
+            ],
+            historicalFact: "Tlaxcalan and other Indigenous allies were essential to Cortes's campaign and shaped the early colonial order afterward.",
+            sourceCitation: "Bernal Diaz, True History of the Conquest of New Spain; Restall, Seven Myths of the Spanish Conquest"
+        ),
+        HistoryChallenge(
+            id: "discovery-04",
+            worldId: "age-discovery",
+            era: "First Circumnavigation",
+            year: 1522,
+            question: "Only one ship of Magellan's expedition returns. What did the voyage prove?",
+            context: "Magellan died in the Philippines in 1521, but the Victoria returned to Spain in 1522 under Juan Sebastian Elcano. The expedition showed the planet could be circumnavigated by sea, at enormous human cost.",
+            choices: [
+                HistoryChoice(id: "a", text: "The globe was smaller and easier to cross than expected", consequence: "The Pacific proves otherwise. Hunger, scurvy, storms, mutiny, and violence reveal the scale of the ocean world.", isCorrect: false, historicalOutcome: "The Pacific was far larger than many Europeans expected. The expedition suffered extreme losses before one ship returned."),
+                HistoryChoice(id: "b", text: "The Earth could be circled by sea, but global routes were dangerous and unequal", consequence: "You complete the map while remembering the cost: sailors died, island societies were pulled into conflict, and empires chased control.", isCorrect: true, historicalOutcome: "The Victoria's return completed the first circumnavigation, proving a continuous sea route around the globe and accelerating imperial competition.")
+            ],
+            historicalFact: "Of roughly 270 crew who began the expedition, only about 18 returned to Spain on the Victoria in 1522.",
+            sourceCitation: "Pigafetta, Account of the First Voyage Around the World"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [HistoryChallenge] {
         switch worldId {
         case "ancient-rome": return ancientRomeChallenges
         case "medieval-europe": return medievalEuropeChallenges
+        case "age-discovery": return ageDiscoveryChallenges
         default: return []
         }
     }
     
     static func allChallenges(for subject: Subject) -> [HistoryChallenge] {
         switch subject {
-        case .history: return ancientRomeChallenges + medievalEuropeChallenges
+        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges
         default: return []
         }
     }

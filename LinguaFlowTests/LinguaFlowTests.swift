@@ -225,6 +225,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "medieval-03" })
     }
 
+    func testAgeDiscoveryChallengesLoadedAsGroundedCampaign() {
+        let challenges = HistoryData.challenges(for: "age-discovery")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "discovery-01")
+        XCTAssertEqual(challenges.first?.year, 1492)
+        XCTAssertTrue(challenges.first?.context.contains("Indigenous societies") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "discovery-03" && $0.historicalFact.contains("Tlaxcalan") })
+        XCTAssertTrue(challenges.contains { $0.id == "discovery-04" && $0.sourceCitation.contains("Pigafetta") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+        XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "discovery-02" })
+    }
+
     func testQuantumRealmChallengesLoadedAsGroundedScienceCampaign() {
         let challenges = ScienceData.challenges(for: "quantum-realm")
         XCTAssertEqual(challenges.count, 4)
@@ -285,7 +297,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
         XCTAssertEqual(stats.atlasTotalWorldCount, 16)
         XCTAssertEqual(stats.atlasProgress, 8.0 / 16.0, accuracy: 0.001)
-        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/9 missions")
+        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/13 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
         XCTAssertEqual(stats.atlasNextTarget?.nextText, "25 XP to African Wonders")
@@ -343,6 +355,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.encounter.title, "Norman Conquest · 1066 CE")
             XCTAssertTrue(spotlight.encounter.context.contains("William of Normandy"))
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesAgeDiscoveryAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 1_050
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "age-discovery"
+            progress.completedChallengeIds = ["discovery-01"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Age of Discovery Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🏛️ History · 1400 – 1600 CE")
+            XCTAssertEqual(spotlight.encounter.title, "Indian Ocean Trade · 1498 CE")
+            XCTAssertTrue(spotlight.encounter.context.contains("Calicut"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextHistoryChallenge?.id, "discovery-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "discovery-04" && $0.worldName == "Age of Discovery" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
@@ -555,7 +591,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(league.standings.count, Subject.allCases.count)
             XCTAssertEqual(league.standings.first?.subject, .history)
             XCTAssertEqual(league.selectedStanding?.rank, 1)
-            XCTAssertEqual(league.selectedStanding?.detailText, "2/9 missions · 2/3 worlds")
+            XCTAssertEqual(league.selectedStanding?.detailText, "2/13 missions · 2/3 worlds")
             XCTAssertEqual(league.catchUpTarget?.subject, .languages)
             XCTAssertTrue(league.catchUpTitle.contains("Languages"))
             XCTAssertEqual(league.topThree.count, 3)
