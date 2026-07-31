@@ -246,6 +246,17 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "quantum-04" && $0.funFact.contains("Scanning tunneling microscopes") })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
     }
+
+    func testEarthSystemsChallengesLoadedAsGroundedScienceCampaign() {
+        let challenges = ScienceData.challenges(for: "earth-systems")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "earth-01")
+        XCTAssertEqual(challenges.first?.field, "Climate Physics")
+        XCTAssertTrue(challenges.first?.question.contains("greenhouse gases") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "earth-03" && $0.funFact.contains("carbon stores") })
+        XCTAssertTrue(challenges.contains { $0.id == "earth-04" && $0.field == "Ecology" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
     
     func testWorldUnlockRequirement() {
         let unlocked = PlayableWorld(id: "test", name: "Test", emoji: "🧪", era: "Now", description: "Test", unlockRequirement: .none)
@@ -295,8 +306,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 16)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 16.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 17)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 17.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/13 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -403,6 +414,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextScienceChallenge?.id, "quantum-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "quantum-04" && $0.worldName == "Quantum Realm" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesEarthSystemsAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.xp = 1_250
+            var progress = store.stats.progress(for: .science)
+            progress.currentWorldId = "earth-systems"
+            progress.completedChallengeIds = ["earth-01"]
+            store.stats.updateProgress(for: .science, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Earth Systems Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🔬 Science · Deep Time – Present")
+            XCTAssertEqual(spotlight.encounter.title, "Hydrology · Water Cycle")
+            XCTAssertTrue(spotlight.encounter.context.contains("warm ocean"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextScienceChallenge?.id, "earth-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "earth-04" && $0.worldName == "Earth Systems" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
@@ -706,9 +741,9 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 15)
+        XCTAssertEqual(stats.totalWorldRewardCount, 16)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 15.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 16.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
 
@@ -1184,9 +1219,10 @@ final class LinguaFlowTests: XCTestCase {
     
     func testScienceWorldsExist() {
         let scienceWorlds = Subject.science.worlds
-        XCTAssertGreaterThanOrEqual(scienceWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(scienceWorlds.count, 3)
         XCTAssertTrue(scienceWorlds.contains { $0.id == "space-exploration" })
         XCTAssertTrue(scienceWorlds.contains { $0.id == "quantum-realm" })
+        XCTAssertTrue(scienceWorlds.contains { $0.id == "earth-systems" && $0.unlockRequirement.xpRequired == 1200 })
     }
     
     func testSpaceExplorationChallengesLoaded() {

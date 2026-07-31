@@ -102,6 +102,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "space-exploration", name: "Space Frontiers", emoji: "🚀", era: "1957 – Present", description: "From Sputnik to Mars. Learn orbital mechanics and mission control.", unlockRequirement: .none),
                 PlayableWorld(id: "quantum-realm", name: "Quantum Realm", emoji: "⚛️", era: "1900 – Present", description: "Particles, waves, and spooky action at a distance.", unlockRequirement: .xpRequired(750)),
+                PlayableWorld(id: "earth-systems", name: "Earth Systems", emoji: "🌋", era: "Deep Time – Present", description: "Trace climate, water, carbon, and ecosystems as one living planetary machine.", unlockRequirement: .xpRequired(1200)),
             ]
         case .geography:
             return [
@@ -597,11 +598,75 @@ enum ScienceData {
             field: "Quantum Technology"
         )
     ]
+
+    static let earthSystemsChallenges: [ScienceChallenge] = [
+        ScienceChallenge(
+            id: "earth-01",
+            worldId: "earth-systems",
+            era: "Modern Climate",
+            question: "Why do greenhouse gases warm Earth's surface?",
+            context: "Sunlight reaches the ground, the surface releases heat as infrared radiation, and some gases absorb and re-emit part of that heat instead of letting it escape directly to space.",
+            choices: [
+                ScienceChoice(id: "a", text: "They absorb and re-emit infrared heat from Earth", isCorrect: true, explanation: "Correct. Greenhouse gases such as carbon dioxide, methane, and water vapor interact with outgoing infrared radiation, warming the lower atmosphere and surface."),
+                ScienceChoice(id: "b", text: "They block all sunlight before it reaches the ground", isCorrect: false, explanation: "Most sunlight still reaches the surface. The key greenhouse effect involves outgoing infrared heat."),
+                ScienceChoice(id: "c", text: "They create heat from nothing", isCorrect: false, explanation: "They do not create energy from nothing. They change how energy leaves the Earth system."),
+                ScienceChoice(id: "d", text: "They only matter at night", isCorrect: false, explanation: "The greenhouse effect operates continuously, though local temperature patterns also depend on sunlight, clouds, land, and oceans.")
+            ],
+            funFact: "Without the natural greenhouse effect, Earth's average surface temperature would be far below freezing; extra greenhouse gases strengthen that heat-trapping effect.",
+            field: "Climate Physics"
+        ),
+        ScienceChallenge(
+            id: "earth-02",
+            worldId: "earth-systems",
+            era: "Water Cycle",
+            question: "A warm ocean surface feeds a storm. Which process loads the air with water vapor?",
+            context: "The mission map shows sunlight over ocean, rising humid air, clouds, and heavy rain over land. The first move is water changing from liquid to gas.",
+            choices: [
+                ScienceChoice(id: "a", text: "Evaporation", isCorrect: true, explanation: "Correct. Evaporation moves liquid water from oceans, lakes, and soils into the atmosphere as vapor."),
+                ScienceChoice(id: "b", text: "Subduction", isCorrect: false, explanation: "Subduction is a plate tectonic process where one plate sinks beneath another."),
+                ScienceChoice(id: "c", text: "Photosynthesis", isCorrect: false, explanation: "Photosynthesis uses light energy to build sugars in plants and algae; it is not the main ocean-to-air water transfer."),
+                ScienceChoice(id: "d", text: "Magnetism", isCorrect: false, explanation: "Magnetism shapes compass behavior and Earth's magnetic field, not the basic water cycle step here.")
+            ],
+            funFact: "Most water vapor enters the atmosphere through evaporation from oceans, then later condenses into clouds and returns as precipitation.",
+            field: "Hydrology"
+        ),
+        ScienceChallenge(
+            id: "earth-03",
+            worldId: "earth-systems",
+            era: "Carbon Cycle",
+            question: "Why can cutting forests increase carbon dioxide in the atmosphere?",
+            context: "A forest stores carbon in trunks, roots, soils, and leaves. After clearing, stored carbon can be released by burning or decay, and fewer trees remain to absorb carbon dioxide through growth.",
+            choices: [
+                ScienceChoice(id: "a", text: "It releases stored carbon and reduces future uptake", isCorrect: true, explanation: "Correct. Deforestation can emit stored carbon and remove a living sink that would have taken up carbon dioxide."),
+                ScienceChoice(id: "b", text: "Trees are made only of water", isCorrect: false, explanation: "Trees contain lots of carbon-based biomass, including wood, roots, bark, and leaves."),
+                ScienceChoice(id: "c", text: "Soils cannot store carbon", isCorrect: false, explanation: "Soils can store large amounts of organic carbon, and land-use change can disturb those stores."),
+                ScienceChoice(id: "d", text: "Carbon dioxide disappears when plants are removed", isCorrect: false, explanation: "Removing plants usually reduces carbon uptake, not atmospheric carbon dioxide itself.")
+            ],
+            funFact: "Forests are both carbon stores and carbon sinks; whether a landscape absorbs or releases carbon depends on growth, disturbance, decay, fire, and land use.",
+            field: "Carbon Cycle"
+        ),
+        ScienceChallenge(
+            id: "earth-04",
+            worldId: "earth-systems",
+            era: "Ecosystems",
+            question: "What can happen when a keystone species is removed from an ecosystem?",
+            context: "The simulation removes one predator from a coastal food web. Prey populations shift, vegetation changes, and habitat structure begins to transform.",
+            choices: [
+                ScienceChoice(id: "a", text: "A cascade of changes can spread through the food web", isCorrect: true, explanation: "Correct. Keystone species have effects larger than their abundance, so losing one can trigger trophic cascades and habitat changes."),
+                ScienceChoice(id: "b", text: "Only that one species changes", isCorrect: false, explanation: "Species interact through predation, competition, shelter, pollination, and nutrient cycling, so one loss can affect many others."),
+                ScienceChoice(id: "c", text: "Every ecosystem instantly becomes more stable", isCorrect: false, explanation: "Removing a keystone species can destabilize ecosystems rather than strengthen them."),
+                ScienceChoice(id: "d", text: "Food webs stop needing energy", isCorrect: false, explanation: "Energy flow remains fundamental. The issue is how relationships and population pressures change.")
+            ],
+            funFact: "Sea otters are a classic keystone example: by eating sea urchins, they can help kelp forests persist in some coastal ecosystems.",
+            field: "Ecology"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [ScienceChallenge] {
         switch worldId {
         case "space-exploration": return spaceExplorationChallenges
         case "quantum-realm": return quantumRealmChallenges
+        case "earth-systems": return earthSystemsChallenges
         default: return []
         }
     }
