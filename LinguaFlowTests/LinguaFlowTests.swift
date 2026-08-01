@@ -200,9 +200,10 @@ final class LinguaFlowTests: XCTestCase {
     
     func testHistoryWorldsExist() {
         let historyWorlds = Subject.history.worlds
-        XCTAssertGreaterThanOrEqual(historyWorlds.count, 3)
+        XCTAssertGreaterThanOrEqual(historyWorlds.count, 4)
         XCTAssertTrue(historyWorlds.contains { $0.id == "ancient-rome" })
         XCTAssertTrue(historyWorlds.contains { $0.id == "medieval-europe" })
+        XCTAssertTrue(historyWorlds.contains { $0.id == "renaissance-cities" && $0.unlockRequirement.xpRequired == 1500 })
     }
     
     func testAncientRomeChallengesLoaded() {
@@ -235,6 +236,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "discovery-04" && $0.sourceCitation.contains("Pigafetta") })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
         XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "discovery-02" })
+    }
+
+    func testRenaissanceCitiesChallengesLoadedAsGroundedCampaign() {
+        let challenges = HistoryData.challenges(for: "renaissance-cities")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "renaissance-01")
+        XCTAssertEqual(challenges.first?.year, 1434)
+        XCTAssertTrue(challenges.first?.question.contains("Medici") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "renaissance-02" && $0.historicalFact.contains("incunabula") })
+        XCTAssertTrue(challenges.contains { $0.id == "renaissance-04" && $0.sourceCitation.contains("Copernicus") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+        XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "renaissance-03" })
     }
 
     func testQuantumRealmChallengesLoadedAsGroundedScienceCampaign() {
@@ -306,9 +319,9 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 17)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 17.0, accuracy: 0.001)
-        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/13 missions")
+        XCTAssertEqual(stats.atlasTotalWorldCount, 18)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 18.0, accuracy: 0.001)
+        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/17 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
         XCTAssertEqual(stats.atlasNextTarget?.nextText, "25 XP to African Wonders")
@@ -390,6 +403,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextHistoryChallenge?.id, "discovery-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "discovery-04" && $0.worldName == "Age of Discovery" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesRenaissanceCitiesAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 1_550
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "renaissance-cities"
+            progress.completedChallengeIds = ["renaissance-01"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Renaissance Cities Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🏛️ History · 1300 – 1600 CE")
+            XCTAssertEqual(spotlight.encounter.title, "Printing Press · 1455 CE")
+            XCTAssertTrue(spotlight.encounter.context.contains("movable type"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextHistoryChallenge?.id, "renaissance-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "renaissance-04" && $0.worldName == "Renaissance Cities" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
@@ -626,7 +663,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(league.standings.count, Subject.allCases.count)
             XCTAssertEqual(league.standings.first?.subject, .history)
             XCTAssertEqual(league.selectedStanding?.rank, 1)
-            XCTAssertEqual(league.selectedStanding?.detailText, "2/13 missions · 2/3 worlds")
+            XCTAssertEqual(league.selectedStanding?.detailText, "2/17 missions · 2/4 worlds")
             XCTAssertEqual(league.catchUpTarget?.subject, .languages)
             XCTAssertTrue(league.catchUpTitle.contains("Languages"))
             XCTAssertEqual(league.topThree.count, 3)
@@ -741,11 +778,12 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 16)
+        XCTAssertEqual(stats.totalWorldRewardCount, 17)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 16.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 17.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
@@ -763,7 +801,7 @@ final class LinguaFlowTests: XCTestCase {
 
         let stops = stats.worldPathStops(for: .history)
 
-        XCTAssertEqual(stops.count, 3)
+        XCTAssertEqual(stops.count, 4)
         XCTAssertEqual(stops[0].world.name, "Ancient Rome")
         XCTAssertTrue(stops[0].isSelected)
         XCTAssertFalse(stops[0].isLocked)

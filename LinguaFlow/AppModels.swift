@@ -97,6 +97,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "ancient-rome", name: "Ancient Rome", emoji: "🏛️", era: "753 BCE – 476 CE", description: "Walk the streets of Rome. Survive politics, lead legions, witness the fall.", unlockRequirement: .none),
                 PlayableWorld(id: "medieval-europe", name: "Medieval Europe", emoji: "🏰", era: "500 – 1500 CE", description: "Navigate feudal courts, trade on the Silk Road, survive the Black Death.", unlockRequirement: .xpRequired(500)),
                 PlayableWorld(id: "age-discovery", name: "Age of Discovery", emoji: "⚓", era: "1400 – 1600 CE", description: "Sail uncharted seas. Discover continents. Face storms and mutiny.", unlockRequirement: .xpRequired(1000)),
+                PlayableWorld(id: "renaissance-cities", name: "Renaissance Cities", emoji: "🎨", era: "1300 – 1600 CE", description: "Enter Florence, Venice, and Rome where art, banking, print, and power remake Europe.", unlockRequirement: .xpRequired(1500)),
             ]
         case .science:
             return [
@@ -405,19 +406,79 @@ enum HistoryData {
             sourceCitation: "Pigafetta, Account of the First Voyage Around the World"
         )
     ]
+
+    static let renaissanceCitiesChallenges: [HistoryChallenge] = [
+        HistoryChallenge(
+            id: "renaissance-01",
+            worldId: "renaissance-cities",
+            era: "Florentine Banking",
+            year: 1434,
+            question: "Cosimo de' Medici returns from exile. How does the Medici family build durable power in Florence?",
+            context: "Florence was officially a republic, but banking wealth, patronage networks, marriage alliances, and careful office-holding could shape decisions without a royal crown.",
+            choices: [
+                HistoryChoice(id: "a", text: "Use banking wealth, alliances, and patronage while keeping republican forms", consequence: "You see soft power at work: artists, scholars, clients, and political allies make Medici influence hard to uproot.", isCorrect: true, historicalOutcome: "Cosimo de' Medici dominated Florentine politics through wealth, patronage, and factional alliances while preserving many republican institutions on the surface."),
+                HistoryChoice(id: "b", text: "Declare himself king of Florence immediately", consequence: "That would make the hidden structure visible too early and unite enemies against him.", isCorrect: false, historicalOutcome: "The Medici usually avoided open monarchy in this period. Their power worked through influence inside republican offices and patronage systems.")
+            ],
+            historicalFact: "Medici patronage helped support figures such as Donatello, Brunelleschi, and later Botticelli, making political power and cultural production closely linked.",
+            sourceCitation: "Machiavelli, Florentine Histories; Kent, The Rise of the Medici"
+        ),
+        HistoryChallenge(
+            id: "renaissance-02",
+            worldId: "renaissance-cities",
+            era: "Printing Press",
+            year: 1455,
+            question: "Gutenberg's movable type spreads through Europe. What changes most for learning and authority?",
+            context: "Manuscripts were copied by hand before print shops could multiply texts faster and cheaper. Books, pamphlets, maps, technical diagrams, and religious arguments began moving through cities at new speed.",
+            choices: [
+                HistoryChoice(id: "a", text: "Texts become easier to reproduce, compare, and argue over", consequence: "Knowledge travels faster. Scholars can check editions, merchants can share manuals, and religious controversy can spread beyond local control.", isCorrect: true, historicalOutcome: "Printing accelerated the circulation of classical texts, scientific diagrams, vernacular literature, maps, and Reformation pamphlets."),
+                HistoryChoice(id: "b", text: "Every person in Europe instantly becomes literate", consequence: "Print helps literacy grow, but access still depends on language, money, schooling, and local institutions.", isCorrect: false, historicalOutcome: "Literacy expanded unevenly over centuries. Printing changed availability and speed, but did not instantly educate everyone.")
+            ],
+            historicalFact: "By 1500, European presses had produced millions of printed books, often called incunabula for the earliest print era.",
+            sourceCitation: "Eisenstein, The Printing Press as an Agent of Change; Febvre and Martin, The Coming of the Book"
+        ),
+        HistoryChallenge(
+            id: "renaissance-03",
+            worldId: "renaissance-cities",
+            era: "Venetian Trade",
+            year: 1500,
+            question: "Venice faces Ottoman pressure and Atlantic competition. What keeps the city powerful?",
+            context: "Venice connected Mediterranean trade, shipbuilding, diplomacy, finance, and state control. Its Arsenal could organize large-scale naval production, while merchants managed risk across long routes.",
+            choices: [
+                HistoryChoice(id: "a", text: "Combine naval production, trade intelligence, diplomacy, and finance", consequence: "You keep routes alive by treating commerce as a system: ships, credit, information, law, and alliances all matter.", isCorrect: true, historicalOutcome: "Venice remained a major maritime and commercial power through organized shipbuilding, diplomatic intelligence, financial tools, and control of strategic routes."),
+                HistoryChoice(id: "b", text: "Ignore shipping and rely only on paintings", consequence: "Art flourishes, but without ships, credit, and diplomacy the republic loses the engine of its wealth.", isCorrect: false, historicalOutcome: "Venetian art was famous, but the city's power rested heavily on maritime trade, institutions, and strategic diplomacy.")
+            ],
+            historicalFact: "The Venetian Arsenal was one of Europe's largest industrial complexes, coordinating specialized labor for ship construction and repair.",
+            sourceCitation: "Lane, Venice: A Maritime Republic; Sanudo, Diaries"
+        ),
+        HistoryChallenge(
+            id: "renaissance-04",
+            worldId: "renaissance-cities",
+            era: "Scientific Observation",
+            year: 1543,
+            question: "Copernicus publishes a Sun-centered model. Why is this dangerous and important?",
+            context: "The geocentric model had deep roots in ancient astronomy, teaching, and theology. A heliocentric model asked readers to rethink evidence, authority, mathematics, and the place of Earth.",
+            choices: [
+                HistoryChoice(id: "a", text: "It challenges inherited authority with mathematical observation", consequence: "You open a long debate where better models, instruments, and arguments slowly shift what counts as knowledge.", isCorrect: true, historicalOutcome: "Copernicus's heliocentric model did not instantly win, but it reshaped astronomy and helped set up later work by Kepler, Galileo, and Newton."),
+                HistoryChoice(id: "b", text: "It proves all ancient learning was worthless overnight", consequence: "That misses the real story. Renaissance science reused ancient math while testing and revising inherited models.", isCorrect: false, historicalOutcome: "Early modern science developed through continuity and challenge: ancient astronomy, new calculations, instruments, and debate all mattered.")
+            ],
+            historicalFact: "De revolutionibus orbium coelestium appeared in 1543, the year Copernicus died, and became a key reference point in the Scientific Revolution.",
+            sourceCitation: "Copernicus, De revolutionibus; Kuhn, The Copernican Revolution"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [HistoryChallenge] {
         switch worldId {
         case "ancient-rome": return ancientRomeChallenges
         case "medieval-europe": return medievalEuropeChallenges
         case "age-discovery": return ageDiscoveryChallenges
+        case "renaissance-cities": return renaissanceCitiesChallenges
         default: return []
         }
     }
     
     static func allChallenges(for subject: Subject) -> [HistoryChallenge] {
         switch subject {
-        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges
+        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges + renaissanceCitiesChallenges
         default: return []
         }
     }
