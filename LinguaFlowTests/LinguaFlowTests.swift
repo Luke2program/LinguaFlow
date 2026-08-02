@@ -200,10 +200,11 @@ final class LinguaFlowTests: XCTestCase {
     
     func testHistoryWorldsExist() {
         let historyWorlds = Subject.history.worlds
-        XCTAssertGreaterThanOrEqual(historyWorlds.count, 4)
+        XCTAssertGreaterThanOrEqual(historyWorlds.count, 5)
         XCTAssertTrue(historyWorlds.contains { $0.id == "ancient-rome" })
         XCTAssertTrue(historyWorlds.contains { $0.id == "medieval-europe" })
         XCTAssertTrue(historyWorlds.contains { $0.id == "renaissance-cities" && $0.unlockRequirement.xpRequired == 1500 })
+        XCTAssertTrue(historyWorlds.contains { $0.id == "nile-kingdoms" && $0.unlockRequirement.xpRequired == 2000 })
     }
     
     func testAncientRomeChallengesLoaded() {
@@ -248,6 +249,19 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "renaissance-04" && $0.sourceCitation.contains("Copernicus") })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
         XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "renaissance-03" })
+    }
+
+    func testNileKingdomsChallengesLoadedAsGroundedCampaign() {
+        let challenges = HistoryData.challenges(for: "nile-kingdoms")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "nile-01")
+        XCTAssertEqual(challenges.first?.year, -2560)
+        XCTAssertTrue(challenges.first?.context.contains("Nile flood cycle") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "nile-02" && $0.historicalFact.contains("Deir el-Bahri") })
+        XCTAssertTrue(challenges.contains { $0.id == "nile-03" && $0.sourceCitation.contains("Amarna Letters") })
+        XCTAssertTrue(challenges.contains { $0.id == "nile-04" && $0.historicalFact.contains("Rosetta Stone") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+        XCTAssertTrue(HistoryData.allChallenges(for: .history).contains { $0.id == "nile-04" })
     }
 
     func testQuantumRealmChallengesLoadedAsGroundedScienceCampaign() {
@@ -319,9 +333,9 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 18)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 18.0, accuracy: 0.001)
-        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/17 missions")
+        XCTAssertEqual(stats.atlasTotalWorldCount, 19)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 19.0, accuracy: 0.001)
+        XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
         XCTAssertEqual(stats.atlasNextTarget?.nextText, "25 XP to African Wonders")
@@ -427,6 +441,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextHistoryChallenge?.id, "renaissance-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "renaissance-04" && $0.worldName == "Renaissance Cities" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesNileKingdomsAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 2_050
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "nile-kingdoms"
+            progress.completedChallengeIds = ["nile-01"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Nile Kingdoms Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🏛️ History · 3100 – 30 BCE")
+            XCTAssertEqual(spotlight.encounter.title, "Female Kingship · 1479 BCE")
+            XCTAssertTrue(spotlight.encounter.context.contains("Hatshepsut"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextHistoryChallenge?.id, "nile-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "nile-04" && $0.worldName == "Nile Kingdoms" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
@@ -663,7 +701,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(league.standings.count, Subject.allCases.count)
             XCTAssertEqual(league.standings.first?.subject, .history)
             XCTAssertEqual(league.selectedStanding?.rank, 1)
-            XCTAssertEqual(league.selectedStanding?.detailText, "2/17 missions · 2/4 worlds")
+            XCTAssertEqual(league.selectedStanding?.detailText, "2/21 missions · 2/5 worlds")
             XCTAssertEqual(league.catchUpTarget?.subject, .languages)
             XCTAssertTrue(league.catchUpTitle.contains("Languages"))
             XCTAssertEqual(league.topThree.count, 3)
@@ -778,12 +816,13 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 17)
+        XCTAssertEqual(stats.totalWorldRewardCount, 18)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 17.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 18.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-nile-kingdoms" && !$0.isEarned && $0.xpRemaining == 2000 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
@@ -801,7 +840,7 @@ final class LinguaFlowTests: XCTestCase {
 
         let stops = stats.worldPathStops(for: .history)
 
-        XCTAssertEqual(stops.count, 4)
+        XCTAssertEqual(stops.count, 5)
         XCTAssertEqual(stops[0].world.name, "Ancient Rome")
         XCTAssertTrue(stops[0].isSelected)
         XCTAssertFalse(stops[0].isLocked)

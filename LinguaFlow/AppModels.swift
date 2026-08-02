@@ -98,6 +98,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "medieval-europe", name: "Medieval Europe", emoji: "🏰", era: "500 – 1500 CE", description: "Navigate feudal courts, trade on the Silk Road, survive the Black Death.", unlockRequirement: .xpRequired(500)),
                 PlayableWorld(id: "age-discovery", name: "Age of Discovery", emoji: "⚓", era: "1400 – 1600 CE", description: "Sail uncharted seas. Discover continents. Face storms and mutiny.", unlockRequirement: .xpRequired(1000)),
                 PlayableWorld(id: "renaissance-cities", name: "Renaissance Cities", emoji: "🎨", era: "1300 – 1600 CE", description: "Enter Florence, Venice, and Rome where art, banking, print, and power remake Europe.", unlockRequirement: .xpRequired(1500)),
+                PlayableWorld(id: "nile-kingdoms", name: "Nile Kingdoms", emoji: "𓂀", era: "3100 – 30 BCE", description: "Follow floods, pharaohs, trade, temples, and scribes through one of history's longest-lived civilizations.", unlockRequirement: .xpRequired(2000)),
             ]
         case .science:
             return [
@@ -465,6 +466,65 @@ enum HistoryData {
             sourceCitation: "Copernicus, De revolutionibus; Kuhn, The Copernican Revolution"
         )
     ]
+
+    static let nileKingdomsChallenges: [HistoryChallenge] = [
+        HistoryChallenge(
+            id: "nile-01",
+            worldId: "nile-kingdoms",
+            era: "Old Kingdom",
+            year: -2560,
+            question: "A royal building project rises at Giza. What makes pyramid construction possible?",
+            context: "The Nile flood cycle, farming surplus, skilled labor organization, stone transport, scribal records, and royal ideology all combine around the pharaoh's monument.",
+            choices: [
+                HistoryChoice(id: "a", text: "Coordinate seasonal labor, food surplus, stone logistics, and royal authority", consequence: "You read the pyramid as a state project: farming, surveying, accounting, transport, belief, and command all lock together.", isCorrect: true, historicalOutcome: "The Great Pyramid of Khufu was built through organized labor, logistics, and state authority, not by a single simple trick."),
+                HistoryChoice(id: "b", text: "Assume one mysterious machine replaces all human planning", consequence: "That shortcut misses the real achievement: administrators, workers, quarry teams, boat crews, and food systems made the project possible.", isCorrect: false, historicalOutcome: "Archaeology points to large organized workforces, worker settlements, provisioning, and transport systems rather than a lost miracle machine.")
+            ],
+            historicalFact: "Worker villages, bakeries, ramps, quarries, and administrative evidence show pyramid building depended on logistics and labor organization as much as engineering.",
+            sourceCitation: "Lehner, The Complete Pyramids; Wadi al-Jarf papyri"
+        ),
+        HistoryChallenge(
+            id: "nile-02",
+            worldId: "nile-kingdoms",
+            era: "Female Kingship",
+            year: -1479,
+            question: "Hatshepsut takes full royal titles. How can she strengthen legitimacy in a male-coded office?",
+            context: "Egyptian kingship used male language and imagery, but royal women could hold serious power. Hatshepsut governed as pharaoh while linking herself to dynasty, gods, monuments, and prosperity.",
+            choices: [
+                HistoryChoice(id: "a", text: "Use temple building, divine birth imagery, trade success, and royal titles", consequence: "You turn symbols into political infrastructure: monuments, rituals, and prosperity make rule visible and hard to dismiss.", isCorrect: true, historicalOutcome: "Hatshepsut ruled successfully for about two decades, built major monuments at Deir el-Bahri, and promoted trade expeditions such as Punt."),
+                HistoryChoice(id: "b", text: "Hide all evidence of rule and avoid public monuments", consequence: "A silent pharaoh would struggle to claim cosmic order, dynasty, and authority in a society where monuments performed power.", isCorrect: false, historicalOutcome: "Hatshepsut used visible royal display. Later attempts to erase some images show how politically charged her memory became.")
+            ],
+            historicalFact: "Hatshepsut's mortuary temple at Deir el-Bahri presents divine legitimacy, trade wealth, and royal power in carefully staged images and inscriptions.",
+            sourceCitation: "Deir el-Bahri inscriptions; Cooney, The Woman Who Would Be King"
+        ),
+        HistoryChallenge(
+            id: "nile-03",
+            worldId: "nile-kingdoms",
+            era: "Amarna Revolution",
+            year: -1353,
+            question: "Akhenaten promotes Aten worship and builds a new capital. What risk does this create?",
+            context: "The pharaoh shifts religious focus toward the Aten, moves the court to Akhetaten, and disrupts older priestly networks tied to Amun and traditional temples.",
+            choices: [
+                HistoryChoice(id: "a", text: "It centralizes power but destabilizes temples, elites, and inherited ritual", consequence: "You feel the strain immediately: a bold reform can concentrate authority while alienating institutions that help the kingdom function.", isCorrect: true, historicalOutcome: "Akhenaten's changes were short-lived. After his death, successors restored older cults and the Amarna experiment was partly erased from official memory."),
+                HistoryChoice(id: "b", text: "It creates a smooth reform with no political enemies", consequence: "That underestimates how deeply temples, land, labor, offerings, art, and administration were tied together.", isCorrect: false, historicalOutcome: "The backlash after Akhenaten suggests the reform disrupted powerful religious and political systems.")
+            ],
+            historicalFact: "The Amarna Letters reveal a Late Bronze Age diplomatic world where Egypt negotiated with other kings and local rulers while internal religious change unfolded.",
+            sourceCitation: "Amarna Letters; Kemp, The City of Akhenaten and Nefertiti"
+        ),
+        HistoryChallenge(
+            id: "nile-04",
+            worldId: "nile-kingdoms",
+            era: "Ptolemaic Egypt",
+            year: -196,
+            question: "Priests issue a decree in hieroglyphic, demotic, and Greek. Why does this matter centuries later?",
+            context: "After Alexander's conquests, Egypt was ruled by the Greek-speaking Ptolemaic dynasty. Multilingual administration connected temple authority, local scripts, and imperial Greek politics.",
+            choices: [
+                HistoryChoice(id: "a", text: "It preserves the same decree in scripts that later unlock hieroglyphs", consequence: "You spot the future clue: a political text becomes a bridge between languages, scripts, and lost reading systems.", isCorrect: true, historicalOutcome: "The Rosetta Stone carried versions of the same decree in three scripts, allowing Champollion and others to decipher Egyptian hieroglyphs in the 19th century."),
+                HistoryChoice(id: "b", text: "It proves everyone in Egypt used only one language", consequence: "The stone says the opposite: rulers, priests, and officials operated across scripts, languages, and communities.", isCorrect: false, historicalOutcome: "Ptolemaic Egypt was multilingual and culturally layered, with Greek administration interacting with older Egyptian temple traditions.")
+            ],
+            historicalFact: "The Rosetta Stone, carved in 196 BCE, became the key comparison text for deciphering hieroglyphs because it included Greek alongside Egyptian scripts.",
+            sourceCitation: "Rosetta Stone decree; Parkinson, Cracking Codes"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [HistoryChallenge] {
         switch worldId {
@@ -472,13 +532,14 @@ enum HistoryData {
         case "medieval-europe": return medievalEuropeChallenges
         case "age-discovery": return ageDiscoveryChallenges
         case "renaissance-cities": return renaissanceCitiesChallenges
+        case "nile-kingdoms": return nileKingdomsChallenges
         default: return []
         }
     }
     
     static func allChallenges(for subject: Subject) -> [HistoryChallenge] {
         switch subject {
-        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges + renaissanceCitiesChallenges
+        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges + renaissanceCitiesChallenges + nileKingdomsChallenges
         default: return []
         }
     }
