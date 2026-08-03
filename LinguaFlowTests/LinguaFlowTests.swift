@@ -333,8 +333,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 19)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 19.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 20)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 20.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -1362,9 +1362,10 @@ final class LinguaFlowTests: XCTestCase {
 
     func testGeographyWorldsExist() {
         let geographyWorlds = Subject.geography.worlds
-        XCTAssertGreaterThanOrEqual(geographyWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(geographyWorlds.count, 3)
         XCTAssertTrue(geographyWorlds.contains { $0.id == "european-capitals" })
         XCTAssertTrue(geographyWorlds.contains { $0.id == "african-wonders" })
+        XCTAssertTrue(geographyWorlds.contains { $0.id == "silk-road-routes" && $0.unlockRequirement.xpRequired == 900 })
     }
 
     func testEuropeanCapitalsChallengesLoaded() {
@@ -1390,6 +1391,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "geo-africa-04" && $0.fieldNote.contains("Mosi-oa-Tunya") })
     }
 
+    func testSilkRoadRoutesChallengesLoadedAsPlayableRoute() {
+        let challenges = GeographyData.challenges(for: "silk-road-routes")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "geo-silk-01")
+        XCTAssertEqual(challenges.first?.region, "Tarim Basin")
+        XCTAssertEqual(challenges.first?.mapTargetLabel, "Taklamakan Edge")
+        XCTAssertTrue(challenges.first?.context.contains("shortest line across the map") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "geo-silk-03" && $0.fieldNote.contains("Sogdian merchants") })
+        XCTAssertTrue(challenges.contains { $0.id == "geo-silk-04" && $0.mapClue.contains("wind to reverse") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
     func testCampaignSpotlightUsesAfricanWondersAfterUnlock() async {
         await MainActor.run {
             let store = AppStore()
@@ -1407,6 +1420,29 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.encounter.title, "East African Rift · Kilimanjaro")
             XCTAssertTrue(spotlight.encounter.context.contains("Africa's highest peak"))
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesSilkRoadRoutesAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.stats.xp = 950
+            var progress = store.stats.progress(for: .geography)
+            progress.currentWorldId = "silk-road-routes"
+            progress.completedChallengeIds = ["geo-silk-01"]
+            store.stats.updateProgress(for: .geography, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Silk Road Routes Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🗺️ Geography · 130 BCE – 1450 CE")
+            XCTAssertEqual(spotlight.encounter.title, "Pamir and Tian Shan · Kashgar Passes")
+            XCTAssertTrue(spotlight.encounter.context.contains("Kashgar"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertTrue(codex.entries.contains { $0.id == "geo-silk-04" && $0.worldName == "Silk Road Routes" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }

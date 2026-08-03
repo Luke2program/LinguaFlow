@@ -110,6 +110,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Navigate Europe by capital cities, rivers, mountains, and borders.", unlockRequirement: .none),
                 PlayableWorld(id: "african-wonders", name: "African Wonders", emoji: "🌍", era: "Ancient – Modern", description: "From the Sahara to Kilimanjaro. Rivers, deserts, and ecosystems.", unlockRequirement: .xpRequired(300)),
+                PlayableWorld(id: "silk-road-routes", name: "Silk Road Routes", emoji: "🐫", era: "130 BCE – 1450 CE", description: "Guide caravans across oases, mountain passes, deserts, and ports that connected Eurasia.", unlockRequirement: .xpRequired(900)),
             ]
         case .math:
             return [
@@ -985,10 +986,94 @@ enum GeographyData {
         )
     ]
 
+    static let silkRoadRoutesChallenges: [GeographyChallenge] = [
+        GeographyChallenge(
+            id: "geo-silk-01",
+            worldId: "silk-road-routes",
+            region: "Tarim Basin",
+            question: "Why did Silk Road caravans often skirt the Taklamakan Desert instead of crossing straight through its center?",
+            context: "Your caravan needs water, fodder, guides, and resting towns. The shortest line across the map is not the safest route through one of Asia's harshest deserts.",
+            choices: [
+                GeographyChoice(id: "a", text: "Oasis towns around the desert edge made travel possible", isCorrect: true, explanation: "Correct. Routes commonly followed oasis chains around the Taklamakan because water and supplies mattered more than a straight line."),
+                GeographyChoice(id: "b", text: "The desert center had the largest permanent cities", isCorrect: false, explanation: "Permanent settlements were tied to water sources, especially around oasis margins, not the dry interior."),
+                GeographyChoice(id: "c", text: "Caravans avoided mountains but preferred open sand", isCorrect: false, explanation: "Open sand could be deadly without water. Geography forced traders to balance deserts, passes, and oasis networks."),
+                GeographyChoice(id: "d", text: "Sea winds pushed caravans north", isCorrect: false, explanation: "The Tarim Basin is inland; caravan routes were shaped by water, terrain, and political control.")
+            ],
+            mapClue: "Trace the oasis necklace around the Taklamakan between Kashgar, Khotan, and Dunhuang.",
+            mapTargetLabel: "Taklamakan Edge",
+            mapStartX: 0.31,
+            mapStartY: 0.54,
+            mapTargetX: 0.56,
+            mapTargetY: 0.48,
+            fieldNote: "Oasis cities such as Kashgar, Khotan, Turfan, and Dunhuang became route nodes because desert geography concentrated people, trade, and information."
+        ),
+        GeographyChallenge(
+            id: "geo-silk-02",
+            worldId: "silk-road-routes",
+            region: "Pamir and Tian Shan",
+            question: "Which terrain feature made places like Kashgar strategic meeting points for Silk Road routes?",
+            context: "Your route leaves China and approaches Central Asia. Roads funnel through high passes where mountains narrow the number of practical crossings.",
+            choices: [
+                GeographyChoice(id: "a", text: "Mountain passes linking basins and valleys", isCorrect: true, explanation: "Correct. Kashgar sat near routes through the Pamir, Tian Shan, and Kunlun systems, where passes controlled movement."),
+                GeographyChoice(id: "b", text: "A deep ocean harbor", isCorrect: false, explanation: "Kashgar is far inland. Its importance came from overland routes, not maritime access."),
+                GeographyChoice(id: "c", text: "A tropical rainforest corridor", isCorrect: false, explanation: "The region is arid and mountainous, not tropical rainforest."),
+                GeographyChoice(id: "d", text: "A polar ice shelf crossing", isCorrect: false, explanation: "High-altitude cold mattered, but Silk Road geography here was about passes through mountain systems.")
+            ],
+            mapClue: "Look west of the Tarim Basin where caravan roads squeeze through the high mountains.",
+            mapTargetLabel: "Kashgar Passes",
+            mapStartX: 0.59,
+            mapStartY: 0.47,
+            mapTargetX: 0.39,
+            mapTargetY: 0.45,
+            fieldNote: "Mountain gateways turned certain towns into brokerage points for goods, languages, currencies, religions, and diplomatic news."
+        ),
+        GeographyChallenge(
+            id: "geo-silk-03",
+            worldId: "silk-road-routes",
+            region: "Sogdian Trade Cities",
+            question: "Which city was a major Silk Road hub in Transoxiana, between the Amu Darya and Syr Darya river systems?",
+            context: "The caravan enters a region of irrigated cities and merchant networks. This city linked Persian, Turkic, Chinese, and Islamic worlds across Central Asia.",
+            choices: [
+                GeographyChoice(id: "a", text: "Samarkand", isCorrect: true, explanation: "Correct. Samarkand was a major Central Asian hub in Transoxiana and a famous Silk Road city."),
+                GeographyChoice(id: "b", text: "Reykjavik", isCorrect: false, explanation: "Reykjavik is in Iceland and was not part of Central Asian caravan networks."),
+                GeographyChoice(id: "c", text: "Cape Town", isCorrect: false, explanation: "Cape Town is in southern Africa and belongs to a very different maritime geography."),
+                GeographyChoice(id: "d", text: "Kyoto", isCorrect: false, explanation: "Kyoto is historically important in Japan, but this clue points to Central Asia.")
+            ],
+            mapClue: "Find the irrigated hub east of the Iranian plateau and west of the Tian Shan route gates.",
+            mapTargetLabel: "Samarkand",
+            mapStartX: 0.43,
+            mapStartY: 0.46,
+            mapTargetX: 0.28,
+            mapTargetY: 0.50,
+            fieldNote: "Sogdian merchants helped connect long-distance trade across Eurasia; Samarkand's location made it a durable crossroads."
+        ),
+        GeographyChallenge(
+            id: "geo-silk-04",
+            worldId: "silk-road-routes",
+            region: "Maritime Silk Roads",
+            question: "Why did monsoon wind patterns matter for Indian Ocean Silk Road trade?",
+            context: "Your route shifts from caravan tracks to sea lanes. Ships could time departures because seasonal winds reversed direction across the Indian Ocean.",
+            choices: [
+                GeographyChoice(id: "a", text: "Seasonal winds helped sailors plan outbound and return voyages", isCorrect: true, explanation: "Correct. Monsoon reversals made predictable sailing calendars possible between East Africa, Arabia, India, and Southeast Asia."),
+                GeographyChoice(id: "b", text: "Monsoons made all ocean routes windless", isCorrect: false, explanation: "Monsoons are wind systems, not the absence of wind."),
+                GeographyChoice(id: "c", text: "They only mattered in the Arctic Ocean", isCorrect: false, explanation: "The clue is about Indian Ocean routes, where monsoon winds shaped navigation."),
+                GeographyChoice(id: "d", text: "They stopped ports from trading with each other", isCorrect: false, explanation: "Reliable seasonal winds often increased long-distance exchange by making timing more predictable.")
+            ],
+            mapClue: "Follow sea lanes from the Arabian Sea toward India and Southeast Asia, then wait for the wind to reverse.",
+            mapTargetLabel: "Monsoon Routes",
+            mapStartX: 0.22,
+            mapStartY: 0.65,
+            mapTargetX: 0.63,
+            mapTargetY: 0.72,
+            fieldNote: "The Silk Roads were not only overland. Indian Ocean routes moved silk, spices, ceramics, ideas, and people through ports timed around monsoon seasons."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [GeographyChallenge] {
         switch worldId {
         case "european-capitals": return europeanCapitalsChallenges
         case "african-wonders": return africanWondersChallenges
+        case "silk-road-routes": return silkRoadRoutesChallenges
         default: return []
         }
     }
