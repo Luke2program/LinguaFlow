@@ -816,9 +816,9 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 18)
+        XCTAssertEqual(stats.totalWorldRewardCount, 20)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 18.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 20.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
@@ -920,7 +920,7 @@ final class LinguaFlowTests: XCTestCase {
             store.stats.updateProgress(for: .geography, progress)
 
             XCTAssertEqual(store.dailyAdventure.title, "African Wonders Run")
-            XCTAssertEqual(store.dailyAdventure.unlockHint, "Complete today's run to push your level track forward.")
+            XCTAssertEqual(store.dailyAdventure.unlockHint, "550 XP to unlock Silk Road Routes.")
         }
     }
 
