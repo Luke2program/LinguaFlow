@@ -333,8 +333,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 20)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 20.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 21)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 21.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -1493,9 +1493,10 @@ final class LinguaFlowTests: XCTestCase {
 
     func testMathWorldsExist() {
         let mathWorlds = Subject.math.worlds
-        XCTAssertGreaterThanOrEqual(mathWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(mathWorlds.count, 3)
         XCTAssertTrue(mathWorlds.contains { $0.id == "logic-gates" })
         XCTAssertTrue(mathWorlds.contains { $0.id == "probability-casino" })
+        XCTAssertTrue(mathWorlds.contains { $0.id == "geometry-studio" && $0.unlockRequirement.xpRequired == 800 })
     }
 
     func testLogicGateChallengesLoaded() {
@@ -1519,6 +1520,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
     }
 
+    func testGeometryStudioChallengesLoadedAsGroundedMathCampaign() {
+        let challenges = MathData.challenges(for: "geometry-studio")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "math-geometry-01")
+        XCTAssertEqual(challenges.first?.domain, "Angles")
+        XCTAssertTrue(challenges.first?.question.contains("125 degrees") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "math-geometry-03" && $0.ruleExplanation.contains("scale ratio") })
+        XCTAssertTrue(challenges.contains { $0.id == "math-geometry-04" && $0.patternClue.contains("cube") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "geometry-studio" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
     func testCampaignSpotlightUsesProbabilityCasinoAfterUnlock() async {
         await MainActor.run {
             let store = AppStore()
@@ -1537,6 +1550,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextMathChallenge?.id, "math-probability-02")
             XCTAssertTrue(store.stats.knowledgeCodex.entries.contains { $0.id == "math-probability-01" && $0.isUnlocked && $0.body.contains("Expected value") })
+        }
+    }
+
+    func testCampaignSpotlightUsesGeometryStudioAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.xp = 850
+            var progress = store.stats.progress(for: .math)
+            progress.currentWorldId = "geometry-studio"
+            progress.completedChallengeIds = ["math-geometry-01"]
+            store.stats.updateProgress(for: .math, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Geometry Studio Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🔢 Math · Shape Lab")
+            XCTAssertEqual(spotlight.encounter.title, "Area Gate")
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextMathChallenge?.id, "math-geometry-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "math-geometry-01" && $0.isUnlocked && $0.worldName == "Geometry Studio" })
+            XCTAssertTrue(codex.entries.contains { $0.id == "math-geometry-04" && $0.body.contains("Volume measures") })
+            XCTAssertFalse(spotlight.isComplete)
         }
     }
 

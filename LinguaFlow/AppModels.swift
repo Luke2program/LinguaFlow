@@ -116,6 +116,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "logic-gates", name: "Logic Gates", emoji: "🔢", era: "Foundations", description: "Crack pattern locks, ratios, and number rules in a neon puzzle vault.", unlockRequirement: .none),
                 PlayableWorld(id: "probability-casino", name: "Probability Casino", emoji: "🎲", era: "Chance", description: "Read odds, avoid traps, and make smarter bets with probability.", unlockRequirement: .xpRequired(400)),
+                PlayableWorld(id: "geometry-studio", name: "Geometry Studio", emoji: "📐", era: "Shape Lab", description: "Rotate, measure, and rebuild spatial puzzles with angles, area, volume, and scale.", unlockRequirement: .xpRequired(800)),
             ]
         case .culture:
             return [
@@ -1225,10 +1226,74 @@ enum MathData {
         )
     ]
 
+    static let geometryStudioChallenges: [MathChallenge] = [
+        MathChallenge(
+            id: "math-geometry-01",
+            worldId: "geometry-studio",
+            domain: "Angles",
+            question: "Two straight-line angles sit together. One is 125 degrees. What is the other angle?",
+            context: "The studio door is a flat beam split by a glowing hinge. Adjacent angles on a straight line must rebuild the full 180-degree beam.",
+            choices: [
+                MathChoice(id: "a", text: "45 degrees", isCorrect: false, explanation: "45 plus 125 makes 170, so the straight line is still missing 10 degrees."),
+                MathChoice(id: "b", text: "55 degrees", isCorrect: true, explanation: "Correct. Angles on a straight line add to 180 degrees, and 180 - 125 = 55."),
+                MathChoice(id: "c", text: "65 degrees", isCorrect: false, explanation: "65 plus 125 makes 190, which bends past a straight line."),
+                MathChoice(id: "d", text: "125 degrees", isCorrect: false, explanation: "Equal adjacent angles would make 250 degrees here, not a straight line.")
+            ],
+            patternClue: "A straight line is 180 degrees.",
+            ruleExplanation: "Supplementary angles add to 180 degrees. If one angle is known, subtract it from 180 to find the other."
+        ),
+        MathChallenge(
+            id: "math-geometry-02",
+            worldId: "geometry-studio",
+            domain: "Area",
+            question: "A mural panel is 9 meters wide and 4 meters tall. What is its area?",
+            context: "Paint drones need the exact surface before they launch. The rectangle grid counts every square meter inside the frame.",
+            choices: [
+                MathChoice(id: "a", text: "13 square meters", isCorrect: false, explanation: "That adds width and height. Area needs multiplication."),
+                MathChoice(id: "b", text: "26 square meters", isCorrect: false, explanation: "That doubles 13, which is perimeter for this rectangle, not area."),
+                MathChoice(id: "c", text: "36 square meters", isCorrect: true, explanation: "Correct. Rectangle area is width times height: 9 x 4 = 36."),
+                MathChoice(id: "d", text: "81 square meters", isCorrect: false, explanation: "81 is 9 x 9. The height is 4, not 9.")
+            ],
+            patternClue: "Count rows of equal squares: width times height.",
+            ruleExplanation: "Rectangle area measures the space inside the shape. Multiply length by width, and keep square units."
+        ),
+        MathChallenge(
+            id: "math-geometry-03",
+            worldId: "geometry-studio",
+            domain: "Scale",
+            question: "A model tower is built at 1:50 scale. The model is 30 cm tall. How tall is the real tower?",
+            context: "The blueprint table shrinks a real structure into a manageable model. Every centimeter on the model stands for 50 centimeters in reality.",
+            choices: [
+                MathChoice(id: "a", text: "1.5 meters", isCorrect: false, explanation: "That divides by the scale instead of multiplying."),
+                MathChoice(id: "b", text: "15 meters", isCorrect: true, explanation: "Correct. 30 cm x 50 = 1500 cm, which equals 15 meters."),
+                MathChoice(id: "c", text: "30 meters", isCorrect: false, explanation: "That treats 30 cm like 30 meters and ignores the scale conversion."),
+                MathChoice(id: "d", text: "50 meters", isCorrect: false, explanation: "50 is the scale factor, not the final tower height.")
+            ],
+            patternClue: "Multiply the model length by the scale factor, then convert units.",
+            ruleExplanation: "A scale ratio keeps proportions constant. At 1:50, real lengths are 50 times the model lengths."
+        ),
+        MathChallenge(
+            id: "math-geometry-04",
+            worldId: "geometry-studio",
+            domain: "Volume",
+            question: "A storage cube has side length 5 cm. What is its volume?",
+            context: "The studio vault stacks tiny unit cubes inside a perfect cube. The scanner needs length, width, and height together.",
+            choices: [
+                MathChoice(id: "a", text: "15 cubic centimeters", isCorrect: false, explanation: "That adds three side lengths. Volume needs three dimensions multiplied."),
+                MathChoice(id: "b", text: "25 cubic centimeters", isCorrect: false, explanation: "25 is the area of one face, not the volume inside the cube."),
+                MathChoice(id: "c", text: "75 cubic centimeters", isCorrect: false, explanation: "That multiplies the face area by 3, but the depth is 5."),
+                MathChoice(id: "d", text: "125 cubic centimeters", isCorrect: true, explanation: "Correct. Cube volume is side cubed: 5 x 5 x 5 = 125.")
+            ],
+            patternClue: "A cube has equal length, width, and height.",
+            ruleExplanation: "Volume measures three-dimensional space. For a cube, multiply side length by itself three times and use cubic units."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [MathChallenge] {
         switch worldId {
         case "logic-gates": return logicGateChallenges
         case "probability-casino": return probabilityCasinoChallenges
+        case "geometry-studio": return geometryStudioChallenges
         default: return []
         }
     }
