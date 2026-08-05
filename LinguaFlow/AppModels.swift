@@ -127,6 +127,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "founder-guild", name: "Founder Guild", emoji: "📈", era: "Startup basics", description: "Make practical startup, pricing, cash-flow, and customer decisions under pressure.", unlockRequirement: .none),
                 PlayableWorld(id: "wall-street-desk", name: "Wall Street Desk", emoji: "💼", era: "Markets", description: "Read incentives, risk, diversification, and market signals without falling for hype.", unlockRequirement: .xpRequired(550)),
+                PlayableWorld(id: "negotiation-room", name: "Negotiation Room", emoji: "🤝", era: "Dealcraft", description: "Practice offers, anchors, BATNA, tradeoffs, and trust without burning the relationship.", unlockRequirement: .xpRequired(950)),
             ]
         case .health:
             return [
@@ -1600,10 +1601,74 @@ enum BusinessData {
         )
     ]
 
+    static let negotiationRoomChallenges: [BusinessChallenge] = [
+        BusinessChallenge(
+            id: "business-negotiation-01",
+            worldId: "negotiation-room",
+            domain: "Preparation",
+            question: "You enter a salary negotiation tomorrow. What should you prepare before discussing numbers?",
+            context: "The role is attractive, but the first offer may anchor the conversation. You have market salary data, personal priorities, and one alternative interview still active.",
+            choices: [
+                BusinessChoice(id: "a", text: "Define your target, walk-away point, and strongest alternatives", isCorrect: true, explanation: "Correct. Preparation gives you a target, protects against bad pressure, and makes tradeoffs clearer."),
+                BusinessChoice(id: "b", text: "Decide to accept whatever sounds friendly", isCorrect: false, explanation: "Friendliness is useful, but it does not replace a target range or a walk-away point."),
+                BusinessChoice(id: "c", text: "Avoid all research so you sound flexible", isCorrect: false, explanation: "Flexibility without information often turns into weak bargaining."),
+                BusinessChoice(id: "d", text: "Open with a threat before hearing the offer", isCorrect: false, explanation: "Threats can damage trust and may reveal insecurity instead of leverage.")
+            ],
+            marketSignal: "High stakes, asymmetric information, real alternative still alive.",
+            lesson: "A strong negotiation starts before the meeting. Know your target, your BATNA, your walk-away line, and what non-salary terms matter."
+        ),
+        BusinessChallenge(
+            id: "business-negotiation-02",
+            worldId: "negotiation-room",
+            domain: "Anchoring",
+            question: "A vendor opens with a price far above budget. What is the best response?",
+            context: "The vendor's product is useful, but the quote includes services you may not need. Your team can buy from another provider, though switching costs are real.",
+            choices: [
+                BusinessChoice(id: "a", text: "Separate the package, share constraints, and counter with a reasoned range", isCorrect: true, explanation: "Correct. You reset the anchor with facts, scope, and a credible counter instead of reacting emotionally."),
+                BusinessChoice(id: "b", text: "Accept immediately because the first number must be fair", isCorrect: false, explanation: "Opening numbers can be strategic anchors, not final truth."),
+                BusinessChoice(id: "c", text: "Insult the vendor to force a discount", isCorrect: false, explanation: "Attacking the person can reduce cooperation and make creative terms harder."),
+                BusinessChoice(id: "d", text: "Hide your budget and refuse to discuss scope", isCorrect: false, explanation: "Some information should be protected, but useful scope and constraint details can create a better deal.")
+            ],
+            marketSignal: "High anchor, optional scope, credible alternative supplier.",
+            lesson: "Anchors shape expectations. Counter with logic: comparable prices, must-have scope, budget constraints, timing, and alternatives."
+        ),
+        BusinessChallenge(
+            id: "business-negotiation-03",
+            worldId: "negotiation-room",
+            domain: "Tradeoffs",
+            question: "Both sides are stuck on price, but delivery speed matters more to you than a small discount. What move creates value?",
+            context: "The supplier cannot cut much further without hurting margin. You need the launch date protected and can offer a longer contract if service levels improve.",
+            choices: [
+                BusinessChoice(id: "a", text: "Trade a longer commitment for faster delivery and clear service levels", isCorrect: true, explanation: "Correct. You move from one-issue bargaining to a package where each side gets something valuable."),
+                BusinessChoice(id: "b", text: "Keep repeating the same price demand", isCorrect: false, explanation: "If the issue is stuck, repeating it may waste value hidden in other terms."),
+                BusinessChoice(id: "c", text: "Pretend delivery speed does not matter", isCorrect: false, explanation: "Hiding a real priority can lead to a deal that looks cheap but fails the mission."),
+                BusinessChoice(id: "d", text: "Drop all requirements to end the meeting faster", isCorrect: false, explanation: "Speed is useful only if the final agreement still protects the important outcome.")
+            ],
+            marketSignal: "Price deadlock, launch deadline, room for package terms.",
+            lesson: "Good negotiators search for differences in priorities. Delivery, scope, risk, payment timing, support, and duration can unlock better packages."
+        ),
+        BusinessChallenge(
+            id: "business-negotiation-04",
+            worldId: "negotiation-room",
+            domain: "Trust",
+            question: "After agreement, the other side asks to leave one promise informal. What should you do?",
+            context: "Everyone seems aligned, but the promise affects renewal pricing and support response times. Memories may differ once pressure returns.",
+            choices: [
+                BusinessChoice(id: "a", text: "Document the promise clearly before signing", isCorrect: true, explanation: "Correct. Clear written terms protect both sides and reduce future conflict."),
+                BusinessChoice(id: "b", text: "Rely only on memory because trust means no paperwork", isCorrect: false, explanation: "Documentation does not destroy trust. It often protects it by making expectations explicit."),
+                BusinessChoice(id: "c", text: "Add hidden terms the other side has not seen", isCorrect: false, explanation: "Surprise terms damage trust and may create legal or relationship risk."),
+                BusinessChoice(id: "d", text: "Ignore the promise because support never matters", isCorrect: false, explanation: "Support and renewal terms can decide whether the deal works after the sale.")
+            ],
+            marketSignal: "Important promise, future pressure, risk of mismatched expectations.",
+            lesson: "Trust and clarity work together. Written agreements turn shared intent into something both sides can inspect, remember, and honor."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [BusinessChallenge] {
         switch worldId {
         case "founder-guild": return founderGuildChallenges
         case "wall-street-desk": return wallStreetDeskChallenges
+        case "negotiation-room": return negotiationRoomChallenges
         default: return []
         }
     }

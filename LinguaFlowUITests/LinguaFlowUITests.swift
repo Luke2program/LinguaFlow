@@ -244,7 +244,7 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("worldAtlasSubject_history", in: app).exists)
         XCTAssertTrue(app.buttons["worldAtlasNextButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("rewardVaultPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["7/20 world badges · 0/16 relics"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["7/21 world badges · 0/16 relics"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Relic Shelf"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("rewardShopPanel", in: app).exists)
         XCTAssertTrue(element("rewardShopTitle", in: app).label.contains("Reward Shop"))

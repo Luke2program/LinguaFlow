@@ -333,8 +333,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 21)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 21.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 22)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 22.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -816,13 +816,14 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 20)
+        XCTAssertEqual(stats.totalWorldRewardCount, 21)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 20.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 21.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-nile-kingdoms" && !$0.isEarned && $0.xpRemaining == 2000 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "business-negotiation-room" && !$0.isEarned && $0.xpRemaining == 950 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
@@ -1721,9 +1722,10 @@ final class LinguaFlowTests: XCTestCase {
 
     func testBusinessWorldsExist() {
         let businessWorlds = Subject.business.worlds
-        XCTAssertGreaterThanOrEqual(businessWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(businessWorlds.count, 3)
         XCTAssertTrue(businessWorlds.contains { $0.id == "founder-guild" })
         XCTAssertTrue(businessWorlds.contains { $0.id == "wall-street-desk" })
+        XCTAssertTrue(businessWorlds.contains { $0.id == "negotiation-room" && $0.unlockRequirement.xpRequired == 950 })
     }
 
     func testFounderGuildChallengesLoaded() {
@@ -1747,6 +1749,18 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
     }
 
+    func testNegotiationRoomChallengesLoadedAsDealcraftCampaign() {
+        let challenges = BusinessData.challenges(for: "negotiation-room")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "business-negotiation-01")
+        XCTAssertEqual(challenges.first?.domain, "Preparation")
+        XCTAssertTrue(challenges.first?.marketSignal.contains("alternative") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "business-negotiation-03" && $0.lesson.contains("differences in priorities") })
+        XCTAssertTrue(challenges.contains { $0.id == "business-negotiation-04" && $0.lesson.contains("Trust and clarity") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "negotiation-room" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
     func testCampaignSpotlightUsesWallStreetDeskAfterUnlock() async {
         await MainActor.run {
             let store = AppStore()
@@ -1766,6 +1780,28 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextBusinessChallenge?.id, "business-wallstreet-02")
             XCTAssertTrue(store.stats.knowledgeCodex.entries.contains { $0.id == "business-wallstreet-01" && $0.worldName == "Wall Street Desk" })
+        }
+    }
+
+    func testCampaignSpotlightUsesNegotiationRoomAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .business
+            store.stats.xp = 980
+            var progress = store.stats.progress(for: .business)
+            progress.currentWorldId = "negotiation-room"
+            progress.completedChallengeIds = ["business-negotiation-01"]
+            store.stats.updateProgress(for: .business, progress)
+
+            let spotlight = store.campaignSpotlight
+
+            XCTAssertEqual(spotlight.title, "Negotiation Room Campaign")
+            XCTAssertEqual(spotlight.subtitle, "📈 Business · Dealcraft")
+            XCTAssertEqual(spotlight.encounter.title, "Anchoring Decision")
+            XCTAssertTrue(spotlight.encounter.clue.contains("High anchor"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextBusinessChallenge?.id, "business-negotiation-02")
+            XCTAssertTrue(store.stats.knowledgeCodex.entries.contains { $0.id == "business-negotiation-04" && $0.worldName == "Negotiation Room" })
         }
     }
 
