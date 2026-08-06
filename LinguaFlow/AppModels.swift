@@ -122,6 +122,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "heritage-kitchens", name: "Heritage Kitchens", emoji: "🍜", era: "Living traditions", description: "Travel through food rituals, etiquette, markets, and everyday meanings behind iconic dishes.", unlockRequirement: .none),
                 PlayableWorld(id: "festival-roads", name: "Festival Roads", emoji: "🎊", era: "Seasonal cycles", description: "Follow real festivals through music, symbols, calendars, and community traditions.", unlockRequirement: .xpRequired(450)),
+                PlayableWorld(id: "world-music-stage", name: "World Music Stage", emoji: "🎶", era: "Oral memory – Present", description: "Listen through rhythm, call-and-response, instruments, and social meaning in real music traditions.", unlockRequirement: .xpRequired(850)),
             ]
         case .business:
             return [
@@ -1446,10 +1447,74 @@ enum CultureData {
         )
     ]
 
+    static let worldMusicStageChallenges: [CultureChallenge] = [
+        CultureChallenge(
+            id: "culture-music-01",
+            worldId: "world-music-stage",
+            region: "Griot Tradition · West Africa",
+            question: "A kora player begins a praise song at a community gathering. What are you hearing beyond entertainment?",
+            context: "In Mandinka and related West African traditions, griots and jeliw can preserve genealogies, histories, moral lessons, and public memory through music and spoken performance.",
+            choices: [
+                CultureChoice(id: "a", text: "Oral history, social memory, artistry, and public identity carried through performance", isCorrect: true, explanation: "Correct. Griot performance can combine musicianship with history, praise, counsel, and community memory."),
+                CultureChoice(id: "b", text: "A random tune with no social role", isCorrect: false, explanation: "That misses the tradition's role in preserving lineages, stories, reputation, and public meaning."),
+                CultureChoice(id: "c", text: "A written archive being read word for word", isCorrect: false, explanation: "The tradition is oral and performative. It can adapt to the moment while carrying inherited knowledge."),
+                CultureChoice(id: "d", text: "A private hobby unrelated to community life", isCorrect: false, explanation: "Griot performance is deeply social and often connected to families, ceremonies, leadership, and memory.")
+            ],
+            traditionClue: "The instrument is also an archive.",
+            culturalNote: "West African griot traditions show how music can store history, authority, praise, and identity without needing a written page."
+        ),
+        CultureChallenge(
+            id: "culture-music-02",
+            worldId: "world-music-stage",
+            region: "Flamenco · Andalusia",
+            question: "In a small flamenco venue, why does the singer's emotional delivery matter as much as fast footwork?",
+            context: "Flamenco grew from Andalusian social worlds shaped by Gitano, Moorish, Jewish, and Spanish influences. Cante, guitar, palmas, and dance build tension together.",
+            choices: [
+                CultureChoice(id: "a", text: "Because flamenco is an expressive conversation between voice, rhythm, guitar, and body", isCorrect: true, explanation: "Correct. The singer's phrasing and emotional force guide the performance as much as dance technique."),
+                CultureChoice(id: "b", text: "Because dance is forbidden in flamenco", isCorrect: false, explanation: "Dance is central in many flamenco forms, but it works with singing, guitar, and clapping rather than replacing them."),
+                CultureChoice(id: "c", text: "Because all flamenco pieces have the same mood", isCorrect: false, explanation: "Flamenco has many palos, or forms, with different rhythms, moods, and settings."),
+                CultureChoice(id: "d", text: "Because the guitar should always drown out the singer", isCorrect: false, explanation: "The guitar supports and answers the singer and dancer; balance and dialogue are key.")
+            ],
+            traditionClue: "Listen for call, answer, tension, and release.",
+            culturalNote: "Flamenco is not just a tourist image of fast steps. It is a layered performance practice with rhythm cycles, vocal expression, and regional history."
+        ),
+        CultureChallenge(
+            id: "culture-music-03",
+            worldId: "world-music-stage",
+            region: "Taiko · Japan",
+            question: "A taiko ensemble starts with synchronized movement before the first big strike. What should you notice?",
+            context: "Modern ensemble taiko combines drumming, stance, choreography, group timing, and visible physical discipline, drawing on older festival, theater, and ritual drumming contexts.",
+            choices: [
+                CultureChoice(id: "a", text: "The performance uses sound, posture, timing, and group energy together", isCorrect: true, explanation: "Correct. Taiko is visual and physical as well as musical; the group's coordinated movement is part of the impact."),
+                CultureChoice(id: "b", text: "Only the loudest strike matters", isCorrect: false, explanation: "Volume matters, but timing, silence, choreography, stamina, and ensemble coordination shape the performance."),
+                CultureChoice(id: "c", text: "The drums are props and should not be played", isCorrect: false, explanation: "The drums are the core instruments, played with technique and ensemble structure."),
+                CultureChoice(id: "d", text: "Every taiko setting has exactly the same meaning", isCorrect: false, explanation: "Taiko appears in festivals, temples, theater, and modern stage groups, and meanings vary by context.")
+            ],
+            traditionClue: "The rhythm is also in the stance.",
+            culturalNote: "Taiko learning benefits from watching the whole ensemble: sound, silence, breath, posture, and timing create the shared force."
+        ),
+        CultureChallenge(
+            id: "culture-music-04",
+            worldId: "world-music-stage",
+            region: "Blues · Mississippi Delta",
+            question: "A blues lyric repeats a line, then answers it with a twist. What does that structure help the song do?",
+            context: "Delta blues developed in Black communities in the American South, shaped by work, migration, segregation, church sounds, field hollers, and personal storytelling.",
+            choices: [
+                CultureChoice(id: "a", text: "Turn lived experience into a memorable call, repeat, and response", isCorrect: true, explanation: "Correct. Repetition and variation let the singer emphasize feeling, build memory, and land a final turn of meaning."),
+                CultureChoice(id: "b", text: "Prove the singer forgot the words", isCorrect: false, explanation: "The repetition is a common form, not a mistake. It creates structure and emotional weight."),
+                CultureChoice(id: "c", text: "Remove all personal meaning from the song", isCorrect: false, explanation: "Blues often carries personal, social, and historical meaning through compact lyrical patterns."),
+                CultureChoice(id: "d", text: "Make rhythm irrelevant", isCorrect: false, explanation: "Rhythm, phrasing, guitar patterns, and vocal timing are central to the style.")
+            ],
+            traditionClue: "The repeated line prepares the turn.",
+            culturalNote: "The blues helped shape jazz, rock, soul, and popular music worldwide while carrying stories of pain, humor, endurance, and change."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [CultureChallenge] {
         switch worldId {
         case "heritage-kitchens": return heritageKitchenChallenges
         case "festival-roads": return festivalRoadsChallenges
+        case "world-music-stage": return worldMusicStageChallenges
         default: return []
         }
     }

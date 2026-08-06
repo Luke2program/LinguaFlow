@@ -333,8 +333,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 22)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 22.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 23)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 23.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -816,13 +816,14 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 21)
+        XCTAssertEqual(stats.totalWorldRewardCount, 22)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 21.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 22.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-nile-kingdoms" && !$0.isEarned && $0.xpRemaining == 2000 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "culture-world-music-stage" && !$0.isEarned && $0.xpRemaining == 850 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "business-negotiation-room" && !$0.isEarned && $0.xpRemaining == 950 })
 
         stats.xp = 500
@@ -1624,9 +1625,10 @@ final class LinguaFlowTests: XCTestCase {
 
     func testCultureWorldsExist() {
         let cultureWorlds = Subject.culture.worlds
-        XCTAssertGreaterThanOrEqual(cultureWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(cultureWorlds.count, 3)
         XCTAssertTrue(cultureWorlds.contains { $0.id == "heritage-kitchens" })
         XCTAssertTrue(cultureWorlds.contains { $0.id == "festival-roads" })
+        XCTAssertTrue(cultureWorlds.contains { $0.id == "world-music-stage" && $0.unlockRequirement.xpRequired == 850 })
     }
 
     func testHeritageKitchenChallengesLoaded() {
@@ -1651,6 +1653,19 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 && $0.choices.contains { $0.isCorrect } })
     }
 
+    func testWorldMusicStageChallengesLoadedAsPlayableCultureCampaign() {
+        let challenges = CultureData.challenges(for: "world-music-stage")
+
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "culture-music-01")
+        XCTAssertEqual(challenges.first?.region, "Griot Tradition · West Africa")
+        XCTAssertTrue(challenges.first?.context.contains("griots") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "culture-music-03" && $0.traditionClue.contains("stance") })
+        XCTAssertTrue(challenges.contains { $0.id == "culture-music-04" && $0.culturalNote.contains("jazz") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "world-music-stage" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 && $0.choices.contains { $0.isCorrect } })
+    }
+
     func testCampaignSpotlightUsesFestivalRoadsAfterUnlock() async {
         await MainActor.run {
             let store = AppStore()
@@ -1672,6 +1687,31 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.nextCultureChallenge?.id, "culture-festival-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "culture-festival-04" && $0.worldName == "Festival Roads" })
             XCTAssertTrue(codex.entries.contains { $0.id == "culture-festival-01" && $0.isUnlocked && $0.body.contains("Día de Muertos") })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesWorldMusicStageAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .culture
+            store.stats.xp = 900
+            var progress = store.stats.progress(for: .culture)
+            progress.currentWorldId = "world-music-stage"
+            progress.completedChallengeIds = ["culture-music-01"]
+            store.stats.updateProgress(for: .culture, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "World Music Stage Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🎭 Culture · Oral memory – Present")
+            XCTAssertEqual(spotlight.encounter.title, "Flamenco · Andalusia Scene")
+            XCTAssertTrue(spotlight.encounter.context.contains("flamenco"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextCultureChallenge?.id, "culture-music-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-music-04" && $0.worldName == "World Music Stage" })
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-music-01" && $0.isUnlocked && $0.body.contains("griot") })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
