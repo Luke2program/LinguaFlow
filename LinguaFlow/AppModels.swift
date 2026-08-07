@@ -134,6 +134,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
             return [
                 PlayableWorld(id: "energy-clinic", name: "Energy Clinic", emoji: "💚", era: "Daily systems", description: "Stabilize sleep, food, movement, hydration, and stress with practical habit decisions.", unlockRequirement: .none),
                 PlayableWorld(id: "resilience-gym", name: "Resilience Gym", emoji: "🧠", era: "Mind and recovery", description: "Train recovery, focus, emotional regulation, and long-term wellbeing without health fads.", unlockRequirement: .xpRequired(500)),
+                PlayableWorld(id: "nutrition-lab", name: "Nutrition Lab", emoji: "🥗", era: "Fuel and recovery", description: "Build practical meal, hydration, protein, fiber, and label-reading instincts without diet myths.", unlockRequirement: .xpRequired(900)),
             ]
         case .languages:
             return []
@@ -1885,10 +1886,74 @@ enum HealthData {
         )
     ]
 
+    static let nutritionLabChallenges: [HealthChallenge] = [
+        HealthChallenge(
+            id: "health-nutrition-01",
+            worldId: "nutrition-lab",
+            domain: "Balanced Plate",
+            question: "You have five minutes before a long work block. Which plate is most likely to keep energy steady?",
+            context: "The goal is not a perfect diet. You need a realistic meal that gives fuel, protein, and fiber without a fast crash.",
+            choices: [
+                HealthChoice(id: "a", text: "Whole-grain wrap with eggs or tofu, vegetables, and water", isCorrect: true, explanation: "Correct. Carbohydrate, protein, fiber, and fluid together support steadier energy than a single fast fuel."),
+                HealthChoice(id: "b", text: "Only a sweet pastry and no drink", isCorrect: false, explanation: "A pastry can be enjoyable, but alone it is less likely to keep energy stable through a long block."),
+                HealthChoice(id: "c", text: "Skip the meal because productivity matters more", isCorrect: false, explanation: "Skipping food may backfire when attention and mood need fuel."),
+                HealthChoice(id: "d", text: "Drink only an energy drink and call it breakfast", isCorrect: false, explanation: "Caffeine can mask tiredness, but it does not replace nutrients, fluid, or a balanced meal.")
+            ],
+            bodySignal: "Empty stomach, upcoming focus demand, low time, crash risk.",
+            habitLesson: "A useful default plate pairs a carbohydrate source with protein, fiber-rich plants, and fluid. It does not need to be perfect to be effective."
+        ),
+        HealthChallenge(
+            id: "health-nutrition-02",
+            worldId: "nutrition-lab",
+            domain: "Hydration",
+            question: "You notice a mild headache after coffee and two hours of deep work. What is the best first reset?",
+            context: "You are not diagnosing a medical problem. You are choosing the low-risk next step before continuing.",
+            choices: [
+                HealthChoice(id: "a", text: "Drink water, eat a small balanced snack if hungry, and reassess", isCorrect: true, explanation: "Correct. Fluid and a small snack are practical first checks when focus, caffeine, and hunger may be involved."),
+                HealthChoice(id: "b", text: "Add another strong coffee immediately", isCorrect: false, explanation: "More caffeine can worsen jitters and does not address possible dehydration or hunger."),
+                HealthChoice(id: "c", text: "Ignore thirst until the task is finished", isCorrect: false, explanation: "Ignoring basic signals can make the next block harder than it needs to be."),
+                HealthChoice(id: "d", text: "Chug several liters of water at once", isCorrect: false, explanation: "More is not always better. Moderate drinking and reassessing is safer than overcorrecting.")
+            ],
+            bodySignal: "Mild headache, coffee, long focus block, possible thirst.",
+            habitLesson: "Hydration works best as a steady habit: drink enough across the day, pair caffeine with water, and use thirst or dark urine as simple feedback signals."
+        ),
+        HealthChallenge(
+            id: "health-nutrition-03",
+            worldId: "nutrition-lab",
+            domain: "Protein and Fiber",
+            question: "Dinner is late and you want something quick. Which choice best supports fullness and recovery?",
+            context: "You want a meal that is easy but still useful after a demanding day.",
+            choices: [
+                HealthChoice(id: "a", text: "Beans or lentils with rice, vegetables, olive oil, and yogurt or fruit", isCorrect: true, explanation: "Correct. Protein, fiber, carbohydrate, and fat create a more complete recovery meal."),
+                HealthChoice(id: "b", text: "Plain chips as the entire dinner", isCorrect: false, explanation: "Chips can add salt and calories but miss protein, fiber, and micronutrient variety."),
+                HealthChoice(id: "c", text: "Only a protein shake forever", isCorrect: false, explanation: "Protein can help, but relying only on shakes misses the benefits of whole foods and fiber."),
+                HealthChoice(id: "d", text: "Avoid all carbohydrates at night by default", isCorrect: false, explanation: "Carbohydrates are not automatically bad at night; context and total pattern matter more.")
+            ],
+            bodySignal: "Late hunger, tired body, low cooking energy, recovery need.",
+            habitLesson: "Protein helps repair and fullness; fiber supports digestion and steadier glucose. Combining both with practical staple foods is more durable than strict rules."
+        ),
+        HealthChallenge(
+            id: "health-nutrition-04",
+            worldId: "nutrition-lab",
+            domain: "Label Reading",
+            question: "Two snacks look healthy on the front label. What should you check before choosing?",
+            context: "Packaging is persuasive. Your mission is to find the useful signal without obsessing over every number.",
+            choices: [
+                HealthChoice(id: "a", text: "Serving size, added sugar, fiber, protein, and ingredients you recognize", isCorrect: true, explanation: "Correct. These checks reveal whether the snack fits your actual need better than front-label claims."),
+                HealthChoice(id: "b", text: "Only the biggest health claim on the package", isCorrect: false, explanation: "Front-label claims can be selective and do not show the full nutrition pattern."),
+                HealthChoice(id: "c", text: "Assume expensive always means healthier", isCorrect: false, explanation: "Price is not a reliable nutrition signal."),
+                HealthChoice(id: "d", text: "Ignore serving size because calories are all that matters", isCorrect: false, explanation: "Serving size changes how the numbers apply, and nutrition is broader than calories alone.")
+            ],
+            bodySignal: "Snack choice, persuasive packaging, unclear real portion.",
+            habitLesson: "Good label reading is quick and practical: check serving size, added sugar, fiber, protein, and ingredients, then choose what fits the moment."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [HealthChallenge] {
         switch worldId {
         case "energy-clinic": return energyClinicChallenges
         case "resilience-gym": return resilienceGymChallenges
+        case "nutrition-lab": return nutritionLabChallenges
         default: return []
         }
     }

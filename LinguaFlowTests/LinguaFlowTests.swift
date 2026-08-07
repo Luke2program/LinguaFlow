@@ -300,8 +300,10 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(locked?.unlockProgress(withXP: 125) ?? 0, 0.25, accuracy: 0.001)
         XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 125), 1)
 
-        XCTAssertNil(Subject.health.nextLockedWorld(withXP: 500))
+        XCTAssertEqual(Subject.health.nextLockedWorld(withXP: 500)?.id, "nutrition-lab")
         XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 500), 2)
+        XCTAssertNil(Subject.health.nextLockedWorld(withXP: 900))
+        XCTAssertEqual(Subject.health.unlockedWorldCount(withXP: 900), 3)
     }
 
     func testLearningLevelTrackAndNextUnlock() {
@@ -333,8 +335,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 23)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 23.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 24)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 24.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -816,19 +818,21 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 22)
+        XCTAssertEqual(stats.totalWorldRewardCount, 23)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 22.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 23.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-nile-kingdoms" && !$0.isEarned && $0.xpRemaining == 2000 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "culture-world-music-stage" && !$0.isEarned && $0.xpRemaining == 850 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "business-negotiation-room" && !$0.isEarned && $0.xpRemaining == 950 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-nutrition-lab" && !$0.isEarned && $0.xpRemaining == 900 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-resilience-gym" && $0.isEarned })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-nutrition-lab" && !$0.isEarned && $0.xpRemaining == 400 })
         XCTAssertTrue(stats.featuredWorldRewardBadges.contains { !$0.isEarned && $0.world.name == "Age of Discovery" })
     }
 
@@ -1891,9 +1895,10 @@ final class LinguaFlowTests: XCTestCase {
 
     func testHealthWorldsExist() {
         let healthWorlds = Subject.health.worlds
-        XCTAssertGreaterThanOrEqual(healthWorlds.count, 2)
+        XCTAssertGreaterThanOrEqual(healthWorlds.count, 3)
         XCTAssertTrue(healthWorlds.contains { $0.id == "energy-clinic" })
         XCTAssertTrue(healthWorlds.contains { $0.id == "resilience-gym" })
+        XCTAssertTrue(healthWorlds.contains { $0.id == "nutrition-lab" && $0.unlockRequirement.xpRequired == 900 })
     }
 
     func testEnergyClinicChallengesLoaded() {
@@ -1913,6 +1918,17 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(challenges.first?.domain, "Recovery")
         XCTAssertTrue(challenges.first?.question.contains("short night") ?? false)
         XCTAssertTrue(challenges.contains { $0.id == "health-resilience-03" && $0.habitLesson.contains("Emotion regulation") })
+        XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.count == 4 })
+        XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.contains { choice in choice.isCorrect } })
+    }
+
+    func testNutritionLabChallengesLoadedAsPracticalHealthCampaign() {
+        let challenges = HealthData.challenges(for: "nutrition-lab")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "health-nutrition-01")
+        XCTAssertEqual(challenges.first?.domain, "Balanced Plate")
+        XCTAssertTrue(challenges.first?.question.contains("work block") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "health-nutrition-04" && $0.habitLesson.contains("serving size") })
         XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.count == 4 })
         XCTAssertTrue(challenges.allSatisfy { challenge in challenge.choices.contains { choice in choice.isCorrect } })
     }
@@ -1937,6 +1953,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertEqual(store.nextHealthChallenge?.id, "health-resilience-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "health-resilience-04" && $0.worldName == "Resilience Gym" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesNutritionLabAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.stats.xp = 925
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "nutrition-lab"
+            progress.completedChallengeIds = ["health-nutrition-01"]
+            store.stats.updateProgress(for: .health, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Nutrition Lab Campaign")
+            XCTAssertEqual(spotlight.subtitle, "💚 Health · Fuel and recovery")
+            XCTAssertEqual(spotlight.encounter.title, "Hydration Habit")
+            XCTAssertTrue(spotlight.encounter.context.contains("mild headache"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextHealthChallenge?.id, "health-nutrition-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "health-nutrition-04" && $0.worldName == "Nutrition Lab" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
