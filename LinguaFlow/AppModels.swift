@@ -105,6 +105,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "space-exploration", name: "Space Frontiers", emoji: "🚀", era: "1957 – Present", description: "From Sputnik to Mars. Learn orbital mechanics and mission control.", unlockRequirement: .none),
                 PlayableWorld(id: "quantum-realm", name: "Quantum Realm", emoji: "⚛️", era: "1900 – Present", description: "Particles, waves, and spooky action at a distance.", unlockRequirement: .xpRequired(750)),
                 PlayableWorld(id: "earth-systems", name: "Earth Systems", emoji: "🌋", era: "Deep Time – Present", description: "Trace climate, water, carbon, and ecosystems as one living planetary machine.", unlockRequirement: .xpRequired(1200)),
+                PlayableWorld(id: "human-body-lab", name: "Human Body Lab", emoji: "🫀", era: "Living systems", description: "Run quick physiology missions through breathing, blood, nerves, immunity, and energy.", unlockRequirement: .xpRequired(1700)),
             ]
         case .geography:
             return [
@@ -788,12 +789,76 @@ enum ScienceData {
             field: "Ecology"
         )
     ]
+
+    static let humanBodyLabChallenges: [ScienceChallenge] = [
+        ScienceChallenge(
+            id: "body-01",
+            worldId: "human-body-lab",
+            era: "Breathing",
+            question: "What actually moves oxygen from the air into your blood?",
+            context: "In the lung mission, inhaled air reaches millions of tiny alveoli wrapped in capillaries. Oxygen crosses a thin moist surface into blood while carbon dioxide moves the other way.",
+            choices: [
+                ScienceChoice(id: "a", text: "Diffusion across thin alveoli into capillaries", isCorrect: true, explanation: "Correct. Oxygen moves down its concentration gradient across the alveolar-capillary membrane and binds to hemoglobin in red blood cells."),
+                ScienceChoice(id: "b", text: "The stomach pumps oxygen directly into arteries", isCorrect: false, explanation: "The stomach digests food. Gas exchange happens in the lungs, not the digestive tract."),
+                ScienceChoice(id: "c", text: "Bones create oxygen whenever muscles move", isCorrect: false, explanation: "Bone marrow makes blood cells, but it does not create oxygen for the body."),
+                ScienceChoice(id: "d", text: "The heart pulls oxygen through skin pores", isCorrect: false, explanation: "Human skin is not the main respiratory surface. The heart circulates blood after lungs load it with oxygen.")
+            ],
+            funFact: "Alveoli create a huge exchange surface inside the lungs, helping oxygen enter blood fast enough to support active tissues.",
+            field: "Respiration"
+        ),
+        ScienceChallenge(
+            id: "body-02",
+            worldId: "human-body-lab",
+            era: "Circulation",
+            question: "Why does heart rate rise when you sprint up stairs?",
+            context: "Working muscles need more oxygen and glucose and produce more carbon dioxide and heat. The circulatory system has to deliver and remove materials faster.",
+            choices: [
+                ScienceChoice(id: "a", text: "To increase blood flow to working muscles", isCorrect: true, explanation: "Correct. A faster heart rate helps raise cardiac output so muscles receive more oxygen and nutrients while wastes are carried away."),
+                ScienceChoice(id: "b", text: "To stop blood from reaching muscles", isCorrect: false, explanation: "Exercise usually increases blood flow to active muscles, not blocks it."),
+                ScienceChoice(id: "c", text: "Because blood turns into air during exercise", isCorrect: false, explanation: "Blood remains blood. It carries gases, nutrients, cells, hormones, and waste products."),
+                ScienceChoice(id: "d", text: "Because bones need to beat in rhythm", isCorrect: false, explanation: "Bones provide structure and blood cell production, but they do not beat like the heart.")
+            ],
+            funFact: "Cardiac output equals heart rate times stroke volume; both can change during exercise to meet tissue demand.",
+            field: "Cardiovascular"
+        ),
+        ScienceChallenge(
+            id: "body-03",
+            worldId: "human-body-lab",
+            era: "Nervous System",
+            question: "A hot pan touches your finger. Why can your hand pull away before you consciously process the pain?",
+            context: "The reflex mission shows sensory neurons carrying danger signals to the spinal cord, where motor neurons can trigger a quick withdrawal response before the brain finishes interpreting the event.",
+            choices: [
+                ScienceChoice(id: "a", text: "A spinal reflex can trigger fast withdrawal", isCorrect: true, explanation: "Correct. Reflex arcs can route through the spinal cord for speed, while signals also travel to the brain for conscious pain perception."),
+                ScienceChoice(id: "b", text: "Pain signals wait several minutes before moving", isCorrect: false, explanation: "Pain and heat signals can travel quickly; reflexes are designed for rapid protection."),
+                ScienceChoice(id: "c", text: "The liver decides which muscles contract", isCorrect: false, explanation: "The liver has many metabolic roles, but motor commands for a reflex route through the nervous system."),
+                ScienceChoice(id: "d", text: "Skin cells become tiny muscles", isCorrect: false, explanation: "Skin detects the stimulus; muscles perform the withdrawal.")
+            ],
+            funFact: "Fast reflexes protect tissue by shortening the time between danger detection and movement.",
+            field: "Neural Reflexes"
+        ),
+        ScienceChallenge(
+            id: "body-04",
+            worldId: "human-body-lab",
+            era: "Immunity",
+            question: "Why do vaccines train immune memory without needing you to suffer the full disease?",
+            context: "The immune lab presents a harmless piece, weakened form, or genetic instruction linked to a pathogen. Immune cells learn the pattern and build memory for faster future response.",
+            choices: [
+                ScienceChoice(id: "a", text: "They expose the immune system to a safe target pattern", isCorrect: true, explanation: "Correct. Vaccines help the adaptive immune system recognize antigens and form memory cells, reducing risk from later infection."),
+                ScienceChoice(id: "b", text: "They replace the immune system forever", isCorrect: false, explanation: "Vaccines work with your immune system. They do not replace it."),
+                ScienceChoice(id: "c", text: "They make pathogens helpful nutrients", isCorrect: false, explanation: "Vaccines do not turn pathogens into food; they prepare immune recognition and response."),
+                ScienceChoice(id: "d", text: "They prevent every illness instantly", isCorrect: false, explanation: "Vaccine protection varies by disease and time. The main idea is trained immune memory and reduced risk or severity.")
+            ],
+            funFact: "Adaptive immune memory is why a second encounter with the same pathogen pattern can produce a faster, stronger response.",
+            field: "Immune Memory"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [ScienceChallenge] {
         switch worldId {
         case "space-exploration": return spaceExplorationChallenges
         case "quantum-realm": return quantumRealmChallenges
         case "earth-systems": return earthSystemsChallenges
+        case "human-body-lab": return humanBodyLabChallenges
         default: return []
         }
     }
