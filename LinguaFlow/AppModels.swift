@@ -112,6 +112,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "european-capitals", name: "European Capitals", emoji: "🇪🇺", era: "Modern", description: "Navigate Europe by capital cities, rivers, mountains, and borders.", unlockRequirement: .none),
                 PlayableWorld(id: "african-wonders", name: "African Wonders", emoji: "🌍", era: "Ancient – Modern", description: "From the Sahara to Kilimanjaro. Rivers, deserts, and ecosystems.", unlockRequirement: .xpRequired(300)),
                 PlayableWorld(id: "silk-road-routes", name: "Silk Road Routes", emoji: "🐫", era: "130 BCE – 1450 CE", description: "Guide caravans across oases, mountain passes, deserts, and ports that connected Eurasia.", unlockRequirement: .xpRequired(900)),
+                PlayableWorld(id: "pacific-ring", name: "Pacific Ring", emoji: "🌋", era: "Deep Earth – Present", description: "Trace volcanoes, trenches, earthquakes, tsunamis, and island arcs around the Pacific Rim.", unlockRequirement: .xpRequired(1300)),
             ]
         case .math:
             return [
@@ -1138,11 +1139,95 @@ enum GeographyData {
         )
     ]
 
+    static let pacificRingChallenges: [GeographyChallenge] = [
+        GeographyChallenge(
+            id: "geo-pacific-01",
+            worldId: "pacific-ring",
+            region: "Andean Margin",
+            question: "Why do the Andes line the western edge of South America with frequent volcanoes and earthquakes?",
+            context: "Your expedition follows the Pacific coast from Peru toward Chile. A dense oceanic plate dives beneath the continent, building mountains and feeding volcanic arcs.",
+            choices: [
+                GeographyChoice(id: "a", text: "The Nazca Plate subducts beneath South America", isCorrect: true, explanation: "Correct. Subduction of the Nazca Plate under the South American Plate helps create the Andes, earthquakes, and volcanoes."),
+                GeographyChoice(id: "b", text: "A desert wind pushes mountains upward", isCorrect: false, explanation: "Wind shapes erosion and dunes, but it does not build a continental mountain chain."),
+                GeographyChoice(id: "c", text: "The Amazon River deposits lava along the coast", isCorrect: false, explanation: "Rivers move sediment and water, not lava from deep plate boundaries."),
+                GeographyChoice(id: "d", text: "South America floats over a calm inactive plate", isCorrect: false, explanation: "The western margin is highly active because plates converge there.")
+            ],
+            mapClue: "Follow the ocean trench and volcano belt along Peru and Chile where the Pacific floor bends under the continent.",
+            mapTargetLabel: "Andes Margin",
+            mapStartX: 0.28,
+            mapStartY: 0.68,
+            mapTargetX: 0.22,
+            mapTargetY: 0.76,
+            fieldNote: "The Peru-Chile Trench marks one of Earth's major subduction zones, where plate motion helps raise the Andes and trigger powerful earthquakes."
+        ),
+        GeographyChallenge(
+            id: "geo-pacific-02",
+            worldId: "pacific-ring",
+            region: "Japan Trench",
+            question: "Which hazard can a powerful offshore subduction earthquake create for Japan's Pacific coast?",
+            context: "The map shows a quake under the seafloor east of Honshu. If the seabed suddenly shifts, it can move a huge volume of ocean water toward shore.",
+            choices: [
+                GeographyChoice(id: "a", text: "A tsunami", isCorrect: true, explanation: "Correct. Large undersea earthquakes can displace water and generate tsunamis that travel quickly across the ocean."),
+                GeographyChoice(id: "b", text: "A permanent monsoon reversal", isCorrect: false, explanation: "Monsoon winds are seasonal atmospheric patterns, not direct products of a sudden seafloor rupture."),
+                GeographyChoice(id: "c", text: "A new desert in Hokkaido overnight", isCorrect: false, explanation: "Earthquakes do not instantly create regional deserts."),
+                GeographyChoice(id: "d", text: "A total stop to all tides", isCorrect: false, explanation: "Tides are mainly driven by the Moon and Sun. A tsunami is a separate wave process.")
+            ],
+            mapClue: "Look just offshore from northeastern Honshu, where the Pacific Plate descends near the Japan Trench.",
+            mapTargetLabel: "Japan Trench",
+            mapStartX: 0.70,
+            mapStartY: 0.36,
+            mapTargetX: 0.78,
+            mapTargetY: 0.38,
+            fieldNote: "The 2011 Tohoku earthquake and tsunami showed how subduction zones link offshore plate motion with coastal risk, preparedness, and land-use decisions."
+        ),
+        GeographyChallenge(
+            id: "geo-pacific-03",
+            worldId: "pacific-ring",
+            region: "Aleutian Arc",
+            question: "Why does Alaska's Aleutian chain form a curved string of volcanic islands?",
+            context: "Your route crosses the northern Pacific. The islands are not random dots; they trace a boundary where one plate sinks beneath another in an arc.",
+            choices: [
+                GeographyChoice(id: "a", text: "Subduction creates magma that feeds an island arc", isCorrect: true, explanation: "Correct. The Pacific Plate subducts beneath the North American Plate, producing magma and the Aleutian volcanic island arc."),
+                GeographyChoice(id: "b", text: "Glaciers arrange islands into perfect circles", isCorrect: false, explanation: "Glaciers shape landforms, but the Aleutian arc is primarily tied to plate convergence."),
+                GeographyChoice(id: "c", text: "Coral reefs grow fastest in Arctic water", isCorrect: false, explanation: "The Aleutians are cold volcanic islands, not tropical coral atolls."),
+                GeographyChoice(id: "d", text: "The islands are the tops of buried skyscrapers", isCorrect: false, explanation: "They are natural volcanic islands formed by tectonic processes.")
+            ],
+            mapClue: "Trace the arc from mainland Alaska toward Kamchatka along the northern Pacific plate boundary.",
+            mapTargetLabel: "Aleutian Arc",
+            mapStartX: 0.56,
+            mapStartY: 0.24,
+            mapTargetX: 0.48,
+            mapTargetY: 0.20,
+            fieldNote: "Island arcs often form where oceanic plates subduct, making curved chains of volcanoes such as the Aleutians, Japan, and parts of Indonesia."
+        ),
+        GeographyChallenge(
+            id: "geo-pacific-04",
+            worldId: "pacific-ring",
+            region: "New Zealand Boundary",
+            question: "Why is New Zealand such a useful place to study active plate-boundary landscapes?",
+            context: "The field map shows the Alpine Fault, uplifted mountains, offshore trenches, and volcanic zones. Several boundary styles meet across a compact set of islands.",
+            choices: [
+                GeographyChoice(id: "a", text: "It sits across the Pacific and Australian plate boundary", isCorrect: true, explanation: "Correct. New Zealand straddles a complex boundary between the Pacific and Australian plates, including strike-slip motion, subduction, uplift, and volcanism."),
+                GeographyChoice(id: "b", text: "It is thousands of kilometers from any plate edge", isCorrect: false, explanation: "New Zealand is directly shaped by an active plate boundary."),
+                GeographyChoice(id: "c", text: "Its mountains are only artificial tourist structures", isCorrect: false, explanation: "The Southern Alps and other landforms are natural, shaped by tectonic uplift, erosion, and climate."),
+                GeographyChoice(id: "d", text: "It has no earthquakes because it is an island country", isCorrect: false, explanation: "Island status does not prevent earthquakes; New Zealand has significant seismic hazard.")
+            ],
+            mapClue: "Find the plate boundary cutting through New Zealand, from the Alpine Fault to volcanic North Island zones.",
+            mapTargetLabel: "New Zealand",
+            mapStartX: 0.78,
+            mapStartY: 0.74,
+            mapTargetX: 0.83,
+            mapTargetY: 0.82,
+            fieldNote: "New Zealand compresses several plate-boundary processes into a small region, making it a strong real-world case for reading earthquakes, mountains, volcanoes, and hazards together."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [GeographyChallenge] {
         switch worldId {
         case "european-capitals": return europeanCapitalsChallenges
         case "african-wonders": return africanWondersChallenges
         case "silk-road-routes": return silkRoadRoutesChallenges
+        case "pacific-ring": return pacificRingChallenges
         default: return []
         }
     }

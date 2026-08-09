@@ -350,8 +350,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 25)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 25.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 26)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 26.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -857,9 +857,9 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 24)
+        XCTAssertEqual(stats.totalWorldRewardCount, 25)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 24.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 25.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
@@ -868,6 +868,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "business-negotiation-room" && !$0.isEarned && $0.xpRemaining == 950 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-nutrition-lab" && !$0.isEarned && $0.xpRemaining == 900 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "science-human-body-lab" && !$0.isEarned && $0.xpRemaining == 1700 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "geography-pacific-ring" && !$0.isEarned && $0.xpRemaining == 1300 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
@@ -1408,10 +1409,11 @@ final class LinguaFlowTests: XCTestCase {
 
     func testGeographyWorldsExist() {
         let geographyWorlds = Subject.geography.worlds
-        XCTAssertGreaterThanOrEqual(geographyWorlds.count, 3)
+        XCTAssertGreaterThanOrEqual(geographyWorlds.count, 4)
         XCTAssertTrue(geographyWorlds.contains { $0.id == "european-capitals" })
         XCTAssertTrue(geographyWorlds.contains { $0.id == "african-wonders" })
         XCTAssertTrue(geographyWorlds.contains { $0.id == "silk-road-routes" && $0.unlockRequirement.xpRequired == 900 })
+        XCTAssertTrue(geographyWorlds.contains { $0.id == "pacific-ring" && $0.unlockRequirement.xpRequired == 1300 })
     }
 
     func testEuropeanCapitalsChallengesLoaded() {
@@ -1446,6 +1448,20 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.first?.context.contains("shortest line across the map") ?? false)
         XCTAssertTrue(challenges.contains { $0.id == "geo-silk-03" && $0.fieldNote.contains("Sogdian merchants") })
         XCTAssertTrue(challenges.contains { $0.id == "geo-silk-04" && $0.mapClue.contains("wind to reverse") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testPacificRingChallengesLoadedAsTectonicRoute() {
+        let challenges = GeographyData.challenges(for: "pacific-ring")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "geo-pacific-01")
+        XCTAssertEqual(challenges.first?.region, "Andean Margin")
+        XCTAssertEqual(challenges.first?.mapTargetLabel, "Andes Margin")
+        XCTAssertTrue(challenges.first?.context.contains("Nazca") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "geo-pacific-02" && $0.fieldNote.contains("2011 Tohoku") })
+        XCTAssertTrue(challenges.contains { $0.id == "geo-pacific-03" && $0.mapClue.contains("Kamchatka") })
+        XCTAssertTrue(challenges.contains { $0.id == "geo-pacific-04" && $0.fieldNote.contains("plate-boundary processes") })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
     }
 
@@ -1489,6 +1505,29 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(spotlight.encounter.context.contains("Kashgar"))
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertTrue(codex.entries.contains { $0.id == "geo-silk-04" && $0.worldName == "Silk Road Routes" })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesPacificRingAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.stats.xp = 1_350
+            var progress = store.stats.progress(for: .geography)
+            progress.currentWorldId = "pacific-ring"
+            progress.completedChallengeIds = ["geo-pacific-01"]
+            store.stats.updateProgress(for: .geography, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Pacific Ring Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🗺️ Geography · Deep Earth – Present")
+            XCTAssertEqual(spotlight.encounter.title, "Japan Trench · Japan Trench")
+            XCTAssertTrue(spotlight.encounter.context.contains("tsunami"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertTrue(codex.entries.contains { $0.id == "geo-pacific-04" && $0.worldName == "Pacific Ring" })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
