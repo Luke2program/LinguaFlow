@@ -131,6 +131,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "founder-guild", name: "Founder Guild", emoji: "📈", era: "Startup basics", description: "Make practical startup, pricing, cash-flow, and customer decisions under pressure.", unlockRequirement: .none),
                 PlayableWorld(id: "wall-street-desk", name: "Wall Street Desk", emoji: "💼", era: "Markets", description: "Read incentives, risk, diversification, and market signals without falling for hype.", unlockRequirement: .xpRequired(550)),
                 PlayableWorld(id: "negotiation-room", name: "Negotiation Room", emoji: "🤝", era: "Dealcraft", description: "Practice offers, anchors, BATNA, tradeoffs, and trust without burning the relationship.", unlockRequirement: .xpRequired(950)),
+                PlayableWorld(id: "personal-finance-lab", name: "Personal Finance Lab", emoji: "🏦", era: "Money systems", description: "Turn budgeting, emergency funds, debt, credit, and investing into practical life decisions.", unlockRequirement: .xpRequired(1400)),
             ]
         case .health:
             return [
@@ -1880,11 +1881,75 @@ enum BusinessData {
         )
     ]
 
+    static let personalFinanceLabChallenges: [BusinessChallenge] = [
+        BusinessChallenge(
+            id: "business-finance-01",
+            worldId: "personal-finance-lab",
+            domain: "Budgeting",
+            question: "Your income arrives, bills are due, and a sale is tempting. What is the strongest first move?",
+            context: "The lab console shows rent, groceries, transport, a minimum debt payment, and a fun purchase that would drain the account before the next paycheck.",
+            choices: [
+                BusinessChoice(id: "a", text: "Cover essentials, automate savings, then decide on wants", isCorrect: true, explanation: "Correct. A useful budget protects necessities and future stability before optional spending."),
+                BusinessChoice(id: "b", text: "Buy the sale item first because discounts create money", isCorrect: false, explanation: "A discount still costs cash. It is only useful if it fits after priorities are covered."),
+                BusinessChoice(id: "c", text: "Ignore all bills until the account feels less stressful", isCorrect: false, explanation: "Avoidance can create late fees, interest, and bigger stress later."),
+                BusinessChoice(id: "d", text: "Spend based only on yesterday's balance", isCorrect: false, explanation: "A balance snapshot can hide upcoming bills. Cash flow timing matters.")
+            ],
+            marketSignal: "Fixed bills, variable wants, limited cash until next payday.",
+            lesson: "Budgeting is a priority system, not a punishment. Essentials, minimum obligations, savings, and flexible wants need a clear order."
+        ),
+        BusinessChallenge(
+            id: "business-finance-02",
+            worldId: "personal-finance-lab",
+            domain: "Emergency Fund",
+            question: "Your phone breaks the same month a medical copay appears. What financial defense helps most?",
+            context: "The expense is real, urgent, and not huge enough for a long-term loan. Without cash set aside, it would likely land on high-interest credit.",
+            choices: [
+                BusinessChoice(id: "a", text: "Use a small emergency fund and rebuild it afterward", isCorrect: true, explanation: "Correct. Emergency savings are designed to absorb irregular necessary costs without turning them into expensive debt."),
+                BusinessChoice(id: "b", text: "Skip rent to keep the savings untouched", isCorrect: false, explanation: "Emergency funds are there to protect core obligations, not to sit unused while essentials fail."),
+                BusinessChoice(id: "c", text: "Take the highest-interest option because it is fastest", isCorrect: false, explanation: "Speed matters, but high-interest debt can turn a small emergency into a long problem."),
+                BusinessChoice(id: "d", text: "Pretend emergencies are too rare to plan for", isCorrect: false, explanation: "Irregular expenses are normal. Planning for them makes them less disruptive.")
+            ],
+            marketSignal: "Necessary surprise expense, no time to earn extra first, high-interest credit available.",
+            lesson: "An emergency fund buys options. Even a modest buffer can prevent fees, panic borrowing, and missed essential payments."
+        ),
+        BusinessChallenge(
+            id: "business-finance-03",
+            worldId: "personal-finance-lab",
+            domain: "Debt Strategy",
+            question: "Two debts compete for attention: one has 24% interest and one has 4%. What should usually get extra payments first?",
+            context: "Minimum payments are covered on both. Extra cash can reduce only one balance this month.",
+            choices: [
+                BusinessChoice(id: "a", text: "The 24% debt, because it grows fastest", isCorrect: true, explanation: "Correct. Paying extra toward the highest-interest debt usually saves the most money."),
+                BusinessChoice(id: "b", text: "The 4% debt, because lower numbers are easier to ignore", isCorrect: false, explanation: "A low rate may be less urgent when minimums are covered and a high-rate balance is compounding."),
+                BusinessChoice(id: "c", text: "Neither debt, because minimums make interest disappear", isCorrect: false, explanation: "Minimum payments prevent delinquency, but interest can still accumulate for a long time."),
+                BusinessChoice(id: "d", text: "Pick randomly so the debts feel treated equally", isCorrect: false, explanation: "Equal attention is not the same as smart cost reduction.")
+            ],
+            marketSignal: "Both minimums paid, limited extra cash, large interest-rate gap.",
+            lesson: "Debt strategy starts with the interest rate and required payments. The avalanche method targets high-rate balances to reduce total cost."
+        ),
+        BusinessChallenge(
+            id: "business-finance-04",
+            worldId: "personal-finance-lab",
+            domain: "Long-Term Investing",
+            question: "A friend says to invest everything in one trending coin because it doubled last week. What is the more durable move?",
+            context: "The money is for a goal years away. The trend may continue, but the outcome depends on hype, volatility, and timing you cannot control.",
+            choices: [
+                BusinessChoice(id: "a", text: "Use diversified, low-cost investing sized to your time horizon", isCorrect: true, explanation: "Correct. Long-term investing usually favors diversification, costs, risk tolerance, and time horizon over chasing one recent winner."),
+                BusinessChoice(id: "b", text: "Move every euro into the trend before learning the risk", isCorrect: false, explanation: "Recent performance does not remove concentration risk or volatility."),
+                BusinessChoice(id: "c", text: "Borrow money to make the bet bigger", isCorrect: false, explanation: "Leverage can magnify losses and force bad exits."),
+                BusinessChoice(id: "d", text: "Assume all investing is identical to gambling", isCorrect: false, explanation: "Speculation exists, but diversified investing with a long horizon and sensible costs is a different decision process.")
+            ],
+            marketSignal: "High hype, concentrated asset, long-term goal, uncertain timing.",
+            lesson: "Investing is matching risk to goals. Diversification, low fees, time horizon, and position size help protect the plan from one loud story."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [BusinessChallenge] {
         switch worldId {
         case "founder-guild": return founderGuildChallenges
         case "wall-street-desk": return wallStreetDeskChallenges
         case "negotiation-room": return negotiationRoomChallenges
+        case "personal-finance-lab": return personalFinanceLabChallenges
         default: return []
         }
     }
