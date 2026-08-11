@@ -119,6 +119,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "logic-gates", name: "Logic Gates", emoji: "🔢", era: "Foundations", description: "Crack pattern locks, ratios, and number rules in a neon puzzle vault.", unlockRequirement: .none),
                 PlayableWorld(id: "probability-casino", name: "Probability Casino", emoji: "🎲", era: "Chance", description: "Read odds, avoid traps, and make smarter bets with probability.", unlockRequirement: .xpRequired(400)),
                 PlayableWorld(id: "geometry-studio", name: "Geometry Studio", emoji: "📐", era: "Shape Lab", description: "Rotate, measure, and rebuild spatial puzzles with angles, area, volume, and scale.", unlockRequirement: .xpRequired(800)),
+                PlayableWorld(id: "data-detective", name: "Data Detective", emoji: "🕵️", era: "Evidence Lab", description: "Interrogate charts, averages, samples, and causation clues before a misleading headline escapes.", unlockRequirement: .xpRequired(1200)),
             ]
         case .culture:
             return [
@@ -1443,11 +1444,75 @@ enum MathData {
         )
     ]
 
+    static let dataDetectiveChallenges: [MathChallenge] = [
+        MathChallenge(
+            id: "math-data-01",
+            worldId: "data-detective",
+            domain: "Averages",
+            question: "A score list is 4, 5, 5, 6, 80. Which average best describes a typical score?",
+            context: "A flashy dashboard claims the team is performing near 20 points because one extreme score distorts the mean. The case file asks for the more typical center.",
+            choices: [
+                MathChoice(id: "a", text: "Mean, because every report should use it", isCorrect: false, explanation: "The mean uses every value, but an extreme outlier can pull it far away from most scores."),
+                MathChoice(id: "b", text: "Median, because it resists the outlier", isCorrect: true, explanation: "Correct. The median is 5, right in the middle of the sorted list, while the mean is 20."),
+                MathChoice(id: "c", text: "80, because it is the biggest clue", isCorrect: false, explanation: "80 is an outlier here. It is important to explain, but it does not represent the typical score."),
+                MathChoice(id: "d", text: "Range, because it gives one typical value", isCorrect: false, explanation: "Range measures spread from low to high. It does not give the center of the data.")
+            ],
+            patternClue: "When one value is extreme, compare mean and median before trusting the headline.",
+            ruleExplanation: "The mean can be pulled by outliers. The median often gives a better typical value when data is skewed."
+        ),
+        MathChallenge(
+            id: "math-data-02",
+            worldId: "data-detective",
+            domain: "Sampling",
+            question: "A school survey asks only students in the chess club whether lunch should change. What is the biggest problem?",
+            context: "The principal wants a decision for the whole school, but the detective board shows the sample came from one small, specialized group.",
+            choices: [
+                MathChoice(id: "a", text: "The sample may be biased", isCorrect: true, explanation: "Correct. Chess club students may not represent the whole school, so the result could be biased."),
+                MathChoice(id: "b", text: "The survey has too many people", isCorrect: false, explanation: "The issue is not too many people. The issue is whether the people represent the population."),
+                MathChoice(id: "c", text: "Surveys can never be useful", isCorrect: false, explanation: "Surveys can be useful when questions and samples are designed carefully."),
+                MathChoice(id: "d", text: "Lunch opinions cannot be counted", isCorrect: false, explanation: "Opinions can be counted, but the sample needs to match the group you want to understand.")
+            ],
+            patternClue: "Ask who was included, who was excluded, and what population the claim is about.",
+            ruleExplanation: "A sample should represent the population. Biased samples can make precise-looking numbers support the wrong decision."
+        ),
+        MathChallenge(
+            id: "math-data-03",
+            worldId: "data-detective",
+            domain: "Causation",
+            question: "Ice cream sales and sunburns rise together in summer. What should you conclude?",
+            context: "A viral post says ice cream causes sunburn. Your evidence wall shows both numbers climb when hot sunny weather brings people outside.",
+            choices: [
+                MathChoice(id: "a", text: "Ice cream directly causes sunburn", isCorrect: false, explanation: "The data only shows the two rise together. It does not prove ice cream causes sunburn."),
+                MathChoice(id: "b", text: "Sunburn causes people to buy ice cream", isCorrect: false, explanation: "That reverses the story without evidence. Another factor can explain both patterns."),
+                MathChoice(id: "c", text: "A lurking variable may explain both", isCorrect: true, explanation: "Correct. Hot sunny weather can increase both ice cream sales and sunburn risk."),
+                MathChoice(id: "d", text: "The numbers must be fake", isCorrect: false, explanation: "The numbers can be real while the causal claim is still wrong.")
+            ],
+            patternClue: "Correlation is a clue, not a confession. Look for a third variable.",
+            ruleExplanation: "Correlation means variables move together. Causation needs stronger evidence that one variable directly changes the other."
+        ),
+        MathChallenge(
+            id: "math-data-04",
+            worldId: "data-detective",
+            domain: "Rates",
+            question: "A chart says downloads doubled from 50 to 100, then rose from 100 to 150. Which jump had the bigger percent increase?",
+            context: "Both jumps add 50 downloads, but the magnifying lens checks growth relative to the starting value.",
+            choices: [
+                MathChoice(id: "a", text: "50 to 100, because it is a 100% increase", isCorrect: true, explanation: "Correct. 50 more on a base of 50 is 100%, while 50 more on a base of 100 is 50%."),
+                MathChoice(id: "b", text: "100 to 150, because 150 is the largest number", isCorrect: false, explanation: "The ending value is larger, but percent increase compares the change to the starting value."),
+                MathChoice(id: "c", text: "They are the same percent because both add 50", isCorrect: false, explanation: "They are the same absolute increase, not the same relative increase."),
+                MathChoice(id: "d", text: "Neither jump is growth", isCorrect: false, explanation: "Both are growth. The first grows faster in percentage terms.")
+            ],
+            patternClue: "Percent change = change divided by the starting value.",
+            ruleExplanation: "Absolute change and percent change answer different questions. Relative growth depends on the baseline."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [MathChallenge] {
         switch worldId {
         case "logic-gates": return logicGateChallenges
         case "probability-casino": return probabilityCasinoChallenges
         case "geometry-studio": return geometryStudioChallenges
+        case "data-detective": return dataDetectiveChallenges
         default: return []
         }
     }

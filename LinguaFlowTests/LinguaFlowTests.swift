@@ -350,8 +350,8 @@ final class LinguaFlowTests: XCTestCase {
 
         XCTAssertEqual(atlas.count, Subject.allCases.count)
         XCTAssertEqual(stats.atlasOpenWorldCount, 8)
-        XCTAssertEqual(stats.atlasTotalWorldCount, 27)
-        XCTAssertEqual(stats.atlasProgress, 8.0 / 27.0, accuracy: 0.001)
+        XCTAssertEqual(stats.atlasTotalWorldCount, 28)
+        XCTAssertEqual(stats.atlasProgress, 8.0 / 28.0, accuracy: 0.001)
         XCTAssertEqual(atlas.first { $0.subject == .history }?.missionText, "2/21 missions")
         XCTAssertEqual(stats.atlasNextTarget?.subject, .geography)
         XCTAssertEqual(stats.atlasNextTarget?.nextWorld?.name, "African Wonders")
@@ -857,9 +857,9 @@ final class LinguaFlowTests: XCTestCase {
         var stats = UserStats()
         stats.xp = 0
 
-        XCTAssertEqual(stats.totalWorldRewardCount, 26)
+        XCTAssertEqual(stats.totalWorldRewardCount, 27)
         XCTAssertEqual(stats.earnedWorldRewardCount, 7)
-        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 26.0, accuracy: 0.001)
+        XCTAssertEqual(stats.worldRewardProgress, 7.0 / 27.0, accuracy: 0.001)
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-ancient-rome" && $0.isEarned })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-medieval-europe" && !$0.isEarned && $0.xpRemaining == 500 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "history-renaissance-cities" && !$0.isEarned && $0.xpRemaining == 1500 })
@@ -870,6 +870,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "health-nutrition-lab" && !$0.isEarned && $0.xpRemaining == 900 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "science-human-body-lab" && !$0.isEarned && $0.xpRemaining == 1700 })
         XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "geography-pacific-ring" && !$0.isEarned && $0.xpRemaining == 1300 })
+        XCTAssertTrue(stats.worldRewardBadges.contains { $0.id == "math-data-detective" && !$0.isEarned && $0.xpRemaining == 1200 })
 
         stats.xp = 500
         XCTAssertEqual(stats.earnedWorldRewardCount, 12)
@@ -1579,10 +1580,11 @@ final class LinguaFlowTests: XCTestCase {
 
     func testMathWorldsExist() {
         let mathWorlds = Subject.math.worlds
-        XCTAssertGreaterThanOrEqual(mathWorlds.count, 3)
+        XCTAssertGreaterThanOrEqual(mathWorlds.count, 4)
         XCTAssertTrue(mathWorlds.contains { $0.id == "logic-gates" })
         XCTAssertTrue(mathWorlds.contains { $0.id == "probability-casino" })
         XCTAssertTrue(mathWorlds.contains { $0.id == "geometry-studio" && $0.unlockRequirement.xpRequired == 800 })
+        XCTAssertTrue(mathWorlds.contains { $0.id == "data-detective" && $0.unlockRequirement.xpRequired == 1200 })
     }
 
     func testLogicGateChallengesLoaded() {
@@ -1615,6 +1617,19 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "math-geometry-03" && $0.ruleExplanation.contains("scale ratio") })
         XCTAssertTrue(challenges.contains { $0.id == "math-geometry-04" && $0.patternClue.contains("cube") })
         XCTAssertTrue(challenges.allSatisfy { $0.worldId == "geometry-studio" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testDataDetectiveChallengesLoadedAsDataLiteracyCampaign() {
+        let challenges = MathData.challenges(for: "data-detective")
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "math-data-01")
+        XCTAssertEqual(challenges.first?.domain, "Averages")
+        XCTAssertTrue(challenges.first?.question.contains("typical score") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "math-data-02" && $0.ruleExplanation.contains("Biased samples") })
+        XCTAssertTrue(challenges.contains { $0.id == "math-data-03" && $0.patternClue.contains("Correlation") })
+        XCTAssertTrue(challenges.contains { $0.id == "math-data-04" && $0.ruleExplanation.contains("Absolute change") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "data-detective" })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.contains { $0.isCorrect } })
     }
 
@@ -1659,6 +1674,31 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.nextMathChallenge?.id, "math-geometry-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "math-geometry-01" && $0.isUnlocked && $0.worldName == "Geometry Studio" })
             XCTAssertTrue(codex.entries.contains { $0.id == "math-geometry-04" && $0.body.contains("Volume measures") })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesDataDetectiveAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.stats.xp = 1_250
+            var progress = store.stats.progress(for: .math)
+            progress.currentWorldId = "data-detective"
+            progress.completedChallengeIds = ["math-data-01"]
+            store.stats.updateProgress(for: .math, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Data Detective Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🔢 Math · Evidence Lab")
+            XCTAssertEqual(spotlight.encounter.title, "Sampling Gate")
+            XCTAssertTrue(spotlight.encounter.context.contains("school survey"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextMathChallenge?.id, "math-data-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "math-data-01" && $0.isUnlocked && $0.worldName == "Data Detective" })
+            XCTAssertTrue(codex.entries.contains { $0.id == "math-data-04" && $0.body.contains("Absolute change") })
             XCTAssertFalse(spotlight.isComplete)
         }
     }
