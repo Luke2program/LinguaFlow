@@ -1566,7 +1566,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(spotlight.title, "Pacific Ring Campaign")
             XCTAssertEqual(spotlight.subtitle, "🗺️ Geography · Deep Earth – Present")
             XCTAssertEqual(spotlight.encounter.title, "Japan Trench · Japan Trench")
-            XCTAssertTrue(spotlight.encounter.context.contains("tsunami") || spotlight.encounter.clue.contains("tsunami"))
+            XCTAssertTrue(spotlight.encounter.context.contains("subduction earthquake"))
             XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
             XCTAssertTrue(codex.entries.contains { $0.id == "geo-pacific-04" && $0.worldName == "Pacific Ring" })
             XCTAssertFalse(spotlight.isComplete)
