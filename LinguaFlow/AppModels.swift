@@ -99,6 +99,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "age-discovery", name: "Age of Discovery", emoji: "⚓", era: "1400 – 1600 CE", description: "Sail uncharted seas. Discover continents. Face storms and mutiny.", unlockRequirement: .xpRequired(1000)),
                 PlayableWorld(id: "renaissance-cities", name: "Renaissance Cities", emoji: "🎨", era: "1300 – 1600 CE", description: "Enter Florence, Venice, and Rome where art, banking, print, and power remake Europe.", unlockRequirement: .xpRequired(1500)),
                 PlayableWorld(id: "nile-kingdoms", name: "Nile Kingdoms", emoji: "𓂀", era: "3100 – 30 BCE", description: "Follow floods, pharaohs, trade, temples, and scribes through one of history's longest-lived civilizations.", unlockRequirement: .xpRequired(2000)),
+                PlayableWorld(id: "industrial-revolution", name: "Industrial Revolution", emoji: "🏭", era: "1760 – 1914 CE", description: "Cross mills, railways, cities, strikes, and reform campaigns as steam power rewires everyday life.", unlockRequirement: .xpRequired(2500)),
             ]
         case .science:
             return [
@@ -534,6 +535,65 @@ enum HistoryData {
             sourceCitation: "Rosetta Stone decree; Parkinson, Cracking Codes"
         )
     ]
+
+    static let industrialRevolutionChallenges: [HistoryChallenge] = [
+        HistoryChallenge(
+            id: "industrial-01",
+            worldId: "industrial-revolution",
+            era: "Steam Power",
+            year: 1776,
+            question: "Watt's improved steam engine spreads through mines and workshops. What makes it historically important?",
+            context: "James Watt's separate condenser made steam engines more efficient than earlier Newcomen engines. Power could now be placed near mines, mills, and factories instead of depending only on wind, water, animals, or muscle.",
+            choices: [
+                HistoryChoice(id: "a", text: "It helps detach production from local water power", consequence: "You see why factories can cluster, scale, and run more predictably as coal, iron, and machinery reinforce each other.", isCorrect: true, historicalOutcome: "Improved steam engines helped pump mines, power machinery, and support industrial growth. They did not cause industrialization alone, but they changed where and how power could be used."),
+                HistoryChoice(id: "b", text: "It instantly replaces every worker with one machine", consequence: "That makes the story too simple. Industrial change was uneven, industry-specific, and still depended on human labor.", isCorrect: false, historicalOutcome: "Factories often increased demand for labor even while changing tasks, discipline, skill, and bargaining power.")
+            ],
+            historicalFact: "Watt's improvements raised engine efficiency and helped make steam a flexible industrial power source, especially when paired with coal mining and iron production.",
+            sourceCitation: "Mokyr, The Lever of Riches; Hills, Power from Steam"
+        ),
+        HistoryChallenge(
+            id: "industrial-02",
+            worldId: "industrial-revolution",
+            era: "Factory Labor",
+            year: 1833,
+            question: "Parliament debates limits on child labor in textile factories. What does the Factory Act reveal?",
+            context: "Industrial textile mills used long hours, strict discipline, and child labor. Reformers gathered testimony about injuries, exhaustion, schooling, and family poverty while manufacturers warned that regulation would raise costs.",
+            choices: [
+                HistoryChoice(id: "a", text: "Industrial growth creates social problems that politics starts regulating", consequence: "You connect production gains with new public debates about childhood, schooling, inspection, and the limits of employer power.", isCorrect: true, historicalOutcome: "The 1833 Factory Act restricted work for children in textile mills, required some schooling, and created factory inspectors, though enforcement and coverage remained limited."),
+                HistoryChoice(id: "b", text: "Factories already protected every worker equally", consequence: "The testimony points the other way: reform emerged because existing protections were weak and uneven.", isCorrect: false, historicalOutcome: "Industrial labor regulation developed gradually after campaigns exposed harsh conditions, especially for children and women in textile work.")
+            ],
+            historicalFact: "The 1833 Factory Act introduced inspectors and limited textile factory work for children, making state oversight part of Britain's industrial society.",
+            sourceCitation: "Factory Act 1833; Sadler Committee evidence"
+        ),
+        HistoryChallenge(
+            id: "industrial-03",
+            worldId: "industrial-revolution",
+            era: "Railway Age",
+            year: 1830,
+            question: "The Liverpool and Manchester Railway opens. Why does rail transport change industrial Britain?",
+            context: "Steam railways moved people, coal, cotton, mail, and manufactured goods faster and more reliably than canals and roads. Cities, ports, factories, and markets began to run on tighter timetables.",
+            choices: [
+                HistoryChoice(id: "a", text: "It compresses distance for goods, workers, news, and markets", consequence: "You feel the map shrink: supply chains speed up, local prices connect, and people begin living by railway time.", isCorrect: true, historicalOutcome: "Railways lowered transport costs, linked industrial regions, accelerated travel, and pushed standard timekeeping because timetables needed coordination."),
+                HistoryChoice(id: "b", text: "It matters only for luxury tourism", consequence: "Pleasure travel grew later, but the early railway's deeper impact was industrial, commercial, and social.", isCorrect: false, historicalOutcome: "Railways transformed freight, commuting, regional specialization, military logistics, newspapers, mail, and time discipline.")
+            ],
+            historicalFact: "Railway timetables helped drive standardized time in Britain, because local solar times made coordinated train schedules impractical.",
+            sourceCitation: "Freeman, Railways and the Victorian Imagination; Bagwell, The Transport Revolution"
+        ),
+        HistoryChallenge(
+            id: "industrial-04",
+            worldId: "industrial-revolution",
+            era: "Public Health",
+            year: 1854,
+            question: "Cholera strikes Soho. John Snow maps deaths around the Broad Street pump. What is the key lesson?",
+            context: "Many officials still accepted miasma theory, blaming foul air for disease. Snow mapped cases and argued contaminated water from a pump better explained the outbreak's pattern.",
+            choices: [
+                HistoryChoice(id: "a", text: "Use evidence patterns to challenge a popular but weak explanation", consequence: "You remove the pump handle and learn how urban data, sanitation, and disease theory start to reshape city life.", isCorrect: true, historicalOutcome: "Snow's mapping supported the waterborne transmission argument. Germ theory and sanitation reform later changed public health, though acceptance was gradual."),
+                HistoryChoice(id: "b", text: "Ignore the map because bad smells explain every case", consequence: "The outbreak pattern stays hidden. A convincing theory still needs to fit observed evidence.", isCorrect: false, historicalOutcome: "Miasma theory influenced sanitation reform, but cholera's spread was better explained by contaminated water in this case.")
+            ],
+            historicalFact: "Snow's Broad Street pump investigation became a classic example of epidemiological reasoning: mapping cases to test explanations about disease spread.",
+            sourceCitation: "Snow, On the Mode of Communication of Cholera; Johnson, The Ghost Map"
+        )
+    ]
     
     static func challenges(for worldId: String) -> [HistoryChallenge] {
         switch worldId {
@@ -542,13 +602,14 @@ enum HistoryData {
         case "age-discovery": return ageDiscoveryChallenges
         case "renaissance-cities": return renaissanceCitiesChallenges
         case "nile-kingdoms": return nileKingdomsChallenges
+        case "industrial-revolution": return industrialRevolutionChallenges
         default: return []
         }
     }
     
     static func allChallenges(for subject: Subject) -> [HistoryChallenge] {
         switch subject {
-        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges + renaissanceCitiesChallenges + nileKingdomsChallenges
+        case .history: return ancientRomeChallenges + medievalEuropeChallenges + ageDiscoveryChallenges + renaissanceCitiesChallenges + nileKingdomsChallenges + industrialRevolutionChallenges
         default: return []
         }
     }
