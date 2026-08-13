@@ -1788,10 +1788,11 @@ final class LinguaFlowTests: XCTestCase {
 
     func testCultureWorldsExist() {
         let cultureWorlds = Subject.culture.worlds
-        XCTAssertGreaterThanOrEqual(cultureWorlds.count, 3)
+        XCTAssertGreaterThanOrEqual(cultureWorlds.count, 4)
         XCTAssertTrue(cultureWorlds.contains { $0.id == "heritage-kitchens" })
         XCTAssertTrue(cultureWorlds.contains { $0.id == "festival-roads" })
         XCTAssertTrue(cultureWorlds.contains { $0.id == "world-music-stage" && $0.unlockRequirement.xpRequired == 850 })
+        XCTAssertTrue(cultureWorlds.contains { $0.id == "architecture-trails" && $0.unlockRequirement.xpRequired == 1250 })
     }
 
     func testHeritageKitchenChallengesLoaded() {
@@ -1826,6 +1827,20 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(challenges.contains { $0.id == "culture-music-03" && $0.traditionClue.contains("stance") })
         XCTAssertTrue(challenges.contains { $0.id == "culture-music-04" && $0.culturalNote.contains("jazz") })
         XCTAssertTrue(challenges.allSatisfy { $0.worldId == "world-music-stage" })
+        XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 && $0.choices.contains { $0.isCorrect } })
+    }
+
+    func testArchitectureTrailsChallengesLoadedAsBuiltCultureCampaign() {
+        let challenges = CultureData.challenges(for: "architecture-trails")
+
+        XCTAssertEqual(challenges.count, 4)
+        XCTAssertEqual(challenges.first?.id, "culture-architecture-01")
+        XCTAssertEqual(challenges.first?.region, "Kyoto · Japan")
+        XCTAssertTrue(challenges.first?.question.contains("wooden stage") ?? false)
+        XCTAssertTrue(challenges.contains { $0.id == "culture-architecture-02" && $0.culturalNote.contains("layered Mediterranean history") })
+        XCTAssertTrue(challenges.contains { $0.id == "culture-architecture-03" && $0.traditionClue.contains("maintenance") })
+        XCTAssertTrue(challenges.contains { $0.id == "culture-architecture-04" && $0.culturalNote.contains("ancient urban design") })
+        XCTAssertTrue(challenges.allSatisfy { $0.worldId == "architecture-trails" })
         XCTAssertTrue(challenges.allSatisfy { $0.choices.count == 4 && $0.choices.contains { $0.isCorrect } })
     }
 
@@ -1875,6 +1890,31 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.nextCultureChallenge?.id, "culture-music-02")
             XCTAssertTrue(codex.entries.contains { $0.id == "culture-music-04" && $0.worldName == "World Music Stage" })
             XCTAssertTrue(codex.entries.contains { $0.id == "culture-music-01" && $0.isUnlocked && $0.body.contains("griot") })
+            XCTAssertFalse(spotlight.isComplete)
+        }
+    }
+
+    func testCampaignSpotlightUsesArchitectureTrailsAfterUnlock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .culture
+            store.stats.xp = 1300
+            var progress = store.stats.progress(for: .culture)
+            progress.currentWorldId = "architecture-trails"
+            progress.completedChallengeIds = ["culture-architecture-01"]
+            store.stats.updateProgress(for: .culture, progress)
+
+            let spotlight = store.campaignSpotlight
+            let codex = store.stats.knowledgeCodex
+
+            XCTAssertEqual(spotlight.title, "Architecture Trails Campaign")
+            XCTAssertEqual(spotlight.subtitle, "🎭 Culture · Built memory")
+            XCTAssertEqual(spotlight.encounter.title, "Córdoba · Spain Scene")
+            XCTAssertTrue(spotlight.encounter.context.contains("Mosque-Cathedral"))
+            XCTAssertEqual(spotlight.progressText, "1/4 encounters cleared")
+            XCTAssertEqual(store.nextCultureChallenge?.id, "culture-architecture-02")
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-architecture-04" && $0.worldName == "Architecture Trails" })
+            XCTAssertTrue(codex.entries.contains { $0.id == "culture-architecture-01" && $0.isUnlocked && $0.body.contains("Kiyomizu-dera") })
             XCTAssertFalse(spotlight.isComplete)
         }
     }

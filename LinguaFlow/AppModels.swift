@@ -127,6 +127,7 @@ enum Subject: String, Codable, CaseIterable, Identifiable {
                 PlayableWorld(id: "heritage-kitchens", name: "Heritage Kitchens", emoji: "🍜", era: "Living traditions", description: "Travel through food rituals, etiquette, markets, and everyday meanings behind iconic dishes.", unlockRequirement: .none),
                 PlayableWorld(id: "festival-roads", name: "Festival Roads", emoji: "🎊", era: "Seasonal cycles", description: "Follow real festivals through music, symbols, calendars, and community traditions.", unlockRequirement: .xpRequired(450)),
                 PlayableWorld(id: "world-music-stage", name: "World Music Stage", emoji: "🎶", era: "Oral memory – Present", description: "Listen through rhythm, call-and-response, instruments, and social meaning in real music traditions.", unlockRequirement: .xpRequired(850)),
+                PlayableWorld(id: "architecture-trails", name: "Architecture Trails", emoji: "🏯", era: "Built memory", description: "Explore real buildings, sacred spaces, conservation choices, and the stories encoded in stone, wood, light, and city plans.", unlockRequirement: .xpRequired(1250)),
             ]
         case .business:
             return [
@@ -1788,11 +1789,75 @@ enum CultureData {
         )
     ]
 
+    static let architectureTrailsChallenges: [CultureChallenge] = [
+        CultureChallenge(
+            id: "culture-architecture-01",
+            worldId: "architecture-trails",
+            region: "Kyoto · Japan",
+            question: "At Kiyomizu-dera, why is the wooden stage more than a scenic balcony?",
+            context: "The temple's famous veranda projects from the hillside on a lattice of timber columns. Pilgrims, seasonal views, and ritual movement all shape how the site is experienced.",
+            choices: [
+                CultureChoice(id: "a", text: "It frames worship, landscape, movement, and craft together", isCorrect: true, explanation: "Correct. The stage is part of a sacred route and a crafted relationship with the hillside, city, and changing seasons."),
+                CultureChoice(id: "b", text: "It was built only as a modern selfie platform", isCorrect: false, explanation: "The site long predates phones and tourism. Contemporary visitors use it differently, but its temple context matters."),
+                CultureChoice(id: "c", text: "It proves wood cannot support large buildings", isCorrect: false, explanation: "The structure shows sophisticated timber construction and repair traditions, not weakness."),
+                CultureChoice(id: "d", text: "It has no connection to the surrounding landscape", isCorrect: false, explanation: "The view, hillside, approach, and seasonal setting are central to the experience.")
+            ],
+            traditionClue: "A platform can turn looking, walking, worship, and craft into one scene.",
+            culturalNote: "Kiyomizu-dera shows how Japanese temple architecture can bind timber technique, pilgrimage, landscape, and seasonal perception rather than treating a building as an isolated object."
+        ),
+        CultureChallenge(
+            id: "culture-architecture-02",
+            worldId: "architecture-trails",
+            region: "Córdoba · Spain",
+            question: "Inside the Mosque-Cathedral of Córdoba, what should a careful learner notice first?",
+            context: "Rows of striped arches, a mihrab, later Christian chapels, and a cathedral nave occupy the same complex. The building carries layers from Islamic al-Andalus and later Christian rule.",
+            choices: [
+                CultureChoice(id: "a", text: "Different periods and faith traditions are layered in one building", isCorrect: true, explanation: "Correct. The site is best read as layered history: Umayyad mosque architecture, Christian reuse, additions, and contested memory."),
+                CultureChoice(id: "b", text: "The building was created in a single unchanged moment", isCorrect: false, explanation: "Its form changed across centuries through expansion, conversion, and additions."),
+                CultureChoice(id: "c", text: "The arches are random decoration with no spatial role", isCorrect: false, explanation: "The repeated arches shape rhythm, scale, direction, and the experience of the prayer hall."),
+                CultureChoice(id: "d", text: "Only one community's memory exists there", isCorrect: false, explanation: "The building is culturally powerful precisely because multiple histories remain visible and debated.")
+            ],
+            traditionClue: "Read the arches like a timeline, not wallpaper.",
+            culturalNote: "The Mosque-Cathedral of Córdoba is a major example of layered Mediterranean history, where architecture preserves beauty, power, religious change, and contested interpretation in the same space."
+        ),
+        CultureChallenge(
+            id: "culture-architecture-03",
+            worldId: "architecture-trails",
+            region: "Mali · Djenné",
+            question: "Why does the Great Mosque of Djenné require community maintenance instead of a one-time repair?",
+            context: "The mosque is built in an earthen Sudano-Sahelian style. Rain and heat weather the surface, and local maintenance traditions renew the building's protective plaster.",
+            choices: [
+                CultureChoice(id: "a", text: "Earthen architecture needs regular replastering and shared care", isCorrect: true, explanation: "Correct. The building's material life includes periodic maintenance, craft knowledge, and community participation."),
+                CultureChoice(id: "b", text: "Mud-brick buildings never need upkeep", isCorrect: false, explanation: "Earthen buildings can be durable, but they depend on maintenance and climate-aware design."),
+                CultureChoice(id: "c", text: "The mosque is rebuilt every week from nothing", isCorrect: false, explanation: "The structure is maintained and renewed, not casually recreated from scratch every week."),
+                CultureChoice(id: "d", text: "Only imported steel explains its value", isCorrect: false, explanation: "Its significance comes from local materials, craft, urban form, religious life, and community practice.")
+            ],
+            traditionClue: "Conservation can be a festival of maintenance, not a sealed museum case.",
+            culturalNote: "Djenné's mosque teaches that architecture can be a living social process: material, climate, craft, faith, and collective maintenance all keep the place meaningful."
+        ),
+        CultureChallenge(
+            id: "culture-architecture-04",
+            worldId: "architecture-trails",
+            region: "Mexico · Teotihuacan",
+            question: "Walking the Avenue of the Dead, what makes Teotihuacan a cultural map rather than only a pile of ruins?",
+            context: "The city was carefully planned with pyramids, plazas, apartment compounds, murals, and long axial routes. Its builders predated the Mexica, and its influence spread across Mesoamerica.",
+            choices: [
+                CultureChoice(id: "a", text: "Urban layout, ritual routes, housing, and power were organized together", isCorrect: true, explanation: "Correct. Teotihuacan's plan links monumental architecture with everyday residence, ritual movement, craft production, and political authority."),
+                CultureChoice(id: "b", text: "It was built by the Aztec Empire as its capital", isCorrect: false, explanation: "Teotihuacan flourished centuries before the Mexica/Aztec Empire; later peoples encountered it as an ancient sacred place."),
+                CultureChoice(id: "c", text: "Only the tallest pyramid matters", isCorrect: false, explanation: "The pyramids are important, but the avenue, compounds, murals, and city planning reveal the broader urban system."),
+                CultureChoice(id: "d", text: "Its streets were placed randomly with no pattern", isCorrect: false, explanation: "The city's strong grid and monumental axis are among its most recognizable features.")
+            ],
+            traditionClue: "Zoom out from monument to city plan.",
+            culturalNote: "Teotihuacan shows how ancient urban design can encode movement, ritual, residence, labor, and authority long after the city's original language and rulers remain uncertain."
+        )
+    ]
+
     static func challenges(for worldId: String) -> [CultureChallenge] {
         switch worldId {
         case "heritage-kitchens": return heritageKitchenChallenges
         case "festival-roads": return festivalRoadsChallenges
         case "world-music-stage": return worldMusicStageChallenges
+        case "architecture-trails": return architectureTrailsChallenges
         default: return []
         }
     }
