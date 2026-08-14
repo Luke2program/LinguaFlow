@@ -748,6 +748,19 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func startWorldBriefing() {
+        let briefing = stats.worldBriefing
+        stats.selectedSubject = briefing.subject
+        if briefing.subject == .languages {
+            pickNextCard()
+        } else if let world = briefing.world {
+            select(worldId: world.id, for: briefing.subject)
+        }
+        feedbackMessage = "Briefing opened: \(briefing.title). \(briefing.skill)"
+        save()
+        objectWillChange.send()
+    }
+
     func continueCampaignSpotlight() {
         let spotlight = campaignSpotlight
         if spotlight.subject == .languages {

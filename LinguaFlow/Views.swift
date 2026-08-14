@@ -179,6 +179,7 @@ struct DashboardView: View {
                     PlayMenuView()
                     RecommendedRunView()
                     DailyWorldEventView()
+                    WorldBriefingView()
                     CampaignSpotlightView()
                     WorldJournalView()
                     MasteryLeagueView()
@@ -1044,6 +1045,168 @@ struct DailyWorldChapterChip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Step \(chapter.step), \(chapter.subject.displayName), \(chapter.title), \(chapter.subtitle)")
         .accessibilityIdentifier("dailyWorldEventChapter_\(chapter.step)")
+    }
+}
+
+struct WorldBriefingView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let briefing = store.stats.worldBriefing
+        Button {
+            withAnimation(.spring(duration: 0.35)) {
+                store.startWorldBriefing()
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                briefing.subject.accentColor.opacity(0.28),
+                                .orange.opacity(0.16),
+                                .green.opacity(0.13)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 56, height: 56)
+                        Text(briefing.iconText)
+                            .font(.system(size: 28, weight: .bold))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("World Briefing")
+                            .font(.caption.bold())
+                            .foregroundStyle(briefing.subject.accentColor)
+                            .accessibilityIdentifier("worldBriefingEyebrow")
+                        Text(briefing.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("worldBriefingTitle")
+                        Text(briefing.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("worldBriefingSubtitle")
+                    }
+
+                    Spacer()
+
+                    Label(briefing.ctaTitle, systemImage: "arrow.right.circle.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                }
+
+                Text(briefing.scene)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityIdentifier("worldBriefingScene")
+
+                HStack(alignment: .top, spacing: 8) {
+                    WorldBriefingDetailPill(
+                        title: "Stakes",
+                        text: briefing.stakes,
+                        icon: "flag.fill",
+                        tint: briefing.subject.accentColor
+                    )
+                    WorldBriefingDetailPill(
+                        title: "Skill",
+                        text: briefing.skill,
+                        icon: briefing.systemImage,
+                        tint: briefing.subject.accentColor
+                    )
+                }
+
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "quote.bubble.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(briefing.subject.accentColor)
+                        .frame(width: 28, height: 28)
+                        .background(briefing.subject.accentColor.opacity(0.12), in: Circle())
+                    Text(briefing.fact)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.78)
+                        .accessibilityIdentifier("worldBriefingFact")
+                }
+                .padding(11)
+                .background(Color.primary.opacity(colorScheme == .dark ? 0.08 : 0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                HStack(spacing: 10) {
+                    Label(briefing.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(briefing.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [briefing.subject.accentColor, .orange, .green], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * briefing.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(briefing.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .frame(width: 76, alignment: .trailing)
+                        .accessibilityIdentifier("worldBriefingProgressText")
+                }
+            }
+            .padding(16)
+            .background(Color.primary.opacity(colorScheme == .dark ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(briefing.subject.accentColor.opacity(0.22), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(briefing.accessibilityLabel)
+        .accessibilityIdentifier("worldBriefingPanel")
+    }
+}
+
+struct WorldBriefingDetailPill: View {
+    let title: String
+    let text: String
+    let icon: String
+    let tint: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 7) {
+            Image(systemName: icon)
+                .font(.caption.bold())
+                .foregroundStyle(tint)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption2.bold())
+                    .foregroundStyle(tint)
+                Text(text)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.68)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
+        .padding(9)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(tint.opacity(0.12), lineWidth: 1))
     }
 }
 

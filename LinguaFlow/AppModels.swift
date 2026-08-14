@@ -2663,6 +2663,30 @@ struct WorldJournal: Equatable {
     }
 }
 
+struct WorldBriefing: Equatable {
+    let subject: Subject
+    let world: PlayableWorld?
+    let title: String
+    let subtitle: String
+    let scene: String
+    let stakes: String
+    let skill: String
+    let fact: String
+    let rewardText: String
+    let progress: Double
+    let progressText: String
+    let ctaTitle: String
+    let systemImage: String
+
+    var iconText: String {
+        world?.emoji ?? "💧"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(scene). Stakes: \(stakes). Skill: \(skill). Fact: \(fact). \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyWorldChapter: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -3535,6 +3559,179 @@ extension Subject {
         }
     }
 
+    func briefing(for world: PlayableWorld?, completed: Int, total: Int, xp: Int, streak: Int) -> WorldBriefing {
+        let worldName = world?.name ?? mapTitle
+        let remaining = max(0, total - completed)
+        let progress = min(1, Double(completed) / Double(max(1, total)))
+        let progressText = "\(min(completed, total))/\(max(1, total)) cleared"
+        let reward = "+30 XP · \(DailyAdventure(subject: self, world: world, xp: xp, streak: streak).rewardName)"
+        let cta = remaining == 0 ? "Pick Next" : "Enter Mission"
+
+        switch self {
+        case .languages:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "Language Harbor Briefing",
+                subtitle: "Speak, type, recall",
+                scene: "A short deck is ready at the dock.",
+                stakes: "Keep the streak alive with useful phrases.",
+                skill: "Active recall",
+                fact: "Retrieval practice strengthens memory more than rereading.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: "textformat.abc"
+            )
+        case .history:
+            let scene: String
+            let stakes: String
+            let fact: String
+            switch world?.id {
+            case "ancient-rome":
+                scene = "The Republic is under pressure from armies, patrons, assemblies, and ambitious commanders."
+                stakes = "Every choice should connect power, law, public order, and source evidence."
+                fact = "The Rubicon crisis in 49 BCE became a lasting shorthand for crossing a point of no return."
+            case "medieval-europe":
+                scene = "Courts, monasteries, towns, fields, and trade routes pull power in different directions."
+                stakes = "Read who owns land, who controls labor, and who can enforce a promise."
+                fact = "Medieval Europe was not static; towns, law, trade, and plague repeatedly changed political power."
+            case "age-discovery":
+                scene = "Ocean routes link empires, merchants, missionaries, and Indigenous societies with unequal power."
+                stakes = "Track evidence, coercion, trade incentives, and whose perspective is missing."
+                fact = "The Columbian Exchange moved crops, animals, diseases, people, and ideas across continents."
+            case "renaissance-cities":
+                scene = "Bankers, artists, printers, councils, and scholars compete inside wealthy city-states."
+                stakes = "Notice how patronage, trade, books, and politics turn ideas into institutions."
+                fact = "Printing after the mid-1400s helped knowledge travel faster and changed religious and political debate."
+            case "nile-kingdoms":
+                scene = "Flood cycles, temples, scribes, royal authority, and trade routes organize life along the Nile."
+                stakes = "Connect environment, writing, religion, and state power before choosing."
+                fact = "Nile agriculture depended on seasonal inundation, which shaped taxation, labor, and royal legitimacy."
+            case "industrial-revolution":
+                scene = "Factories, steam, railways, cities, labor movements, and public health collide."
+                stakes = "Judge each decision by productivity, human cost, reform pressure, and evidence."
+                fact = "Industrialization raised output while also forcing new laws around labor, sanitation, and urban life."
+            default:
+                scene = "You are entering a real era through choices, context, and historical consequences."
+                stakes = "Ask what changed, who benefited, who paid the cost, and what sources can verify."
+                fact = "History is strongest when choices are grounded in evidence, not trivia."
+            }
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: world?.era ?? "Grounded history",
+                scene: scene,
+                stakes: stakes,
+                skill: "Causal reasoning from real context",
+                fact: fact,
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .science:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Evidence before explanation",
+                scene: "A mission asks you to match an observation with the mechanism that best explains it.",
+                stakes: "Good science runs on testable claims, not confident guesses.",
+                skill: "Evidence-based explanation",
+                fact: "Scientific models are useful when they predict observations and survive better tests.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .geography:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Map clues and place logic",
+                scene: "Use borders, rivers, mountains, routes, and scale before picking the place.",
+                stakes: "A good mental map helps you reason about trade, climate, conflict, and travel.",
+                skill: "Spatial reasoning",
+                fact: "Physical geography often shapes settlement, transport, economy, and political borders.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .math:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Find the rule, then act",
+                scene: "The next gate hides a pattern in numbers, shapes, chance, or data.",
+                stakes: "Solving the rule matters more than memorizing one answer.",
+                skill: "Reusable problem solving",
+                fact: "Mathematical fluency grows when you can explain the rule behind a result.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .culture:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Context before action",
+                scene: "You will read a real social setting before choosing a respectful move.",
+                stakes: "Culture learning should add context without flattening people into stereotypes.",
+                skill: "Cultural interpretation",
+                fact: "Practices such as food, music, ritual, and etiquette carry social meaning that changes by place and setting.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .business:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Signals, incentives, tradeoffs",
+                scene: "A decision is waiting with limited time, incomplete information, and real constraints.",
+                stakes: "Durable operators separate customer value, cash, risk, and incentives from noise.",
+                skill: "Practical decision making",
+                fact: "Business decisions improve when assumptions are explicit and measured against feedback.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        case .health:
+            return WorldBriefing(
+                subject: self,
+                world: world,
+                title: "\(worldName) Briefing",
+                subtitle: "Small useful habits",
+                scene: "Pick a habit move that improves sleep, food, movement, hydration, recovery, or stress.",
+                stakes: "The best health learning is practical, modest, repeatable, and not a fad.",
+                skill: "Daily self-regulation",
+                fact: "Consistent basics usually beat extreme short-term routines for long-term wellbeing.",
+                rewardText: reward,
+                progress: progress,
+                progressText: progressText,
+                ctaTitle: cta,
+                systemImage: mapSystemImage
+            )
+        }
+    }
+
     func codexEntries(for progress: SubjectProgress) -> [KnowledgeCodexEntry] {
         switch self {
         case .languages:
@@ -4161,6 +4358,44 @@ extension UserStats {
         ]
 
         return PlayMenu(modes: modes)
+    }
+
+    var worldBriefing: WorldBriefing {
+        if selectedSubject == .languages {
+            let total = max(dailyGoal, 1)
+            let completed = min(reviewedToday, total)
+            return WorldBriefing(
+                subject: .languages,
+                world: nil,
+                title: "Language Harbor Briefing",
+                subtitle: selectedLanguagePair.displayName,
+                scene: "Your next route mixes recall, typing, and speech so phrases become usable outside the app.",
+                stakes: "\(max(1, total - completed)) prompts left before today's fluency drop fills.",
+                skill: "Active recall under light pressure",
+                fact: "Spaced repetition works best when review is effortful enough to require retrieval.",
+                rewardText: "+30 XP · Fluency Drop",
+                progress: min(1, Double(completed) / Double(total)),
+                progressText: "\(completed)/\(total) prompts",
+                ctaTitle: "Start Review",
+                systemImage: "textformat.abc"
+            )
+        }
+
+        let progress = subjectProgress[selectedSubject.rawValue] ?? SubjectProgress()
+        let world = selectedSubject.worlds.first { $0.id == (progress.currentWorldId ?? "") }
+            ?? selectedSubject.worlds.first { $0.isUnlocked(withXP: xp) }
+            ?? selectedSubject.worlds.first
+        let challengeIds = world.map { selectedSubject.challengeIds(for: $0.id) } ?? []
+        let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+        let total = max(challengeIds.count, 1)
+
+        return selectedSubject.briefing(
+            for: world,
+            completed: completed,
+            total: total,
+            xp: xp,
+            streak: streak
+        )
     }
 
     var worldJournal: WorldJournal {

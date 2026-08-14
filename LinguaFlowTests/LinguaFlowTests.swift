@@ -407,6 +407,29 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldBriefingGivesGroundedAncientRomeContext() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 125
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = ["rome-01", "rome-02"]
+            store.stats.updateProgress(for: .history, progress)
+
+            let briefing = store.stats.worldBriefing
+
+            XCTAssertEqual(briefing.title, "Ancient Rome Briefing")
+            XCTAssertEqual(briefing.subtitle, "753 BCE – 476 CE")
+            XCTAssertTrue(briefing.scene.contains("Republic"))
+            XCTAssertTrue(briefing.stakes.contains("power"))
+            XCTAssertTrue(briefing.fact.contains("49 BCE"))
+            XCTAssertEqual(briefing.progressText, "2/5 cleared")
+            XCTAssertEqual(briefing.ctaTitle, "Enter Mission")
+            XCTAssertEqual(briefing.systemImage, Subject.history.mapSystemImage)
+        }
+    }
+
     func testCampaignSpotlightUsesMedievalEuropeAfterUnlock() async {
         await MainActor.run {
             let store = AppStore()
