@@ -174,6 +174,7 @@ struct DashboardView: View {
                     subjectHeader
                     QuestEnergyView()
                     DailyTrainingPlanView()
+                    SkillTreeView()
                     DailyFinaleView()
                     RandomStudyView()
                     PlayMenuView()
@@ -522,6 +523,121 @@ struct DailyTrainingPlanCardView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(card.accessibilityLabel)
         .accessibilityIdentifier("dailyTrainingPlanCard_\(card.id)")
+    }
+}
+
+struct SkillTreeView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let tree = store.stats.skillTree
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                tree.subject.accentColor.opacity(0.25),
+                                .yellow.opacity(0.15),
+                                .cyan.opacity(0.13)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "point.3.connected.trianglepath.dotted")
+                            .font(.title3.bold())
+                            .foregroundStyle(tree.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(tree.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("skillTreeTitle")
+                        Text(tree.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("skillTreeSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(tree.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(tree.subject.accentColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(tree.subject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("skillTreeProgressText")
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(Array(tree.nodes.prefix(4))) { node in
+                        SkillTreeNodeButton(node: node) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startSkillTreeNode(node)
+                            }
+                        }
+                    }
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [tree.subject.accentColor, .yellow, .cyan], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * tree.progress)
+                    }
+                }
+                .frame(height: 8)
+                .accessibilityIdentifier("skillTreeProgressBar")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(tree.accessibilityLabel)
+        .accessibilityIdentifier("skillTreePanel")
+    }
+}
+
+struct SkillTreeNodeButton: View {
+    let node: SkillTreeNode
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 5) {
+                    Image(systemName: node.isComplete ? "checkmark.seal.fill" : node.systemImage)
+                        .font(.caption.bold())
+                    Spacer(minLength: 2)
+                    Text(node.progressText)
+                        .font(.caption2.bold())
+                        .lineLimit(1)
+                }
+                .foregroundStyle(node.isUnlocked ? node.subject.accentColor : .secondary)
+
+                Text(node.title)
+                    .font(.caption.bold())
+                    .foregroundStyle(node.isUnlocked ? .primary : .secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.66)
+                    .frame(minHeight: 30, alignment: .topLeading)
+
+                Text(node.statusText)
+                    .font(.caption2.bold())
+                    .foregroundStyle(node.isComplete ? .green : (node.isUnlocked ? node.subject.accentColor : .secondary))
+                    .lineLimit(1)
+            }
+            .padding(9)
+            .frame(maxWidth: .infinity, minHeight: 94, alignment: .topLeading)
+            .background(Color.primary.opacity(node.isUnlocked ? 0.045 : 0.025), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke((node.isUnlocked ? node.subject.accentColor : Color.secondary).opacity(node.isComplete ? 0.30 : 0.13), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(node.accessibilityLabel)
+        .accessibilityIdentifier("skillTreeNode_\(node.id)")
     }
 }
 

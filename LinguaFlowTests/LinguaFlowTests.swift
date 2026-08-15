@@ -190,6 +190,49 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testSkillTreeShowsSubjectWorldProgressAndLocks() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.xp = 520
+        var progress = stats.progress(for: .history)
+        progress.currentWorldId = "medieval-europe"
+        progress.completedChallengeIds = ["rome-01", "rome-02", "rome-03", "rome-04", "rome-05", "medieval-01"]
+        stats.updateProgress(for: .history, progress)
+
+        let tree = stats.skillTree
+
+        XCTAssertEqual(tree.title, "Skill Tree")
+        XCTAssertEqual(tree.subject, .history)
+        XCTAssertEqual(tree.nodes.count, Subject.history.worlds.count)
+        XCTAssertEqual(tree.nodes.first?.title, "Ancient Rome")
+        XCTAssertEqual(tree.nodes.first?.statusText, "Mastered")
+        XCTAssertEqual(tree.nodes.first?.progressText, "100%")
+        XCTAssertEqual(tree.nodes.first { $0.worldId == "medieval-europe" }?.statusText, "Open")
+        XCTAssertEqual(tree.nodes.first { $0.worldId == "medieval-europe" }?.progress, 0.25, accuracy: 0.001)
+        XCTAssertEqual(tree.nodes.first { $0.worldId == "age-discovery" }?.statusText, "Locked")
+        XCTAssertEqual(tree.progressText, "1/6 mastered")
+        XCTAssertTrue(tree.subtitle.contains("Medieval Europe"))
+    }
+
+    func testSkillTreeNodeActionOpensUnlockedWorldAndBlocksLockedWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 520
+
+            let lockedNode = store.stats.skillTree.nodes.first { $0.worldId == "age-discovery" }!
+            store.startSkillTreeNode(lockedNode)
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertTrue(store.feedbackMessage.contains("locked"))
+
+            let openNode = store.stats.skillTree.nodes.first { $0.worldId == "medieval-europe" }!
+            store.startSkillTreeNode(openNode)
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertEqual(store.currentWorld?.id, "medieval-europe")
+            XCTAssertTrue(store.feedbackMessage.contains("Skill Tree opened Medieval Europe"))
+        }
+    }
+
     func testPlayableSubjectsHaveGeneratedMapMetadata() {
         XCTAssertEqual(Subject.history.mapTitle, "History Map")
         XCTAssertEqual(Subject.geography.mapTitle, "Atlas Map")

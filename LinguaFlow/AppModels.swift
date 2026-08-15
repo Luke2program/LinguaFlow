@@ -2922,6 +2922,56 @@ struct DailyTrainingPlan: Equatable {
     }
 }
 
+struct SkillTreeNode: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let subject: Subject
+    let worldId: String?
+    let isUnlocked: Bool
+    let isComplete: Bool
+    let progress: Double
+
+    var statusText: String {
+        if isComplete { return "Mastered" }
+        if isUnlocked { return "Open" }
+        return "Locked"
+    }
+
+    var progressText: String {
+        "\(Int((min(1, max(0, progress)) * 100).rounded()))%"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(statusText). Progress \(progressText). Reward \(reward)."
+    }
+}
+
+struct SkillTree: Equatable {
+    let subject: Subject
+    let nodes: [SkillTreeNode]
+
+    var title: String { "Skill Tree" }
+    var subtitle: String {
+        guard let next = nodes.first(where: { $0.isUnlocked && !$0.isComplete }) else {
+            return "All visible \(subject.displayName) nodes are mastered. Spin a new route."
+        }
+        return "Next node: \(next.title)"
+    }
+    var progress: Double {
+        guard !nodes.isEmpty else { return 0 }
+        return Double(nodes.filter(\.isComplete).count) / Double(nodes.count)
+    }
+    var progressText: String {
+        "\(nodes.filter(\.isComplete).count)/\(nodes.count) mastered"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText)."
+    }
+}
+
 struct DailyFinaleObjective: Identifiable, Equatable {
     let id: String
     let title: String
@@ -4437,6 +4487,79 @@ extension UserStats {
             progressText: "\(min(completed, total))/\(total) missions",
             nextUnlockText: selectedSubject.nextLockedWorld(withXP: xp).map { "\($0.xpRemaining(withXP: xp)) XP to unlock \($0.name)." } ?? "All \(selectedSubject.displayName) worlds are open."
         )
+    }
+
+    var skillTree: SkillTree {
+        let subject = selectedSubject
+        if subject == .languages {
+            let total = max(dailyGoal, 1)
+            let reviewedProgress = min(1, Double(reviewedToday) / Double(total))
+            let accuracyProgress = min(1, accuracyToday)
+            let streakProgress = min(1, Double(streak) / 7.0)
+            return SkillTree(
+                subject: .languages,
+                nodes: [
+                    SkillTreeNode(
+                        id: "language-recall",
+                        title: "Recall Dock",
+                        subtitle: "Clear today's mixed prompts",
+                        reward: "+12 XP · Fluency Drop",
+                        systemImage: "textformat.abc",
+                        subject: .languages,
+                        worldId: nil,
+                        isUnlocked: true,
+                        isComplete: reviewedProgress >= 1,
+                        progress: reviewedProgress
+                    ),
+                    SkillTreeNode(
+                        id: "language-accuracy",
+                        title: "Accuracy Lantern",
+                        subtitle: "Keep answers clean under pressure",
+                        reward: "+1 gem · combo spark",
+                        systemImage: "checkmark.seal.fill",
+                        subject: .languages,
+                        worldId: nil,
+                        isUnlocked: reviewedToday > 0,
+                        isComplete: reviewedToday >= 4 && accuracyToday >= 0.8,
+                        progress: reviewedToday == 0 ? 0 : accuracyProgress
+                    ),
+                    SkillTreeNode(
+                        id: "language-streak",
+                        title: "Streak Lighthouse",
+                        subtitle: "Build a seven-day practice chain",
+                        reward: "Harbor Glow Aura",
+                        systemImage: "flame.fill",
+                        subject: .languages,
+                        worldId: nil,
+                        isUnlocked: reviewedToday >= 1 || streak > 0,
+                        isComplete: streak >= 7,
+                        progress: streakProgress
+                    )
+                ]
+            )
+        }
+
+        let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+        let nodes = subject.worlds.map { world in
+            let challengeIds = subject.challengeIds(for: world.id)
+            let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+            let total = max(challengeIds.count, 1)
+            let isUnlocked = world.isUnlocked(withXP: xp)
+            let isComplete = isUnlocked && !challengeIds.isEmpty && completed >= challengeIds.count
+            return SkillTreeNode(
+                id: "\(subject.rawValue)-\(world.id)",
+                title: world.name,
+                subtitle: isUnlocked ? world.era : "\(world.xpRemaining(withXP: xp)) XP to unlock",
+                reward: world.rewardName,
+                systemImage: subject.mapSystemImage,
+                subject: subject,
+                worldId: world.id,
+                isUnlocked: isUnlocked,
+                isComplete: isComplete,
+                progress: isUnlocked ? min(1, Double(completed) / Double(total)) : world.unlockProgress(withXP: xp)
+            )
+        }
+        return SkillTree(subject: subject, nodes: nodes)
     }
 
     func worldPathStops(for subject: Subject) -> [WorldPathStop] {

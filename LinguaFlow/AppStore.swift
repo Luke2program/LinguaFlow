@@ -916,6 +916,26 @@ final class AppStore: ObservableObject {
         }
     }
 
+    func startSkillTreeNode(_ node: SkillTreeNode) {
+        guard node.isUnlocked else {
+            feedbackMessage = "\(node.title) is locked. \(node.subtitle)"
+            return
+        }
+
+        stats.selectedSubject = node.subject
+        if node.subject == .languages {
+            pickNextCard()
+            feedbackMessage = "Skill Tree opened \(node.title): \(node.subtitle)."
+        } else if let worldId = node.worldId {
+            select(worldId: worldId, for: node.subject)
+            feedbackMessage = node.isComplete ? "Skill Tree revisited mastered node: \(node.title)." : "Skill Tree opened \(node.title): \(node.subtitle)."
+        } else {
+            feedbackMessage = "Skill Tree opened \(node.title)."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     @discardableResult
     func spendQuestEnergyBoost() -> Bool {
         let energy = stats.questEnergy
