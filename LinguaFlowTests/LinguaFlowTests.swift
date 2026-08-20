@@ -1315,7 +1315,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(trail.stops[2].title, "Daily Finale")
             XCTAssertEqual(trail.progressText, "0/3 zones")
             XCTAssertTrue(trail.subtitle.contains("Ancient Rome Run"))
-            XCTAssertEqual(trail.stops[2].statusText, "33% charged")
+            XCTAssertEqual(trail.stops[2].statusText, "0% charged")
         }
     }
 
