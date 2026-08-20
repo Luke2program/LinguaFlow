@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    DailyAdventureTrailView()
                     QuestEnergyView()
                     DailyTrainingPlanView()
                     SkillTreeView()
@@ -305,6 +306,134 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct DailyAdventureTrailView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let trail = store.dailyAdventureTrail
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                trail.subject.accentColor.opacity(0.27),
+                                .yellow.opacity(0.16),
+                                .cyan.opacity(0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "map.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(trail.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(trail.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("adventureTrailTitle")
+                        Text(trail.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("adventureTrailSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(trail.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(trail.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(trail.subject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("adventureTrailProgressText")
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(trail.stops) { stop in
+                        AdventureTrailStopButton(stop: stop) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startAdventureTrailStop(stop)
+                            }
+                        }
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    Label(trail.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(trail.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [trail.subject.accentColor, .yellow, .cyan], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * trail.progress)
+                        }
+                    }
+                    .frame(height: 8)
+                    .accessibilityIdentifier("adventureTrailProgressBar")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(trail.accessibilityLabel)
+        .accessibilityIdentifier("adventureTrailPanel")
+    }
+}
+
+struct AdventureTrailStopButton: View {
+    let stop: AdventureTrailStop
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 5) {
+                    Text("\(stop.step)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 20, height: 20)
+                        .background(stop.subject.accentColor, in: Circle())
+                    Spacer(minLength: 2)
+                    Image(systemName: stop.systemImage)
+                        .font(.caption.bold())
+                        .foregroundStyle(stop.subject.accentColor)
+                }
+
+                Text(stop.title)
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.66)
+                    .frame(minHeight: 31, alignment: .topLeading)
+
+                Text(stop.statusText)
+                    .font(.caption2.bold())
+                    .foregroundStyle(stop.isReady ? stop.subject.accentColor : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.70)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, minHeight: 98, alignment: .topLeading)
+            .background(Color.primary.opacity(stop.isReady ? 0.065 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(stop.subject.accentColor.opacity(stop.isReady ? 0.26 : 0.10), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stop.accessibilityLabel)
+        .accessibilityIdentifier("adventureTrailStop_\(stop.id)")
     }
 }
 

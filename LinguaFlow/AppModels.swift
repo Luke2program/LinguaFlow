@@ -2922,6 +2922,63 @@ struct DailyTrainingPlan: Equatable {
     }
 }
 
+enum AdventureTrailAction: String, Equatable {
+    case recommendedRun
+    case worldTour
+    case dailyFinale
+}
+
+struct AdventureTrailStop: Identifiable, Equatable {
+    let id: String
+    let action: AdventureTrailAction
+    let step: Int
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let subject: Subject
+    let progress: Double
+    let isReady: Bool
+
+    var progressText: String {
+        "\(Int((min(1, max(0, progress)) * 100).rounded()))%"
+    }
+
+    var statusText: String {
+        if progress >= 1 { return isReady ? "Ready" : "Done" }
+        return "\(progressText) charged"
+    }
+
+    var accessibilityLabel: String {
+        "Step \(step), \(title). \(subtitle). \(statusText). Reward \(reward)."
+    }
+}
+
+struct DailyAdventureTrail: Equatable {
+    let subject: Subject
+    let stops: [AdventureTrailStop]
+
+    var title: String { "Adventure Trail" }
+    var subtitle: String {
+        guard let next = stops.first(where: { $0.progress < 1 || $0.isReady }) else {
+            return "Today's path is cleared. Spin a new world or push for bonus XP."
+        }
+        return "Next move: \(next.title)"
+    }
+    var completedCount: Int { stops.filter { $0.progress >= 1 }.count }
+    var progress: Double {
+        guard !stops.isEmpty else { return 0 }
+        return stops.reduce(0) { $0 + min(1, max(0, $1.progress)) } / Double(stops.count)
+    }
+    var progressText: String { "\(completedCount)/\(stops.count) zones" }
+    var rewardText: String {
+        stops.last?.reward ?? "+XP"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Final reward \(rewardText)."
+    }
+}
+
 struct SkillTreeNode: Identifiable, Equatable {
     let id: String
     let title: String

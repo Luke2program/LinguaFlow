@@ -285,6 +285,53 @@ final class AppStore: ObservableObject {
 
         return DailyTrainingPlan(cards: [primary, catchUp, worldTour])
     }
+    var dailyAdventureTrail: DailyAdventureTrail {
+        let recommendation = recommendedRun
+        let event = dailyWorldEvent
+        let chapter = event.currentChapter
+        let finale = dailyFinale
+
+        let stops = [
+            AdventureTrailStop(
+                id: "best-run",
+                action: .recommendedRun,
+                step: 1,
+                title: recommendation.title,
+                subtitle: recommendation.subtitle,
+                reward: recommendation.reward,
+                systemImage: recommendation.systemImage,
+                subject: recommendation.subject,
+                progress: recommendation.progress,
+                isReady: recommendation.progress >= 1
+            ),
+            AdventureTrailStop(
+                id: "world-tour",
+                action: .worldTour,
+                step: 2,
+                title: chapter.map { "Tour Step \($0.step): \($0.title)" } ?? event.title,
+                subtitle: chapter?.subtitle ?? event.subtitle,
+                reward: event.rewardText,
+                systemImage: chapter?.subject.mapSystemImage ?? "sparkles",
+                subject: chapter?.subject ?? stats.selectedSubject,
+                progress: event.progress,
+                isReady: true
+            ),
+            AdventureTrailStop(
+                id: "daily-finale",
+                action: .dailyFinale,
+                step: 3,
+                title: finale.title,
+                subtitle: finale.subtitle,
+                reward: finale.rewardText,
+                systemImage: finale.isClaimedToday ? "crown.fill" : "crown",
+                subject: finale.subject,
+                progress: finale.progress,
+                isReady: finale.isReady && !finale.isClaimedToday
+            )
+        ]
+
+        return DailyAdventureTrail(subject: stats.selectedSubject, stops: stops)
+    }
     var questBoardMissions: [QuestBoardMission] {
         let subject = stats.selectedSubject
         let adventure = dailyAdventure
@@ -913,6 +960,17 @@ final class AppStore: ObservableObject {
             startMasteryLeagueCatchUp()
         case .worldTour:
             startDailyWorldEvent()
+        }
+    }
+
+    func startAdventureTrailStop(_ stop: AdventureTrailStop) {
+        switch stop.action {
+        case .recommendedRun:
+            startRecommendedRun(recommendedRun)
+        case .worldTour:
+            startDailyWorldEvent()
+        case .dailyFinale:
+            _ = claimDailyFinale()
         }
     }
 

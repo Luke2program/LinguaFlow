@@ -1292,6 +1292,56 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyAdventureTrailBuildsPlayableThreeStopLoop() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 125
+            store.stats.streak = 2
+            store.stats.reviewedToday = 2
+            store.stats.correctToday = 1
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            store.stats.updateProgress(for: .history, progress)
+
+            let trail = store.dailyAdventureTrail
+
+            XCTAssertEqual(trail.title, "Adventure Trail")
+            XCTAssertEqual(trail.subject, .history)
+            XCTAssertEqual(trail.stops.map(\.id), ["best-run", "world-tour", "daily-finale"])
+            XCTAssertEqual(trail.stops.map(\.action), [.recommendedRun, .worldTour, .dailyFinale])
+            XCTAssertEqual(trail.stops[0].title, "Ancient Rome Run")
+            XCTAssertTrue(trail.stops[1].title.hasPrefix("Tour Step"))
+            XCTAssertEqual(trail.stops[2].title, "Daily Finale")
+            XCTAssertEqual(trail.progressText, "0/3 zones")
+            XCTAssertTrue(trail.subtitle.contains("Ancient Rome Run"))
+            XCTAssertEqual(trail.stops[2].statusText, "33% charged")
+        }
+    }
+
+    func testAdventureTrailRoutesFinaleStopAndClaimsCrownWhenReady() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.xp = 140
+            store.stats.gems = 2
+            store.stats.reviewedToday = store.dailyQuest.target
+            store.stats.correctToday = 3
+            let finaleStop = store.dailyAdventureTrail.stops.first { $0.action == .dailyFinale }
+
+            XCTAssertNotNil(finaleStop)
+            XCTAssertEqual(finaleStop?.title, "Daily Finale Ready")
+            XCTAssertTrue(finaleStop?.isReady ?? false)
+
+            store.startAdventureTrailStop(finaleStop!)
+
+            XCTAssertEqual(store.stats.xp, 200)
+            XCTAssertEqual(store.stats.gems, 7)
+            XCTAssertTrue(store.dailyFinale.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Finale crown claimed"))
+        }
+    }
+
     func testRepeatedSubjectChallengeDoesNotDuplicateUnlockBanner() async {
         await MainActor.run {
             let store = AppStore()
