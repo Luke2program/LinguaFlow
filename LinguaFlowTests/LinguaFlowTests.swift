@@ -208,7 +208,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(tree.nodes.first?.statusText, "Mastered")
         XCTAssertEqual(tree.nodes.first?.progressText, "100%")
         XCTAssertEqual(tree.nodes.first { $0.worldId == "medieval-europe" }?.statusText, "Open")
-        XCTAssertEqual(tree.nodes.first { $0.worldId == "medieval-europe" }?.progress, 0.25, accuracy: 0.001)
+        XCTAssertEqual(tree.nodes.first { $0.worldId == "medieval-europe" }?.progress ?? 0, 0.25, accuracy: 0.001)
         XCTAssertEqual(tree.nodes.first { $0.worldId == "age-discovery" }?.statusText, "Locked")
         XCTAssertEqual(tree.progressText, "1/6 mastered")
         XCTAssertTrue(tree.subtitle.contains("Medieval Europe"))
