@@ -163,6 +163,11 @@ final class LinguaFlowUITests: XCTestCase {
         let subjectButton = app.buttons["subjectSwitchButton"].firstMatch
         XCTAssertTrue(subjectButton.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("worldCompassPanel", in: app).exists)
+        XCTAssertTrue(element("worldCompassTitle", in: app).label.contains("World Compass"))
+        XCTAssertTrue(element("worldCompassProgressText", in: app).label.contains("live portals"))
+        XCTAssertTrue(element("worldCompassPortal_active-languages-harbor", in: app).exists)
+        XCTAssertTrue(element("worldCompassPortal_unlock-geography-african-wonders", in: app).exists)
         XCTAssertTrue(element("questEnergyPanel", in: app).exists)
         XCTAssertTrue(element("questEnergyTitle", in: app).label.contains("Quest Energy"))
         XCTAssertTrue(element("questEnergyProgressText", in: app).exists)

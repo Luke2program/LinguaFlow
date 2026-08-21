@@ -429,6 +429,53 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyWorldCompassBuildsContinueUnlockAndWildcardPortals() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.xp = 275
+        stats.reviewedToday = 3
+        stats.dailyGoal = 12
+        var history = stats.progress(for: .history)
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = ["rome-01", "rome-02"]
+        stats.updateProgress(for: .history, history)
+
+        let compass = stats.dailyWorldCompass
+
+        XCTAssertEqual(compass.title, "World Compass")
+        XCTAssertEqual(compass.portals.count, 3)
+        XCTAssertEqual(compass.portals[0].role, .activePath)
+        XCTAssertEqual(compass.portals[0].title, "Ancient Rome")
+        XCTAssertEqual(compass.portals[0].progressText, "40%")
+        XCTAssertEqual(compass.portals[1].role, .nextUnlock)
+        XCTAssertEqual(compass.portals[1].title, "Chase African Wonders")
+        XCTAssertEqual(compass.portals[1].subtitle, "25 XP left in 🗺️ Geography")
+        XCTAssertEqual(compass.progressText, "3 live portals")
+        XCTAssertTrue(compass.portals.contains { $0.role == .wildCard })
+    }
+
+    func testWorldCompassPortalOpensUnlockedWorldAndFocusesLockedTarget() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 275
+
+            let activePortal = store.stats.dailyWorldCompass.portals[0]
+            store.startWorldCompassPortal(activePortal)
+
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertEqual(store.currentWorld?.id, "ancient-rome")
+            XCTAssertTrue(store.feedbackMessage.contains("World Compass opened Ancient Rome"))
+
+            let lockedPortal = store.stats.dailyWorldCompass.portals.first { $0.role == .nextUnlock }!
+            store.startWorldCompassPortal(lockedPortal)
+
+            XCTAssertEqual(store.stats.selectedSubject, .geography)
+            XCTAssertEqual(store.currentWorld?.id, "european-capitals")
+            XCTAssertTrue(store.feedbackMessage.contains("Training in European Capitals"))
+        }
+    }
+
     func testCampaignSpotlightShowsNextGroundedHistoryEncounter() async {
         await MainActor.run {
             let store = AppStore()

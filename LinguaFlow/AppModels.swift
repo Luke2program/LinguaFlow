@@ -3138,6 +3138,46 @@ struct QuestRoulette: Equatable {
     }
 }
 
+struct DailyWorldCompassPortal: Identifiable, Equatable {
+    enum Role: Equatable {
+        case activePath
+        case nextUnlock
+        case wildCard
+    }
+
+    let id: String
+    let role: Role
+    let subject: Subject
+    let world: PlayableWorld?
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let reward: String
+    let ctaTitle: String
+    let systemImage: String
+    let progress: Double
+
+    var progressText: String {
+        "\(Int((progress * 100).rounded()))%"
+    }
+
+    var accessibilityLabel: String {
+        "\(eyebrow). \(title). \(subtitle). Reward \(reward). \(progressText)."
+    }
+}
+
+struct DailyWorldCompass: Equatable {
+    let portals: [DailyWorldCompassPortal]
+
+    var title: String { "World Compass" }
+    var subtitle: String { "Pick the next doorway: continue, chase an unlock, or jump somewhere fresh." }
+    var progressText: String { "\(portals.count) live portals" }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle) \(portals.map(\.title).joined(separator: ", "))."
+    }
+}
+
 struct QuestBoardMission: Identifiable, Equatable {
     let id: String
     let kind: QuestBoardMissionKind
@@ -4959,6 +4999,84 @@ extension UserStats {
         return KnowledgeCodex(entries: entries, featuredEntries: Array(featured.prefix(3)))
     }
 
+    var dailyWorldCompass: DailyWorldCompass {
+        let activeWorld: PlayableWorld? = {
+            guard selectedSubject != .languages else { return nil }
+            return selectedSubject.worlds.first { $0.id == currentWorldId(for: selectedSubject) }
+                ?? selectedSubject.worlds.first { $0.isUnlocked(withXP: xp) }
+        }()
+        let activePortal = DailyWorldCompassPortal(
+            id: "active-\(selectedSubject.rawValue)-\(activeWorld?.id ?? "harbor")",
+            role: .activePath,
+            subject: selectedSubject,
+            world: activeWorld,
+            eyebrow: "Continue",
+            title: activeWorld?.name ?? "Language Harbor",
+            subtitle: selectedSubject == .languages ? "\(selectedLanguagePair.displayName) review gate" : "\(selectedSubject.displayName) · \(activeWorld?.era ?? selectedSubject.mapTitle)",
+            reward: selectedSubject == .languages ? "+20 XP · Fluency Drop" : "+25 XP · \(activeWorld?.rewardName ?? "World Badge")",
+            ctaTitle: "Enter",
+            systemImage: selectedSubject == .languages ? "textformat.abc" : selectedSubject.mapSystemImage,
+            progress: compassProgress(for: selectedSubject, world: activeWorld)
+        )
+
+        let unlockBadge = nextWorldUnlockBadge
+        let unlockPortal = DailyWorldCompassPortal(
+            id: "unlock-\(unlockBadge?.subject.rawValue ?? selectedSubject.rawValue)-\(unlockBadge?.world.id ?? "next")",
+            role: .nextUnlock,
+            subject: unlockBadge?.subject ?? selectedSubject,
+            world: unlockBadge?.world,
+            eyebrow: "Unlock",
+            title: unlockBadge.map { "Chase \($0.world.name)" } ?? "All Gates Open",
+            subtitle: unlockBadge.map { "\($0.xpRemaining) XP left in \($0.subject.displayName)" } ?? "Every current world is open. Spin into mastery.",
+            reward: unlockBadge?.world.rewardName ?? "+30 XP · Mastery route",
+            ctaTitle: "Focus",
+            systemImage: unlockBadge?.subject.mapSystemImage ?? "lock.open.fill",
+            progress: unlockBadge.map { $0.world.unlockProgress(withXP: xp) } ?? 1
+        )
+
+        let openWorlds = Subject.allCases.flatMap { subject -> [DailyWorldCompassPortal] in
+            if subject == .languages {
+                return [
+                    DailyWorldCompassPortal(
+                        id: "wild-languages-harbor",
+                        role: .wildCard,
+                        subject: .languages,
+                        world: nil,
+                        eyebrow: "Wild Card",
+                        title: "Language Harbor",
+                        subtitle: "\(selectedLanguagePair.displayName) mixed recall sprint",
+                        reward: "+20 XP · Fluency Drop",
+                        ctaTitle: "Jump",
+                        systemImage: "shuffle.circle.fill",
+                        progress: min(1, Double(reviewedToday) / Double(max(1, dailyGoal)))
+                    )
+                ]
+            }
+
+            return subject.worlds.filter { $0.isUnlocked(withXP: xp) }.map { world in
+                DailyWorldCompassPortal(
+                    id: "wild-\(subject.rawValue)-\(world.id)",
+                    role: .wildCard,
+                    subject: subject,
+                    world: world,
+                    eyebrow: "Wild Card",
+                    title: world.name,
+                    subtitle: "\(subject.displayName) · \(world.era)",
+                    reward: "+30 XP · \(world.rewardName)",
+                    ctaTitle: "Jump",
+                    systemImage: subject.mapSystemImage,
+                    progress: compassProgress(for: subject, world: world)
+                )
+            }
+        }
+
+        let filteredWildcards = openWorlds.filter { $0.id != activePortal.id && $0.world?.id != unlockPortal.world?.id }
+        let offset = abs(xp + reviewedToday * 3 + correctToday * 5 + streak * 7)
+        let wildPortal = Self.rotated(filteredWildcards.isEmpty ? openWorlds : filteredWildcards, by: offset).first
+        let portals = [activePortal, unlockPortal] + (wildPortal.map { [$0] } ?? [])
+        return DailyWorldCompass(portals: Array(portals.prefix(3)))
+    }
+
     var questRoulette: QuestRoulette {
         let languageOption = QuestRouletteOption(
             subject: .languages,
@@ -4990,6 +5108,19 @@ extension UserStats {
         let offset = options.isEmpty ? 0 : abs(xp + reviewedToday + correctToday + streak) % options.count
         let featured = Array(Self.rotated(options, by: offset).prefix(4))
         return QuestRoulette(options: options, featuredOptions: featured, spinSeed: offset)
+    }
+
+    private func compassProgress(for subject: Subject, world: PlayableWorld?) -> Double {
+        if subject == .languages {
+            return min(1, Double(reviewedToday) / Double(max(1, dailyGoal)))
+        }
+
+        guard let world else { return 0 }
+        let progress = subjectProgress[subject.rawValue] ?? SubjectProgress()
+        let challengeIds = subject.challengeIds(for: world.id)
+        guard !challengeIds.isEmpty else { return 0 }
+        let completed = progress.completedChallengeIds.filter { challengeIds.contains($0) }.count
+        return min(1, Double(completed) / Double(challengeIds.count))
     }
 
     private static func rotated<T>(_ values: [T], by offset: Int) -> [T] {

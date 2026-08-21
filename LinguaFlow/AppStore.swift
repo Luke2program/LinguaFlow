@@ -974,6 +974,31 @@ final class AppStore: ObservableObject {
         }
     }
 
+    func startWorldCompassPortal(_ portal: DailyWorldCompassPortal) {
+        stats.selectedSubject = portal.subject
+
+        if portal.subject == .languages {
+            pickNextCard()
+            feedbackMessage = "World Compass opened Language Harbor: mixed recall sprint."
+        } else if portal.role == .nextUnlock, let lockedWorld = portal.world, !lockedWorld.isUnlocked(withXP: stats.xp) {
+            if let openWorld = portal.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+                select(worldId: openWorld.id, for: portal.subject)
+                feedbackMessage = "World Compass focused \(lockedWorld.name): \(lockedWorld.xpRemaining(withXP: stats.xp)) XP left. Training in \(openWorld.name)."
+            } else {
+                feedbackMessage = "World Compass target found: \(lockedWorld.xpRemaining(withXP: stats.xp)) XP to \(lockedWorld.name)."
+            }
+        } else if let world = portal.world {
+            select(worldId: world.id, for: portal.subject)
+            feedbackMessage = "World Compass opened \(world.name): \(portal.eyebrow.lowercased()) route."
+        } else {
+            startRandomStudy()
+            return
+        }
+
+        save()
+        objectWillChange.send()
+    }
+
     func startSkillTreeNode(_ node: SkillTreeNode) {
         guard node.isUnlocked else {
             feedbackMessage = "\(node.title) is locked. \(node.subtitle)"

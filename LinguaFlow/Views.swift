@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    DailyWorldCompassView()
                     DailyAdventureTrailView()
                     QuestEnergyView()
                     DailyTrainingPlanView()
@@ -306,6 +307,117 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct DailyWorldCompassView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let compass = store.stats.dailyWorldCompass
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                .cyan.opacity(0.25),
+                                store.stats.selectedSubject.accentColor.opacity(0.19),
+                                .yellow.opacity(0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "safari.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(store.stats.selectedSubject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(compass.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("worldCompassTitle")
+                        Text(compass.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("worldCompassSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(compass.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(store.stats.selectedSubject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(store.stats.selectedSubject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("worldCompassProgressText")
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(compass.portals) { portal in
+                        DailyWorldCompassPortalButton(portal: portal) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startWorldCompassPortal(portal)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(compass.accessibilityLabel)
+        .accessibilityIdentifier("worldCompassPanel")
+    }
+}
+
+struct DailyWorldCompassPortalButton: View {
+    let portal: DailyWorldCompassPortal
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 6) {
+                    Image(systemName: portal.systemImage)
+                        .font(.caption.bold())
+                    Spacer(minLength: 2)
+                    Text(portal.progressText)
+                        .font(.caption2.bold())
+                        .lineLimit(1)
+                }
+                .foregroundStyle(portal.subject.accentColor)
+
+                Text(portal.eyebrow)
+                    .font(.caption2.bold())
+                    .foregroundStyle(portal.subject.accentColor)
+                    .lineLimit(1)
+
+                Text(portal.title)
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.66)
+                    .frame(minHeight: 30, alignment: .topLeading)
+
+                Text(portal.ctaTitle)
+                    .font(.caption2.bold())
+                    .foregroundStyle(portal.subject.accentColor)
+                    .lineLimit(1)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
+            .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(portal.subject.accentColor.opacity(0.18), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(portal.accessibilityLabel)
+        .accessibilityIdentifier("worldCompassPortal_\(portal.id)")
     }
 }
 
