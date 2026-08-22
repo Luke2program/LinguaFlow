@@ -1317,6 +1317,33 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyQuestMapBuildsPlayablePathFromTrainingPlan() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 275
+            store.stats.reviewedToday = 2
+            var history = store.stats.progress(for: .history)
+            history.currentWorldId = "ancient-rome"
+            history.completedChallengeIds = ["rome-01"]
+            store.stats.updateProgress(for: .history, history)
+
+            let map = store.dailyQuestMap
+
+            XCTAssertEqual(map.title, "Daily Quest Map")
+            XCTAssertEqual(map.nodes.count, 3)
+            XCTAssertEqual(map.nodes.map(\.id), ["best-run", "cross-train", "world-tour"])
+            XCTAssertTrue(map.nodes[0].isCurrent)
+            XCTAssertEqual(map.nodes[0].step, 1)
+            XCTAssertEqual(map.nodes[0].card.action, .recommendedRun)
+            XCTAssertEqual(map.nodes[1].milestone, "Bridge")
+            XCTAssertEqual(map.nodes[2].milestone, "25 XP gate")
+            XCTAssertTrue(map.headline.contains("African Wonders"))
+            XCTAssertEqual(map.progressText, "3 map nodes")
+            XCTAssertTrue(map.accessibilityLabel.contains("A playable path"))
+        }
+    }
+
     func testDailyTrainingPlanCardRoutesToWorldTour() async {
         await MainActor.run {
             let store = AppStore()
@@ -1336,6 +1363,23 @@ final class LinguaFlowTests: XCTestCase {
                 XCTAssertEqual(store.currentWorld?.id, expectedWorld?.id)
             }
             XCTAssertTrue(store.feedbackMessage.contains("World Tour opened step 2"))
+        }
+    }
+
+    func testDailyQuestMapNodeRoutesThroughExistingPlanActions() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .languages
+            store.stats.xp = 0
+            store.stats.reviewedToday = 1
+
+            let node = store.dailyQuestMap.nodes.first { $0.id == "world-tour" }
+            XCTAssertNotNil(node)
+
+            store.startQuestMapNode(node!)
+
+            XCTAssertEqual(store.stats.selectedSubject, node?.subject)
+            XCTAssertTrue(store.feedbackMessage.contains("Quest Map opened step 3"))
         }
     }
 

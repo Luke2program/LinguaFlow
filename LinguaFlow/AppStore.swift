@@ -285,6 +285,46 @@ final class AppStore: ObservableObject {
 
         return DailyTrainingPlan(cards: [primary, catchUp, worldTour])
     }
+
+    var dailyQuestMap: DailyQuestMap {
+        let plan = dailyTrainingPlan
+        let unlock = stats.nextWorldUnlockBadge
+        let nodes = plan.cards.enumerated().map { index, card in
+            let pathText: String
+            switch card.action {
+            case .recommendedRun:
+                pathText = card.subject == .languages ? "Harbor gate" : card.subject.mapTitle
+            case .masteryCatchUp:
+                pathText = "Weakest domain boost"
+            case .worldTour:
+                pathText = "Mixed-world chapter"
+            }
+
+            let milestone: String
+            if card.action == .recommendedRun {
+                milestone = "Start"
+            } else if card.action == .masteryCatchUp {
+                milestone = "Bridge"
+            } else {
+                milestone = unlock.map { "\($0.xpRemaining) XP gate" } ?? "Bonus route"
+            }
+
+            return QuestMapNode(
+                id: card.id,
+                step: index + 1,
+                card: card,
+                milestone: milestone,
+                pathText: pathText,
+                isCurrent: index == 0
+            )
+        }
+
+        let headline = unlock.map {
+            "Reach \($0.world.name) in \($0.subject.displayName) with \($0.xpRemaining) XP."
+        } ?? "All current gates are open. Chain runs for rewards and mastery."
+        return DailyQuestMap(nodes: nodes, headline: headline)
+    }
+
     var dailyAdventureTrail: DailyAdventureTrail {
         let recommendation = recommendedRun
         let event = dailyWorldEvent
@@ -961,6 +1001,13 @@ final class AppStore: ObservableObject {
         case .worldTour:
             startDailyWorldEvent()
         }
+    }
+
+    func startQuestMapNode(_ node: QuestMapNode) {
+        startTrainingPlanCard(node.card)
+        feedbackMessage = "Quest Map opened step \(node.step): \(node.title)."
+        save()
+        objectWillChange.send()
     }
 
     func startAdventureTrailStop(_ stop: AdventureTrailStop) {

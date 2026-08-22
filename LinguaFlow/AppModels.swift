@@ -2922,6 +2922,44 @@ struct DailyTrainingPlan: Equatable {
     }
 }
 
+struct QuestMapNode: Identifiable, Equatable {
+    let id: String
+    let step: Int
+    let card: TrainingPlanCard
+    let milestone: String
+    let pathText: String
+    let isCurrent: Bool
+
+    var title: String { card.title }
+    var subtitle: String { card.subtitle }
+    var reward: String { card.reward }
+    var subject: Subject { card.subject }
+    var systemImage: String { card.systemImage }
+    var progress: Double { card.progress }
+    var progressText: String { card.progressText }
+
+    var accessibilityLabel: String {
+        "Step \(step). \(card.eyebrow). \(title). \(subtitle). \(pathText). Reward \(reward). Progress \(progressText)."
+    }
+}
+
+struct DailyQuestMap: Equatable {
+    let nodes: [QuestMapNode]
+    let headline: String
+
+    var title: String { "Daily Quest Map" }
+    var subtitle: String {
+        "A playable path through today: continue, cross-train, then chase a bigger world gate."
+    }
+    var progressText: String {
+        guard !nodes.isEmpty else { return "0 nodes" }
+        return "\(nodes.count) map nodes"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(headline). \(subtitle). \(progressText)."
+    }
+}
+
 enum AdventureTrailAction: String, Equatable {
     case recommendedRun
     case worldTour

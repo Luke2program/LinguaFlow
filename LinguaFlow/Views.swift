@@ -173,6 +173,7 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     DailyWorldCompassView()
+                    DailyQuestMapView()
                     DailyAdventureTrailView()
                     QuestEnergyView()
                     DailyTrainingPlanView()
@@ -418,6 +419,135 @@ struct DailyWorldCompassPortalButton: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(portal.accessibilityLabel)
         .accessibilityIdentifier("worldCompassPortal_\(portal.id)")
+    }
+}
+
+struct DailyQuestMapView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let map = store.dailyQuestMap
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                .purple.opacity(0.20),
+                                store.stats.selectedSubject.accentColor.opacity(0.16),
+                                .green.opacity(0.12)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 50, height: 50)
+                        Image(systemName: "map.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(store.stats.selectedSubject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(map.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyQuestMapTitle")
+                        Text(map.headline)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyQuestMapHeadline")
+                    }
+
+                    Spacer()
+
+                    Text(map.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(store.stats.selectedSubject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(store.stats.selectedSubject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("dailyQuestMapProgressText")
+                }
+
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(map.nodes) { node in
+                        QuestMapNodeButton(node: node) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startQuestMapNode(node)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(map.accessibilityLabel)
+        .accessibilityIdentifier("dailyQuestMapPanel")
+    }
+}
+
+struct QuestMapNodeButton: View {
+    let node: QuestMapNode
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 6) {
+                    Text("\(node.step)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 22, height: 22)
+                        .background(node.subject.accentColor, in: Circle())
+
+                    Image(systemName: node.systemImage)
+                        .font(.caption.bold())
+                        .foregroundStyle(node.subject.accentColor)
+
+                    Spacer(minLength: 2)
+
+                    Text(node.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Text(node.milestone)
+                    .font(.caption2.bold())
+                    .foregroundStyle(node.subject.accentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+
+                Text(node.title)
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.64)
+                    .frame(minHeight: 32, alignment: .topLeading)
+
+                Text(node.pathText)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.68)
+
+                Text(node.reward)
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.64)
+                    .frame(minHeight: 26, alignment: .topLeading)
+            }
+            .padding(9)
+            .frame(maxWidth: .infinity, minHeight: 142, alignment: .topLeading)
+            .background(Color.primary.opacity(node.isCurrent ? 0.065 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(node.subject.accentColor.opacity(node.isCurrent ? 0.30 : 0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(node.accessibilityLabel)
+        .accessibilityIdentifier("dailyQuestMapNode_\(node.id)")
     }
 }
 
