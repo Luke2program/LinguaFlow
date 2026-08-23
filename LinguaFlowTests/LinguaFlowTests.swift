@@ -86,6 +86,47 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(completedQuest.reward, "+18 XP · Guild Coin")
     }
 
+    func testDailyRewardTrackUsesStreakCycleAndRequiresStudy() {
+        let locked = DailyRewardTrack(subject: .science, streak: 4, reviewedToday: 0, isClaimedToday: false)
+        XCTAssertEqual(locked.title, "Reward Calendar")
+        XCTAssertEqual(locked.currentDay, 4)
+        XCTAssertEqual(locked.progressText, "Day 4/7")
+        XCTAssertEqual(locked.rewardText, "+16 XP · +2 gems")
+        XCTAssertFalse(locked.isReady)
+        XCTAssertEqual(locked.ctaTitle, "Study First")
+        XCTAssertEqual(locked.days.count, 7)
+        XCTAssertTrue(locked.days[2].isCollected)
+        XCTAssertTrue(locked.days[3].isCurrent)
+        XCTAssertTrue(locked.days[4].isLocked)
+
+        let ready = DailyRewardTrack(subject: .history, streak: 7, reviewedToday: 1, isClaimedToday: false)
+        XCTAssertTrue(ready.isReady)
+        XCTAssertEqual(ready.currentDay, 7)
+        XCTAssertEqual(ready.rewardText, "+22 XP · +4 gems")
+        XCTAssertEqual(ready.ctaTitle, "Claim Reward")
+    }
+
+    func testDailyRewardTrackClaimGrantsRewardOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.streak = 3
+            store.stats.reviewedToday = 1
+            store.stats.xp = 100
+            store.stats.gems = 1
+
+            XCTAssertTrue(store.claimDailyRewardTrack(now: Date()))
+            XCTAssertEqual(store.stats.xp, 114)
+            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertTrue(store.dailyRewardTrack.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Reward Calendar claimed"))
+
+            XCTAssertFalse(store.claimDailyRewardTrack(now: Date()))
+            XCTAssertEqual(store.stats.xp, 114)
+            XCTAssertEqual(store.stats.gems, 2)
+        }
+    }
+
     func testDailyComboShowsNextRewardAndCompletedChain() {
         let earlyCombo = DailyCombo(subject: .science, correctToday: 2, target: 3)
         XCTAssertEqual(earlyCombo.title, "Build a Focus Combo")

@@ -2438,6 +2438,78 @@ struct StreakChest: Equatable {
     }
 }
 
+struct DailyRewardTrackDay: Identifiable, Equatable {
+    let day: Int
+    let subject: Subject
+    let rewardXP: Int
+    let rewardGems: Int
+    let isCurrent: Bool
+    let isCollected: Bool
+    let isLocked: Bool
+
+    var id: String { "day-\(day)" }
+    var title: String { "Day \(day)" }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var statusText: String {
+        if isCollected { return "Collected" }
+        if isCurrent { return "Today" }
+        return isLocked ? "Locked" : "Ready"
+    }
+    var systemImage: String {
+        if isCollected { return "checkmark.seal.fill" }
+        if isCurrent { return "gift.fill" }
+        return isLocked ? "lock.fill" : "sparkles"
+    }
+    var accessibilityLabel: String {
+        "\(title). \(statusText). Reward \(rewardText)."
+    }
+}
+
+struct DailyRewardTrack: Equatable {
+    let subject: Subject
+    let streak: Int
+    let reviewedToday: Int
+    let isClaimedToday: Bool
+
+    var cycleLength: Int { 7 }
+    var currentDay: Int {
+        let normalized = max(1, streak)
+        return ((normalized - 1) % cycleLength) + 1
+    }
+    var isReady: Bool { reviewedToday > 0 && !isClaimedToday }
+    var progress: Double { Double(currentDay) / Double(cycleLength) }
+    var title: String { "Reward Calendar" }
+    var subtitle: String {
+        if isClaimedToday { return "Today is banked. Tomorrow advances the prize lane." }
+        if reviewedToday > 0 { return "Claim today's \(subject.displayName) login prize." }
+        return "Finish one encounter to light up today's reward."
+    }
+    var rewardXP: Int { 8 + currentDay * 2 }
+    var rewardGems: Int { currentDay == cycleLength ? 4 : (currentDay >= 4 ? 2 : 1) }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var progressText: String { "Day \(currentDay)/\(cycleLength)" }
+    var ctaTitle: String {
+        if isClaimedToday { return "Collected" }
+        return isReady ? "Claim Reward" : "Study First"
+    }
+    var days: [DailyRewardTrackDay] {
+        (1...cycleLength).map { day in
+            DailyRewardTrackDay(
+                day: day,
+                subject: subject,
+                rewardXP: 8 + day * 2,
+                rewardGems: day == cycleLength ? 4 : (day >= 4 ? 2 : 1),
+                isCurrent: day == currentDay,
+                isCollected: day < currentDay || (day == currentDay && isClaimedToday),
+                isLocked: day > currentDay
+            )
+        }
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyCombo: Equatable {
     let subject: Subject
     let correctToday: Int
@@ -4440,6 +4512,7 @@ struct UserStats: Codable, Equatable {
     var lastBossDefeatDate: Date? = nil
     var lastMysteryRelicClaimDate: Date? = nil
     var lastDailyFinaleClaimDate: Date? = nil
+    var lastDailyRewardTrackClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil

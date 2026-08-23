@@ -176,6 +176,7 @@ struct DashboardView: View {
                     DailyQuestMapView()
                     DailyAdventureTrailView()
                     QuestEnergyView()
+                    DailyRewardTrackView()
                     DailyTrainingPlanView()
                     SkillTreeView()
                     DailyFinaleView()
@@ -2453,6 +2454,125 @@ struct StreakChestView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(chest.accessibilityLabel)
         .accessibilityIdentifier("streakChestPanel")
+    }
+}
+
+struct DailyRewardTrackView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let track = store.dailyRewardTrack
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                .yellow.opacity(0.22),
+                                track.subject.accentColor.opacity(0.18),
+                                .pink.opacity(0.12)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 50, height: 50)
+                        Image(systemName: track.isClaimedToday ? "checkmark.seal.fill" : "calendar")
+                            .font(.title3.bold())
+                            .foregroundStyle(track.isClaimedToday ? .green : track.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(track.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyRewardTrackTitle")
+                        Text(track.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyRewardTrackSubtitle")
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(track.progressText)
+                            .font(.caption.bold())
+                            .foregroundStyle(track.subject.accentColor)
+                            .accessibilityIdentifier("dailyRewardTrackProgressText")
+                        Text(track.rewardText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .accessibilityIdentifier("dailyRewardTrackReward")
+                    }
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.yellow, track.subject.accentColor, .pink], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * track.progress)
+                    }
+                }
+                .frame(height: 8)
+
+                HStack(spacing: 6) {
+                    ForEach(track.days) { day in
+                        DailyRewardTrackDayChip(day: day)
+                    }
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        _ = store.claimDailyRewardTrack()
+                    }
+                } label: {
+                    Label(track.ctaTitle, systemImage: track.isClaimedToday ? "checkmark" : "gift.fill")
+                        .font(.caption.bold())
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(track.isReady ? track.subject.accentColor : .secondary)
+                .disabled(!track.isReady)
+                .accessibilityIdentifier("claimDailyRewardTrackButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(track.accessibilityLabel)
+        .accessibilityIdentifier("dailyRewardTrackPanel")
+    }
+}
+
+struct DailyRewardTrackDayChip: View {
+    let day: DailyRewardTrackDay
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: day.systemImage)
+                .font(.caption.bold())
+                .foregroundStyle(day.isCollected ? .green : day.subject.accentColor)
+                .frame(width: 24, height: 24)
+                .background(day.subject.accentColor.opacity(day.isCurrent ? 0.16 : 0.07), in: Circle())
+                .opacity(day.isLocked ? 0.58 : 1)
+
+            Text("\(day.day)")
+                .font(.caption2.bold())
+                .foregroundStyle(day.isCurrent ? .primary : .secondary)
+
+            Text(day.rewardGems == 4 ? "4g" : "\(day.rewardXP)")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 64)
+        .padding(.vertical, 6)
+        .background(Color.primary.opacity(day.isCurrent ? 0.06 : 0.03), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(day.subject.accentColor.opacity(day.isCurrent ? 0.24 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(day.accessibilityLabel)
+        .accessibilityIdentifier("dailyRewardTrackDay_\(day.day)")
     }
 }
 

@@ -67,6 +67,15 @@ final class AppStore: ObservableObject {
             isClaimedToday: claimedToday
         )
     }
+    var dailyRewardTrack: DailyRewardTrack {
+        let claimedToday = stats.lastDailyRewardTrackClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        return DailyRewardTrack(
+            subject: stats.selectedSubject,
+            streak: stats.streak,
+            reviewedToday: stats.reviewedToday,
+            isClaimedToday: claimedToday
+        )
+    }
     var dailyCombo: DailyCombo {
         DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
     }
@@ -1183,6 +1192,32 @@ final class AppStore: ObservableObject {
         } else {
             feedbackMessage = "Chest opened: \(chest.rewardText)."
         }
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimDailyRewardTrack(now: Date = Date()) -> Bool {
+        let track = dailyRewardTrack
+        guard track.isReady else {
+            feedbackMessage = track.isClaimedToday ? "Today's calendar reward is already collected." : "Complete one encounter to unlock today's calendar reward."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += track.rewardXP
+        stats.gems += track.rewardGems
+        stats.lastDailyRewardTrackClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == track.subject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Reward Calendar claimed: \(track.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Reward Calendar claimed: \(track.rewardText)."
+        }
+
         save()
         objectWillChange.send()
         return true
