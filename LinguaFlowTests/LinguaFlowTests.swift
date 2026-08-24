@@ -127,6 +127,52 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyDiscoveryDeckSurfacesCrossSubjectLessonCards() {
+        var stats = UserStats()
+        stats.selectedSubject = .languages
+        stats.reviewedToday = 0
+
+        let lockedDeck = stats.dailyDiscoveryDeck
+        XCTAssertEqual(lockedDeck.title, "Daily Discovery Deck")
+        XCTAssertEqual(lockedDeck.cards.count, 3)
+        XCTAssertFalse(lockedDeck.isReady)
+        XCTAssertEqual(lockedDeck.ctaTitle, "Study First")
+        XCTAssertTrue(lockedDeck.cards.first?.isToday ?? false)
+        XCTAssertTrue(Subject.allCases.contains(lockedDeck.selectedCard.subject))
+        XCTAssertTrue(lockedDeck.selectedCard.lesson.count > 40)
+
+        stats.reviewedToday = 1
+        let readyDeck = stats.dailyDiscoveryDeck
+        XCTAssertTrue(readyDeck.isReady)
+        XCTAssertEqual(readyDeck.progressText, "Ready")
+        XCTAssertEqual(readyDeck.ctaTitle, "Reveal Card")
+        XCTAssertTrue(readyDeck.rewardText.contains("XP"))
+    }
+
+    func testDailyDiscoveryDeckClaimGrantsRewardOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.reviewedToday = 1
+            store.stats.xp = 20
+            store.stats.gems = 1
+
+            let rewardXP = store.dailyDiscoveryDeck.selectedCard.rewardXP
+            let rewardGems = store.dailyDiscoveryDeck.selectedCard.rewardGems
+            let title = store.dailyDiscoveryDeck.selectedCard.title
+
+            XCTAssertTrue(store.claimDailyDiscoveryDeck(now: Date()))
+            XCTAssertEqual(store.stats.xp, 20 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
+            XCTAssertTrue(store.dailyDiscoveryDeck.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Discovery card collected"))
+            XCTAssertTrue(store.feedbackMessage.contains(title))
+
+            XCTAssertFalse(store.claimDailyDiscoveryDeck(now: Date()))
+            XCTAssertEqual(store.stats.xp, 20 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
+        }
+    }
+
     func testDailyComboShowsNextRewardAndCompletedChain() {
         let earlyCombo = DailyCombo(subject: .science, correctToday: 2, target: 3)
         XCTAssertEqual(earlyCombo.title, "Build a Focus Combo")

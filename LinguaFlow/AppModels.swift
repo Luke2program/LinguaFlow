@@ -2510,6 +2510,49 @@ struct DailyRewardTrack: Equatable {
     }
 }
 
+struct DailyDiscoveryCard: Identifiable, Equatable {
+    let id: String
+    let subject: Subject
+    let title: String
+    let prompt: String
+    let lesson: String
+    let rewardXP: Int
+    let rewardGems: Int
+    let systemImage: String
+    let isToday: Bool
+
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var statusText: String { isToday ? "Today" : "Preview" }
+    var accessibilityLabel: String {
+        "\(title). \(subject.displayName). \(statusText). \(prompt). \(lesson). Reward \(rewardText)."
+    }
+}
+
+struct DailyDiscoveryDeck: Equatable {
+    let cards: [DailyDiscoveryCard]
+    let selectedCard: DailyDiscoveryCard
+    let reviewedToday: Int
+    let isClaimedToday: Bool
+
+    var title: String { "Daily Discovery Deck" }
+    var subtitle: String {
+        if isClaimedToday { return "Today's card is in your collection. Come back tomorrow for a new pull." }
+        if reviewedToday > 0 { return "Reveal one real-world lesson card from any learning domain." }
+        return "Complete one encounter to unlock today's collectible lesson card."
+    }
+    var isReady: Bool { reviewedToday > 0 && !isClaimedToday }
+    var progress: Double { reviewedToday > 0 ? 1 : 0 }
+    var progressText: String { isClaimedToday ? "Collected" : (isReady ? "Ready" : "0/1 unlock") }
+    var ctaTitle: String {
+        if isClaimedToday { return "Collected" }
+        return isReady ? "Reveal Card" : "Study First"
+    }
+    var rewardText: String { selectedCard.rewardText }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Today's card: \(selectedCard.title)."
+    }
+}
+
 struct DailyCombo: Equatable {
     let subject: Subject
     let correctToday: Int
@@ -4513,6 +4556,7 @@ struct UserStats: Codable, Equatable {
     var lastMysteryRelicClaimDate: Date? = nil
     var lastDailyFinaleClaimDate: Date? = nil
     var lastDailyRewardTrackClaimDate: Date? = nil
+    var lastDailyDiscoveryClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
@@ -4554,6 +4598,124 @@ extension UserStats {
             reviewedToday: reviewedToday,
             correctToday: correctToday,
             nextUnlock: nextWorldUnlockBadge
+        )
+    }
+
+    var dailyDiscoveryDeck: DailyDiscoveryDeck {
+        let claimedToday = lastDailyDiscoveryClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        let dayIndex = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
+        let library: [DailyDiscoveryCard] = [
+            DailyDiscoveryCard(
+                id: "history-silk-road-tax",
+                subject: .history,
+                title: "Silk Road Toll Gate",
+                prompt: "Why did rulers protect caravan routes?",
+                lesson: "Safe roads, wells, and markets turned long-distance trade into taxable political power.",
+                rewardXP: 18,
+                rewardGems: 2,
+                systemImage: "building.columns.fill",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "science-water-cycle",
+                subject: .science,
+                title: "Cloud Engine",
+                prompt: "What keeps water moving around Earth?",
+                lesson: "Solar energy evaporates water, gravity returns it through rain, rivers, ice, and groundwater.",
+                rewardXP: 16,
+                rewardGems: 1,
+                systemImage: "cloud.sun.fill",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "geography-river-cities",
+                subject: .geography,
+                title: "River City Pattern",
+                prompt: "Why do major cities grow near rivers?",
+                lesson: "Rivers concentrate transport, fresh water, fertile land, defense points, and trade crossings.",
+                rewardXP: 16,
+                rewardGems: 1,
+                systemImage: "map.fill",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "math-base-rate",
+                subject: .math,
+                title: "Base-Rate Trap",
+                prompt: "Why can a scary percentage mislead you?",
+                lesson: "Good decisions compare the rate with the underlying group size and prior probability.",
+                rewardXP: 18,
+                rewardGems: 2,
+                systemImage: "percent",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "culture-gift-etiquette",
+                subject: .culture,
+                title: "Gift Etiquette Signal",
+                prompt: "Why do gift rules differ so much?",
+                lesson: "Gift customs signal respect, hierarchy, reciprocity, and belonging inside a local culture.",
+                rewardXP: 16,
+                rewardGems: 1,
+                systemImage: "gift.fill",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "business-cashflow",
+                subject: .business,
+                title: "Cash-Flow Clock",
+                prompt: "Why can profitable companies still fail?",
+                lesson: "Profit can exist on paper while bills arrive before customers actually pay cash.",
+                rewardXP: 18,
+                rewardGems: 2,
+                systemImage: "chart.line.uptrend.xyaxis",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "health-sleep-pressure",
+                subject: .health,
+                title: "Sleep Pressure Meter",
+                prompt: "Why does consistent wake time matter?",
+                lesson: "Regular light and wake timing anchor circadian rhythm and make sleep pressure easier to predict.",
+                rewardXP: 16,
+                rewardGems: 1,
+                systemImage: "bed.double.fill",
+                isToday: false
+            ),
+            DailyDiscoveryCard(
+                id: "languages-retrieval",
+                subject: .languages,
+                title: "Retrieval Spark",
+                prompt: "Why type before checking the answer?",
+                lesson: "Trying to recall a phrase strengthens memory more than rereading it passively.",
+                rewardXP: 16,
+                rewardGems: 1,
+                systemImage: "textformat.abc",
+                isToday: false
+            )
+        ]
+
+        let start = dayIndex % library.count
+        let rotated = library.indices.map { library[(start + $0) % library.count] }
+        let featured = Array(rotated.prefix(3)).enumerated().map { index, card in
+            DailyDiscoveryCard(
+                id: card.id,
+                subject: card.subject,
+                title: card.title,
+                prompt: card.prompt,
+                lesson: card.lesson,
+                rewardXP: card.rewardXP,
+                rewardGems: card.rewardGems,
+                systemImage: card.systemImage,
+                isToday: index == 0
+            )
+        }
+        let selected = featured.first ?? library[0]
+        return DailyDiscoveryDeck(
+            cards: featured,
+            selectedCard: selected,
+            reviewedToday: reviewedToday,
+            isClaimedToday: claimedToday
         )
     }
 

@@ -177,6 +177,7 @@ struct DashboardView: View {
                     DailyAdventureTrailView()
                     QuestEnergyView()
                     DailyRewardTrackView()
+                    DailyDiscoveryDeckView()
                     DailyTrainingPlanView()
                     SkillTreeView()
                     DailyFinaleView()
@@ -769,6 +770,143 @@ struct QuestEnergyView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(energy.accessibilityLabel)
         .accessibilityIdentifier("questEnergyPanel")
+    }
+}
+
+struct DailyDiscoveryDeckView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let deck = store.dailyDiscoveryDeck
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                deck.selectedCard.subject.accentColor.opacity(0.25),
+                                .yellow.opacity(0.16),
+                                .teal.opacity(0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: "rectangle.stack.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(deck.selectedCard.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(deck.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyDiscoveryDeckTitle")
+                        Text(deck.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyDiscoveryDeckSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(deck.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(deck.selectedCard.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(deck.selectedCard.subject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("dailyDiscoveryDeckProgressText")
+                }
+
+                VStack(spacing: 8) {
+                    ForEach(deck.cards) { card in
+                        DailyDiscoveryCardRow(card: card)
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    Label(deck.rewardText, systemImage: "sparkles")
+                        .font(.caption.bold())
+                        .foregroundStyle(deck.selectedCard.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .accessibilityIdentifier("dailyDiscoveryDeckReward")
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimDailyDiscoveryDeck()
+                        }
+                    } label: {
+                        Label(deck.ctaTitle, systemImage: deck.isReady ? "sparkles" : "lock.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.primary, in: Capsule())
+                    }
+                    .accessibilityIdentifier("claimDailyDiscoveryDeckButton")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(deck.accessibilityLabel)
+        .accessibilityIdentifier("dailyDiscoveryDeckPanel")
+    }
+}
+
+struct DailyDiscoveryCardRow: View {
+    let card: DailyDiscoveryCard
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(card.subject.accentColor.opacity(card.isToday ? 0.18 : 0.08))
+                    .frame(width: 38, height: 38)
+                Image(systemName: card.systemImage)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(card.subject.accentColor)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(card.title)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.76)
+                    Spacer(minLength: 6)
+                    Text(card.statusText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(card.isToday ? card.subject.accentColor : .secondary)
+                }
+
+                Text(card.prompt)
+                    .font(.caption2.bold())
+                    .foregroundStyle(card.subject.accentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.74)
+
+                Text(card.lesson)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.76)
+            }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(card.isToday ? 0.06 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(card.subject.accentColor.opacity(card.isToday ? 0.25 : 0.10), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.accessibilityLabel)
+        .accessibilityIdentifier("dailyDiscoveryCard_\(card.id)")
     }
 }
 

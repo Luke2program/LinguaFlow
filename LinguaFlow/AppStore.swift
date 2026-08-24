@@ -76,6 +76,9 @@ final class AppStore: ObservableObject {
             isClaimedToday: claimedToday
         )
     }
+    var dailyDiscoveryDeck: DailyDiscoveryDeck {
+        stats.dailyDiscoveryDeck
+    }
     var dailyCombo: DailyCombo {
         DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
     }
@@ -1216,6 +1219,33 @@ final class AppStore: ObservableObject {
             feedbackMessage = "Reward Calendar claimed: \(track.rewardText). \(unlocked.world.name) unlocked."
         } else {
             feedbackMessage = "Reward Calendar claimed: \(track.rewardText)."
+        }
+
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimDailyDiscoveryDeck(now: Date = Date()) -> Bool {
+        let deck = dailyDiscoveryDeck
+        guard deck.isReady else {
+            feedbackMessage = deck.isClaimedToday ? "Today's discovery card is already collected." : "Complete one encounter to unlock today's discovery card."
+            return false
+        }
+
+        let card = deck.selectedCard
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += card.rewardXP
+        stats.gems += card.rewardGems
+        stats.lastDailyDiscoveryClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == card.subject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Discovery card collected: \(card.title). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Discovery card collected: \(card.title). \(card.rewardText)."
         }
 
         save()
