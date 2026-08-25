@@ -1226,6 +1226,8 @@ final class LinguaFlowTests: XCTestCase {
             let missions = store.questBoardMissions
 
             XCTAssertEqual(missions.count, 3)
+            XCTAssertEqual(store.questBoard.title, "Quest Board")
+            XCTAssertEqual(store.questBoard.progressText, "0/3 bounties")
             XCTAssertEqual(missions[0].kind, .dailyAdventure)
             XCTAssertEqual(missions[0].title, "Language Harbor Run")
             XCTAssertTrue(missions.contains { $0.kind == .languageReview && $0.id == "language-review" })
@@ -1260,6 +1262,39 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.stats.selectedSubject, .geography)
             XCTAssertEqual(store.currentWorld?.id, "european-capitals")
             XCTAssertTrue(store.feedbackMessage.contains("Unlock African Wonders"))
+        }
+    }
+
+    func testQuestBoardRequiresThreeBountiesAndClaimsOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            store.stats.dailyGoal = 6
+            store.stats.reviewedToday = 2
+            store.stats.correctToday = 3
+            store.stats.xp = 100
+            store.stats.gems = 1
+
+            XCTAssertFalse(store.questBoard.isReady)
+            XCTAssertEqual(store.questBoard.progressText, "2/3 bounties")
+            XCTAssertFalse(store.claimQuestBoard(now: Date()))
+            XCTAssertTrue(store.feedbackMessage.contains("2/3 bounties"))
+
+            store.stats.reviewedToday = 3
+            let rewardXP = store.questBoard.rewardXP
+            let rewardGems = store.questBoard.rewardGems
+
+            XCTAssertTrue(store.questBoard.isReady)
+            XCTAssertEqual(store.questBoard.ctaTitle, "Claim Board")
+            XCTAssertTrue(store.claimQuestBoard(now: Date()))
+            XCTAssertEqual(store.stats.xp, 100 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
+            XCTAssertTrue(store.questBoard.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Quest Board claimed"))
+
+            XCTAssertFalse(store.claimQuestBoard(now: Date()))
+            XCTAssertEqual(store.stats.xp, 100 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
         }
     }
 

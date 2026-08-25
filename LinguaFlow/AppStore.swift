@@ -79,6 +79,16 @@ final class AppStore: ObservableObject {
     var dailyDiscoveryDeck: DailyDiscoveryDeck {
         stats.dailyDiscoveryDeck
     }
+    var questBoard: QuestBoard {
+        let claimedToday = stats.lastQuestBoardClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        return QuestBoard(
+            missions: questBoardMissions,
+            reviewedToday: stats.reviewedToday,
+            correctToday: stats.correctToday,
+            dailyGoal: stats.dailyGoal,
+            isClaimedToday: claimedToday
+        )
+    }
     var dailyCombo: DailyCombo {
         DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
     }
@@ -1173,6 +1183,32 @@ final class AppStore: ObservableObject {
         }
         save()
         objectWillChange.send()
+    }
+
+    @discardableResult
+    func claimQuestBoard(now: Date = Date()) -> Bool {
+        let board = questBoard
+        guard board.isReady else {
+            feedbackMessage = board.isClaimedToday ? "Today's Quest Board is already claimed." : "Finish the Quest Board bounties first: \(board.progressText)."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += board.rewardXP
+        stats.gems += board.rewardGems
+        stats.lastQuestBoardClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == stats.selectedSubject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Quest Board claimed: \(board.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Quest Board claimed: \(board.rewardText)."
+        }
+
+        save()
+        objectWillChange.send()
+        return true
     }
 
     @discardableResult

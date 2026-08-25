@@ -3067,39 +3067,68 @@ struct QuestBoardView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        let missions = store.questBoardMissions
+        let board = store.questBoard
         GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 13) {
                 HStack(alignment: .top, spacing: 12) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 15, style: .continuous)
-                            .fill(LinearGradient(colors: [.cyan.opacity(0.22), .indigo.opacity(0.18), .yellow.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(LinearGradient(colors: [.cyan.opacity(0.22), .indigo.opacity(0.18), .green.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 48, height: 48)
                         Image(systemName: "list.bullet.clipboard.fill")
                             .font(.title3.bold())
                             .foregroundStyle(.primary)
                     }
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Quest Board")
+                        Text(board.title)
                             .font(.headline)
                             .foregroundStyle(.primary)
                             .accessibilityIdentifier("questBoardTitle")
-                        Text("Pick a run, chase the reward, keep the streak alive.")
+                        Text(board.subtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
                             .accessibilityIdentifier("questBoardSubtitle")
                     }
                     Spacer()
-                    Text("Lv \(store.stats.learningLevel)")
+                    Text(board.progressText)
                         .font(.caption.bold())
                         .foregroundStyle(.indigo)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(Color.indigo.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("questBoardProgressText")
                 }
 
+                HStack(spacing: 8) {
+                    ForEach(board.objectives) { objective in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Image(systemName: objective.systemImage)
+                                .font(.caption.bold())
+                                .foregroundStyle(objective.isComplete ? .green : .secondary)
+                            Text(objective.title)
+                                .font(.caption2.bold())
+                                .foregroundStyle(.primary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.72)
+                            Text(objective.subtitle)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 82, alignment: .topLeading)
+                        .padding(9)
+                        .background(Color.primary.opacity(objective.isComplete ? 0.06 : 0.035), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    }
+                }
+                .accessibilityIdentifier("questBoardBounties")
+
                 VStack(spacing: 9) {
-                    ForEach(missions) { mission in
+                    ForEach(board.missions) { mission in
                         QuestBoardMissionRow(mission: mission) {
                             withAnimation(.spring(duration: 0.35)) {
                                 store.startQuestBoardMission(mission)
@@ -3107,9 +3136,38 @@ struct QuestBoardView: View {
                         }
                     }
                 }
+
+                HStack(spacing: 10) {
+                    Label(board.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(.indigo)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .accessibilityIdentifier("questBoardReward")
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimQuestBoard()
+                        }
+                    } label: {
+                        Label(board.ctaTitle, systemImage: board.isReady ? "checkmark.seal.fill" : (board.isClaimedToday ? "checkmark.circle.fill" : "lock.fill"))
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.primary, in: Capsule())
+                    }
+                    .disabled(!board.isReady)
+                    .accessibilityIdentifier("claimQuestBoardButton")
+                }
             }
         }
         .accessibilityElement(children: .contain)
+        .accessibilityLabel(board.accessibilityLabel)
         .accessibilityIdentifier("questBoardPanel")
     }
 }

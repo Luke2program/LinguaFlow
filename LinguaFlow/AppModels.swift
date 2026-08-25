@@ -3347,6 +3347,43 @@ struct QuestBoardMission: Identifiable, Equatable {
     }
 }
 
+struct QuestBoard: Equatable {
+    let missions: [QuestBoardMission]
+    let reviewedToday: Int
+    let correctToday: Int
+    let dailyGoal: Int
+    let isClaimedToday: Bool
+
+    var title: String { "Quest Board" }
+    var subtitle: String {
+        if isClaimedToday { return "Daily bounties banked. Keep playing for bonus XP and unlocks." }
+        if isReady { return "Bounties complete. Claim the board payout before the next reset." }
+        return "Clear three bounties: study, land correct moves, and push a world gate."
+    }
+    var completedCount: Int { objectives.filter(\.isComplete).count }
+    var totalCount: Int { objectives.count }
+    var progress: Double { Double(completedCount) / Double(max(1, totalCount)) }
+    var progressText: String { "\(completedCount)/\(totalCount) bounties" }
+    var isReady: Bool { completedCount == totalCount && !isClaimedToday }
+    var rewardXP: Int { 28 + min(20, max(0, correctToday) * 2) }
+    var rewardGems: Int { 2 + min(3, max(0, reviewedToday / 3)) }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var ctaTitle: String {
+        if isClaimedToday { return "Claimed" }
+        return isReady ? "Claim Board" : "\(max(0, totalCount - completedCount)) left"
+    }
+    var objectives: [DailyFinaleObjective] {
+        [
+            DailyFinaleObjective(id: "study", title: "Start a run", subtitle: "\(min(reviewedToday, 1))/1 encounter", isComplete: reviewedToday >= 1),
+            DailyFinaleObjective(id: "accuracy", title: "Land 3 correct moves", subtitle: "\(min(correctToday, 3))/3 correct", isComplete: correctToday >= 3),
+            DailyFinaleObjective(id: "momentum", title: "Reach half goal", subtitle: "\(min(reviewedToday, max(1, dailyGoal / 2)))/\(max(1, dailyGoal / 2)) reps", isComplete: reviewedToday >= max(1, dailyGoal / 2))
+        ]
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct WorldRewardBadge: Identifiable, Equatable {
     let subject: Subject
     let world: PlayableWorld
@@ -4557,6 +4594,7 @@ struct UserStats: Codable, Equatable {
     var lastDailyFinaleClaimDate: Date? = nil
     var lastDailyRewardTrackClaimDate: Date? = nil
     var lastDailyDiscoveryClaimDate: Date? = nil
+    var lastQuestBoardClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
