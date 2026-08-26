@@ -238,6 +238,11 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("masteryLeagueTitle", in: app).exists)
         XCTAssertTrue(element("masteryLeagueStanding_business", in: app).exists)
         XCTAssertTrue(app.buttons["masteryLeagueCatchUpButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("masteryRingPanel", in: app).exists)
+        XCTAssertTrue(element("masteryRingTitle", in: app).label.contains("Mastery Ring"))
+        XCTAssertTrue(element("masteryRingProgressText", in: app).label.contains("rings lit"))
+        XCTAssertTrue(element("masteryRingStamp_languages", in: app).exists)
+        XCTAssertTrue(app.buttons["masteryRingButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("learningPassportPanel", in: app).exists)
         XCTAssertTrue(element("learningPassportTitle", in: app).exists)
         XCTAssertTrue(element("learningPassportStamp_history", in: app).exists)
@@ -400,6 +405,18 @@ final class LinguaFlowUITests: XCTestCase {
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
         XCTAssertTrue(feedback.label.contains("Passport opened"))
+    }
+
+    func testMasteryRingButtonStartsNextStamp() throws {
+        let app = launchReadyApp()
+
+        let ringButton = app.buttons["masteryRingButton"].firstMatch
+        XCTAssertTrue(ringButton.waitForExistence(timeout: 3))
+        ringButton.tap()
+
+        let feedback = app.staticTexts["answerFeedback"].firstMatch
+        XCTAssertTrue(feedback.waitForExistence(timeout: 3))
+        XCTAssertTrue(feedback.label.contains("Mastery Ring opened"))
     }
 
     func testCanSwitchToHistorySubject() throws {

@@ -189,6 +189,7 @@ struct DashboardView: View {
                     CampaignSpotlightView()
                     WorldJournalView()
                     MasteryLeagueView()
+                    MasteryRingView()
                     LearningPassportView()
                     KnowledgeCodexView()
                     ChallengeUITestControls()
@@ -833,6 +834,7 @@ struct DailyDiscoveryDeckView: View {
                         .foregroundStyle(deck.selectedCard.subject.accentColor)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
+                        .accessibilityLabel(deck.rewardText)
                         .accessibilityIdentifier("dailyDiscoveryDeckReward")
 
                     Spacer()
@@ -2230,6 +2232,130 @@ struct MasteryLeagueStandingRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(standing.accessibilityLabel)
         .accessibilityIdentifier("masteryLeagueStanding_\(standing.subject.rawValue)")
+    }
+}
+
+struct MasteryRingView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let ring = store.stats.masteryRing
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .fill(LinearGradient(colors: [.orange.opacity(0.24), .mint.opacity(0.18), .indigo.opacity(0.14)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: ring.isReady ? "seal.fill" : "circle.hexagongrid.fill")
+                            .font(.title3.bold())
+                            .foregroundStyle(.orange)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(ring.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("masteryRingTitle")
+                        Text(ring.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("masteryRingSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(ring.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.orange.opacity(colorScheme == .dark ? 0.22 : 0.13), in: Capsule())
+                        .accessibilityIdentifier("masteryRingProgressText")
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                        Capsule()
+                            .fill(LinearGradient(colors: [.orange, .mint, .indigo], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * ring.progress)
+                    }
+                }
+                .frame(height: 8)
+
+                HStack(spacing: 8) {
+                    ForEach(ring.featuredStamps) { stamp in
+                        MasteryRingStampChip(stamp: stamp)
+                    }
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.startMasteryRing()
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: ring.isReady ? "sparkles" : "flame.fill")
+                            .font(.subheadline.bold())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(ring.ctaTitle)
+                                .font(.subheadline.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
+                            Text(ring.isReady ? ring.rewardText : ring.ctaSubtitle)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(colorScheme == .dark ? .black : .white)
+                    .padding(12)
+                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("masteryRingButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(ring.accessibilityLabel)
+        .accessibilityIdentifier("masteryRingPanel")
+    }
+}
+
+struct MasteryRingStampChip: View {
+    let stamp: LearningPassportStamp
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Image(systemName: stamp.isEarned ? "checkmark.seal.fill" : stamp.subject.icon)
+                .font(.subheadline.bold())
+                .foregroundStyle(stamp.isEarned ? .green : stamp.subject.accentColor)
+                .frame(height: 20)
+            Text(stamp.subject.displayName)
+                .font(.caption2.bold())
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.56)
+            Text(stamp.progressText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, minHeight: 64)
+        .padding(8)
+        .background(Color.primary.opacity(stamp.isEarned ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(stamp.subject.accentColor.opacity(stamp.isEarned ? 0.24 : 0.08), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stamp.accessibilityLabel)
+        .accessibilityIdentifier("masteryRingStamp_\(stamp.subject.rawValue)")
     }
 }
 

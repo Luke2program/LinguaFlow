@@ -933,6 +933,37 @@ final class AppStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func startMasteryRing() {
+        let ring = stats.masteryRing
+        if ring.isReady {
+            _ = claimMasteryRing()
+            return
+        }
+
+        if ring.isClaimedToday {
+            startRandomStudy()
+            return
+        }
+
+        guard let stamp = ring.passport.nextStamp else {
+            startRandomStudy()
+            return
+        }
+
+        stats.selectedSubject = stamp.subject
+        if stamp.subject == .languages {
+            pickNextCard()
+            feedbackMessage = "Mastery Ring opened Languages: complete a phrase review to light the ring."
+        } else if let playableWorld = stamp.subject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+            select(worldId: playableWorld.id, for: stamp.subject)
+            feedbackMessage = "Mastery Ring opened \(playableWorld.name) for the \(stamp.subject.displayName) stamp."
+        } else {
+            feedbackMessage = "Mastery Ring target found: earn XP to open \(stamp.subject.displayName)."
+        }
+        save()
+        objectWillChange.send()
+    }
+
     func startPassportNextStamp() {
         guard let stamp = stats.learningPassport.nextStamp else {
             startRandomStudy()
@@ -1331,6 +1362,31 @@ final class AppStore: ObservableObject {
         }
         stats.collectedRelicIds = collected
         feedbackMessage = "Relic secured: \(relicDrop.relic.title). \(relicDrop.relic.lore)"
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimMasteryRing(now: Date = Date()) -> Bool {
+        let ring = stats.masteryRing
+        guard ring.isReady else {
+            feedbackMessage = ring.isClaimedToday ? "Today's Mastery Ring is already claimed." : "Light the Mastery Ring first: \(ring.progressText)."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += ring.rewardXP
+        stats.gems += ring.rewardGems
+        stats.lastMasteryRingClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Mastery Ring claimed: \(ring.rewardText). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Mastery Ring claimed: \(ring.rewardText)."
+        }
         save()
         objectWillChange.send()
         return true

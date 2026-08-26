@@ -563,6 +563,64 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testMasteryRingRequiresMultipleDomainStamps() {
+        var stats = UserStats()
+        stats.totalReviews = 1
+        stats.reviewedToday = 1
+        var history = stats.progress(for: .history)
+        history.completedChallengeIds = ["rome-01"]
+        stats.updateProgress(for: .history, history)
+        var science = stats.progress(for: .science)
+        science.completedChallengeIds = ["space-01"]
+        stats.updateProgress(for: .science, science)
+
+        var ring = stats.masteryRing
+
+        XCTAssertEqual(ring.title, "Mastery Ring")
+        XCTAssertEqual(ring.targetCount, 4)
+        XCTAssertEqual(ring.progressText, "3/4 rings lit")
+        XCTAssertFalse(ring.isReady)
+        XCTAssertEqual(ring.ctaTitle, "Light Next Stamp")
+        XCTAssertEqual(ring.featuredStamps.count, 4)
+
+        var geography = stats.progress(for: .geography)
+        geography.completedChallengeIds = ["geo-01"]
+        stats.updateProgress(for: .geography, geography)
+        ring = stats.masteryRing
+
+        XCTAssertTrue(ring.isReady)
+        XCTAssertEqual(ring.title, "Mastery Ring Ready")
+        XCTAssertEqual(ring.progressText, "4/4 rings lit")
+        XCTAssertEqual(ring.rewardText, "+56 XP · +4 gems")
+        XCTAssertEqual(ring.ctaTitle, "Claim Ring")
+    }
+
+    func testMasteryRingClaimGrantsRewardOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.totalReviews = 1
+            store.stats.reviewedToday = 1
+            store.stats.xp = 200
+            store.stats.gems = 3
+
+            for subject in [Subject.history, .science, .geography] {
+                var progress = store.stats.progress(for: subject)
+                progress.completedChallengeIds = ["\(subject.rawValue)-test"]
+                store.stats.updateProgress(for: subject, progress)
+            }
+
+            XCTAssertTrue(store.claimMasteryRing(now: Date()))
+            XCTAssertEqual(store.stats.xp, 256)
+            XCTAssertEqual(store.stats.gems, 7)
+            XCTAssertTrue(store.stats.masteryRing.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Mastery Ring claimed"))
+
+            XCTAssertFalse(store.claimMasteryRing(now: Date()))
+            XCTAssertEqual(store.stats.xp, 256)
+            XCTAssertEqual(store.stats.gems, 7)
+        }
+    }
+
     func testCampaignSpotlightShowsNextGroundedHistoryEncounter() async {
         await MainActor.run {
             let store = AppStore()

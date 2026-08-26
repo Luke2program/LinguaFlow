@@ -3635,6 +3635,55 @@ struct MasteryLeague: Equatable {
     }
 }
 
+struct MasteryRing: Equatable {
+    let passport: LearningPassport
+    let league: MasteryLeague
+    let isClaimedToday: Bool
+
+    var targetCount: Int { min(4, max(1, passport.totalCount / 2)) }
+    var earnedCount: Int { passport.earnedCount }
+    var progress: Double {
+        Double(min(earnedCount, targetCount)) / Double(targetCount)
+    }
+    var progressText: String { "\(min(earnedCount, targetCount))/\(targetCount) rings lit" }
+    var rewardXP: Int { 40 + min(24, earnedCount * 4) }
+    var rewardGems: Int { 4 }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gems" }
+    var isReady: Bool { earnedCount >= targetCount && !isClaimedToday }
+    var title: String {
+        if isClaimedToday { return "Mastery Ring Claimed" }
+        return isReady ? "Mastery Ring Ready" : "Mastery Ring"
+    }
+    var subtitle: String {
+        if isClaimedToday {
+            return "Balanced study banked today. Keep pushing any world for extra mastery."
+        }
+        if isReady {
+            return "Enough domains are stamped. Claim the cross-training reward."
+        }
+        let remaining = max(0, targetCount - earnedCount)
+        return "\(remaining) more \(remaining == 1 ? "domain stamp" : "domain stamps") to light today's ring."
+    }
+    var ctaTitle: String {
+        if isClaimedToday { return "Spin Next World" }
+        return isReady ? "Claim Ring" : "Light Next Stamp"
+    }
+    var ctaSubtitle: String {
+        if isReady || isClaimedToday {
+            return league.catchUpTitle
+        }
+        return passport.nextStamp?.subtitle ?? "Every domain stamped. Quest Roulette is ready."
+    }
+    var featuredStamps: [LearningPassportStamp] {
+        let earned = passport.stamps.filter(\.isEarned)
+        let next = passport.nextStamp.map { [$0] } ?? []
+        return Array((earned + next).prefix(4))
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). \(rewardText)."
+    }
+}
+
 struct LearningPassportStamp: Identifiable, Equatable {
     let subject: Subject
     let title: String
@@ -4595,6 +4644,7 @@ struct UserStats: Codable, Equatable {
     var lastDailyRewardTrackClaimDate: Date? = nil
     var lastDailyDiscoveryClaimDate: Date? = nil
     var lastQuestBoardClaimDate: Date? = nil
+    var lastMasteryRingClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
@@ -5282,6 +5332,14 @@ extension UserStats {
 
         let next = stamps.first { !$0.isEarned && $0.subject == selectedSubject } ?? stamps.first { !$0.isEarned }
         return LearningPassport(stamps: stamps, nextStamp: next)
+    }
+
+    var masteryRing: MasteryRing {
+        MasteryRing(
+            passport: learningPassport,
+            league: masteryLeague,
+            isClaimedToday: lastMasteryRingClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        )
     }
 
     var knowledgeCodex: KnowledgeCodex {
