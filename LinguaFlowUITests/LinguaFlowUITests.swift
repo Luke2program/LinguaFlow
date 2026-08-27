@@ -77,7 +77,7 @@ final class LinguaFlowUITests: XCTestCase {
     private func element(_ id: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
         let target = app.descendants(matching: .any)[id].firstMatch
         if target.waitForExistence(timeout: 2) { return target }
-        for _ in 0..<6 {
+        for _ in 0..<12 {
             app.swipeUp()
             if target.waitForExistence(timeout: 1) { return target }
         }
