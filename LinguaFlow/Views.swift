@@ -176,6 +176,7 @@ struct DashboardView: View {
                     DailyQuestMapView()
                     DailyAdventureTrailView()
                     QuestEnergyView()
+                    DailyLootPortalView()
                     DailyRewardTrackView()
                     DailyDiscoveryDeckView()
                     DailyTrainingPlanView()
@@ -771,6 +772,133 @@ struct QuestEnergyView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(energy.accessibilityLabel)
         .accessibilityIdentifier("questEnergyPanel")
+    }
+}
+
+struct DailyLootPortalView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let portal = store.dailyLootPortal
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                portal.subject.accentColor.opacity(0.27),
+                                .cyan.opacity(0.17),
+                                .orange.opacity(0.15)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 54, height: 54)
+                        Image(systemName: portal.systemImage)
+                            .font(.title3.bold())
+                            .foregroundStyle(portal.subject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(portal.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("dailyLootPortalTitle")
+                        Text(portal.subtitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("dailyLootPortalSubtitle")
+                    }
+
+                    Spacer()
+
+                    Text(portal.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(portal.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(portal.subject.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.12), in: Capsule())
+                        .accessibilityIdentifier("dailyLootPortalProgressText")
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(portal.objectives) { objective in
+                        DailyLootPortalLockChip(objective: objective, tint: portal.subject)
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Label(portal.collectibleTitle, systemImage: "seal.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(portal.subject.accentColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .accessibilityIdentifier("dailyLootPortalCollectible")
+                        Text(portal.rewardText)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .accessibilityIdentifier("dailyLootPortalReward")
+                    }
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            _ = store.claimDailyLootPortal()
+                        }
+                    } label: {
+                        Label(portal.ctaTitle, systemImage: portal.isReady ? "sparkles" : "lock.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.primary, in: Capsule())
+                    }
+                    .accessibilityIdentifier("claimDailyLootPortalButton")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(portal.accessibilityLabel)
+        .accessibilityIdentifier("dailyLootPortalPanel")
+    }
+}
+
+struct DailyLootPortalLockChip: View {
+    let objective: DailyFinaleObjective
+    let tint: Subject
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: objective.isComplete ? "checkmark.seal.fill" : "lock.fill")
+                .font(.subheadline.bold())
+                .foregroundStyle(objective.isComplete ? .green : tint.accentColor)
+                .frame(height: 20)
+            Text(objective.title)
+                .font(.caption2.bold())
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.62)
+                .frame(minHeight: 28)
+            Text(objective.subtitle)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
+        }
+        .frame(maxWidth: .infinity, minHeight: 76)
+        .padding(8)
+        .background(Color.primary.opacity(objective.isComplete ? 0.07 : 0.035), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(tint.accentColor.opacity(objective.isComplete ? 0.24 : 0.09), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(objective.title). \(objective.subtitle). \(objective.isComplete ? "Complete" : "Locked").")
+        .accessibilityIdentifier("dailyLootPortalLock_\(objective.id)")
     }
 }
 

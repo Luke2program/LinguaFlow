@@ -3331,6 +3331,65 @@ struct DailyWorldCompass: Equatable {
     }
 }
 
+struct DailyLootPortal: Equatable {
+    let subject: Subject
+    let reviewedToday: Int
+    let correctToday: Int
+    let dailyGoal: Int
+    let streak: Int
+    let nextUnlock: WorldRewardBadge?
+    let discoveryCard: DailyDiscoveryCard
+    let isClaimedToday: Bool
+
+    var targetEncounters: Int { min(5, max(3, dailyGoal / 4)) }
+    var targetCorrect: Int { 2 }
+    var completedCount: Int { objectives.filter(\.isComplete).count }
+    var totalCount: Int { objectives.count }
+    var progress: Double { Double(completedCount) / Double(max(1, totalCount)) }
+    var progressText: String { "\(completedCount)/\(totalCount) locks" }
+    var isReady: Bool { completedCount == totalCount && !isClaimedToday }
+    var rewardXP: Int { 24 + min(18, max(0, streak) * 3) }
+    var rewardGems: Int { 2 + (correctToday >= targetCorrect + 2 ? 1 : 0) }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var collectibleTitle: String {
+        if let nextUnlock {
+            return "Key Shard: \(nextUnlock.world.name)"
+        }
+        return "\(discoveryCard.subject.displayName) Wild Token"
+    }
+    var title: String {
+        if isClaimedToday { return "Loot Portal Claimed" }
+        return isReady ? "Loot Portal Open" : "Daily Loot Portal"
+    }
+    var subtitle: String {
+        if isClaimedToday {
+            return "\(collectibleTitle) is banked. Keep chaining runs for rarer drops."
+        }
+        if isReady {
+            return "Three locks are lit. Claim today's collectible drop."
+        }
+        return "Light study, accuracy, and momentum locks to open a cross-subject reward."
+    }
+    var ctaTitle: String {
+        if isClaimedToday { return "Claimed" }
+        return isReady ? "Claim Loot" : "\(max(0, totalCount - completedCount)) locks left"
+    }
+    var systemImage: String {
+        if isClaimedToday { return "shippingbox.fill" }
+        return isReady ? "sparkles" : "lock.open.fill"
+    }
+    var objectives: [DailyFinaleObjective] {
+        [
+            DailyFinaleObjective(id: "study", title: "Enter a world", subtitle: "\(min(reviewedToday, 1))/1 encounter", isComplete: reviewedToday >= 1),
+            DailyFinaleObjective(id: "accuracy", title: "Land 2 correct moves", subtitle: "\(min(correctToday, targetCorrect))/\(targetCorrect) correct", isComplete: correctToday >= targetCorrect),
+            DailyFinaleObjective(id: "momentum", title: "Build momentum", subtitle: "\(min(reviewedToday, targetEncounters))/\(targetEncounters) encounters", isComplete: reviewedToday >= targetEncounters)
+        ]
+    }
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). \(progressText). Collectible \(collectibleTitle). Reward \(rewardText)."
+    }
+}
+
 struct QuestBoardMission: Identifiable, Equatable {
     let id: String
     let kind: QuestBoardMissionKind
@@ -4643,6 +4702,7 @@ struct UserStats: Codable, Equatable {
     var lastDailyFinaleClaimDate: Date? = nil
     var lastDailyRewardTrackClaimDate: Date? = nil
     var lastDailyDiscoveryClaimDate: Date? = nil
+    var lastDailyLootPortalClaimDate: Date? = nil
     var lastQuestBoardClaimDate: Date? = nil
     var lastMasteryRingClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
@@ -4686,6 +4746,19 @@ extension UserStats {
             reviewedToday: reviewedToday,
             correctToday: correctToday,
             nextUnlock: nextWorldUnlockBadge
+        )
+    }
+
+    var dailyLootPortal: DailyLootPortal {
+        DailyLootPortal(
+            subject: selectedSubject,
+            reviewedToday: reviewedToday,
+            correctToday: correctToday,
+            dailyGoal: dailyGoal,
+            streak: streak,
+            nextUnlock: nextWorldUnlockBadge,
+            discoveryCard: dailyDiscoveryDeck.selectedCard,
+            isClaimedToday: lastDailyLootPortalClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
         )
     }
 

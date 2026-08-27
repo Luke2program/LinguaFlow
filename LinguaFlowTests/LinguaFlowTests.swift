@@ -173,6 +173,61 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyLootPortalTracksLocksCollectibleAndRewards() {
+        var stats = UserStats()
+        stats.selectedSubject = .history
+        stats.dailyGoal = 12
+        stats.reviewedToday = 2
+        stats.correctToday = 2
+        stats.streak = 3
+        stats.xp = 275
+
+        var portal = stats.dailyLootPortal
+
+        XCTAssertEqual(portal.title, "Daily Loot Portal")
+        XCTAssertEqual(portal.targetEncounters, 3)
+        XCTAssertEqual(portal.progressText, "2/3 locks")
+        XCTAssertFalse(portal.isReady)
+        XCTAssertEqual(portal.rewardText, "+33 XP · +2 gems")
+        XCTAssertEqual(portal.collectibleTitle, "Key Shard: African Wonders")
+        XCTAssertTrue(portal.objectives.contains { $0.id == "momentum" && !$0.isComplete })
+
+        stats.reviewedToday = 3
+        portal = stats.dailyLootPortal
+
+        XCTAssertTrue(portal.isReady)
+        XCTAssertEqual(portal.title, "Loot Portal Open")
+        XCTAssertEqual(portal.progressText, "3/3 locks")
+        XCTAssertEqual(portal.ctaTitle, "Claim Loot")
+    }
+
+    func testDailyLootPortalClaimGrantsRewardOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            store.stats.reviewedToday = 3
+            store.stats.correctToday = 2
+            store.stats.streak = 2
+            store.stats.xp = 250
+            store.stats.gems = 1
+
+            let rewardXP = store.dailyLootPortal.rewardXP
+            let rewardGems = store.dailyLootPortal.rewardGems
+            let collectible = store.dailyLootPortal.collectibleTitle
+
+            XCTAssertTrue(store.claimDailyLootPortal(now: Date()))
+            XCTAssertEqual(store.stats.xp, 250 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
+            XCTAssertTrue(store.dailyLootPortal.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Loot Portal claimed"))
+            XCTAssertTrue(store.feedbackMessage.contains(collectible))
+
+            XCTAssertFalse(store.claimDailyLootPortal(now: Date()))
+            XCTAssertEqual(store.stats.xp, 250 + rewardXP)
+            XCTAssertEqual(store.stats.gems, 1 + rewardGems)
+        }
+    }
+
     func testDailyComboShowsNextRewardAndCompletedChain() {
         let earlyCombo = DailyCombo(subject: .science, correctToday: 2, target: 3)
         XCTAssertEqual(earlyCombo.title, "Build a Focus Combo")

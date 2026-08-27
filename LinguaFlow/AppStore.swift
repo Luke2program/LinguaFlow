@@ -76,6 +76,9 @@ final class AppStore: ObservableObject {
             isClaimedToday: claimedToday
         )
     }
+    var dailyLootPortal: DailyLootPortal {
+        stats.dailyLootPortal
+    }
     var dailyDiscoveryDeck: DailyDiscoveryDeck {
         stats.dailyDiscoveryDeck
     }
@@ -1313,6 +1316,32 @@ final class AppStore: ObservableObject {
             feedbackMessage = "Discovery card collected: \(card.title). \(unlocked.world.name) unlocked."
         } else {
             feedbackMessage = "Discovery card collected: \(card.title). \(card.rewardText)."
+        }
+
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func claimDailyLootPortal(now: Date = Date()) -> Bool {
+        let portal = dailyLootPortal
+        guard portal.isReady else {
+            feedbackMessage = portal.isClaimedToday ? "Today's Loot Portal is already claimed." : "Light the Loot Portal first: \(portal.progressText)."
+            return false
+        }
+
+        let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
+        stats.xp += portal.rewardXP
+        stats.gems += portal.rewardGems
+        stats.lastDailyLootPortalClaimDate = now
+
+        let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
+        if let unlocked = newlyEarned.first(where: { $0.subject == portal.subject }) ?? newlyEarned.first {
+            newlyUnlockedWorld = unlocked
+            feedbackMessage = "Loot Portal claimed: \(portal.collectibleTitle). \(unlocked.world.name) unlocked."
+        } else {
+            feedbackMessage = "Loot Portal claimed: \(portal.collectibleTitle). \(portal.rewardText)."
         }
 
         save()
