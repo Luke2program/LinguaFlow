@@ -2686,6 +2686,53 @@ struct DailyRelic: Equatable {
     }
 }
 
+struct WorldRelicForge: Equatable {
+    let featuredRelic: MysteryRelic
+    let nextSubject: Subject
+    let litSubjects: [Subject]
+    let targetSubjects: Int
+    let isClaimedToday: Bool
+    let alreadyCollected: Bool
+
+    var isReady: Bool {
+        litSubjects.count >= targetSubjects
+    }
+
+    var progress: Double {
+        min(1, Double(litSubjects.count) / Double(max(1, targetSubjects)))
+    }
+
+    var title: String {
+        if isClaimedToday { return "Relic Forge Complete" }
+        return isReady ? "Relic Forge Ready" : "World Relic Forge"
+    }
+
+    var subtitle: String {
+        if isClaimedToday { return "\(featuredRelic.name) was crafted from today's cross-domain run." }
+        if isReady { return "Craft a relic from \(litSubjects.map(\.displayName).joined(separator: ", "))." }
+        return "Light \(max(0, targetSubjects - litSubjects.count)) more domain \(targetSubjects - litSubjects.count == 1 ? "stamp" : "stamps") to craft a cross-world relic."
+    }
+
+    var progressText: String {
+        "\(min(litSubjects.count, targetSubjects))/\(targetSubjects) domains"
+    }
+
+    var rewardXP: Int { alreadyCollected ? 22 : 28 }
+    var rewardGems: Int { alreadyCollected ? 2 : 3 }
+    var rewardText: String {
+        "+\(rewardXP) XP · +\(rewardGems) gems · \(featuredRelic.rarity)"
+    }
+
+    var ctaTitle: String {
+        if isClaimedToday { return "Forged" }
+        return isReady ? "Forge Relic" : "Light \(nextSubject.displayName)"
+    }
+
+    var accessibilityLabel: String {
+        "\(title). \(subtitle). Progress \(progressText). Reward \(rewardText)."
+    }
+}
+
 struct DailyAdventure: Equatable {
     let subject: Subject
     let world: PlayableWorld?
@@ -4705,6 +4752,7 @@ struct UserStats: Codable, Equatable {
     var lastDailyLootPortalClaimDate: Date? = nil
     var lastQuestBoardClaimDate: Date? = nil
     var lastMasteryRingClaimDate: Date? = nil
+    var lastRelicForgeClaimDate: Date? = nil
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
@@ -5405,6 +5453,25 @@ extension UserStats {
 
         let next = stamps.first { !$0.isEarned && $0.subject == selectedSubject } ?? stamps.first { !$0.isEarned }
         return LearningPassport(stamps: stamps, nextStamp: next)
+    }
+
+    var worldRelicForge: WorldRelicForge {
+        let passport = learningPassport
+        let litSubjects = passport.stamps.filter(\.isEarned).map(\.subject)
+        let nextSubject = passport.nextStamp?.subject ?? atlasNextTarget?.subject ?? selectedSubject
+        let uncollectedRelic = Subject.allCases
+            .flatMap(\.mysteryRelics)
+            .first { !collectedRelicSet.contains($0.id) && (litSubjects.contains($0.subject) || $0.subject == nextSubject) }
+        let fallbackRelic = nextSubject.mysteryRelics.first ?? selectedSubject.mysteryRelics.first ?? Subject.languages.mysteryRelics[0]
+        let featuredRelic = uncollectedRelic ?? fallbackRelic
+        return WorldRelicForge(
+            featuredRelic: featuredRelic,
+            nextSubject: nextSubject,
+            litSubjects: Array(litSubjects.prefix(4)),
+            targetSubjects: 2,
+            isClaimedToday: lastRelicForgeClaimDate.map { Calendar.current.isDateInToday($0) } ?? false,
+            alreadyCollected: collectedRelicSet.contains(featuredRelic.id)
+        )
     }
 
     var masteryRing: MasteryRing {

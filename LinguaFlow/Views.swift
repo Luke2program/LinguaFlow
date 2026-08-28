@@ -207,6 +207,7 @@ struct DashboardView: View {
                     DailyComboView()
                     DailyBossView()
                     DailyRelicView()
+                    WorldRelicForgeView()
                     QuestBoardView()
                     WorldPathView()
                     DailyQuestView()
@@ -3313,6 +3314,134 @@ struct DailyRelicView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(relicDrop.accessibilityLabel)
         .accessibilityIdentifier("dailyRelicPanel")
+    }
+}
+
+struct WorldRelicForgeView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let forge = store.worldRelicForge
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .fill(LinearGradient(colors: [
+                                forge.featuredRelic.subject.accentColor.opacity(colorScheme == .dark ? 0.30 : 0.20),
+                                .orange.opacity(colorScheme == .dark ? 0.25 : 0.16),
+                                .mint.opacity(colorScheme == .dark ? 0.22 : 0.14)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 56, height: 56)
+                        Text(forge.isClaimedToday || forge.alreadyCollected ? forge.featuredRelic.emoji : "⚒️")
+                            .font(.system(size: 28, weight: .bold))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Cross-World Craft")
+                            .font(.caption.bold())
+                            .foregroundStyle(forge.featuredRelic.subject.accentColor)
+                        Text(forge.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier("worldRelicForgeTitle")
+                        Text(forge.featuredRelic.title)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                            .accessibilityIdentifier("worldRelicForgeRelic")
+                    }
+
+                    Spacer()
+
+                    Label(forge.ctaTitle, systemImage: forge.isReady ? "hammer.fill" : "arrow.right.circle.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.68)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.primary, in: Capsule())
+                }
+
+                Text(forge.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.80)
+                    .accessibilityIdentifier("worldRelicForgeSubtitle")
+
+                HStack(spacing: 8) {
+                    ForEach(Subject.allCases.prefix(4)) { subject in
+                        let isLit = forge.litSubjects.contains(subject)
+                        VStack(spacing: 5) {
+                            Image(systemName: isLit ? "checkmark.seal.fill" : subject.icon)
+                                .font(.caption.bold())
+                                .foregroundStyle(isLit ? .green : subject.accentColor)
+                            Text(subject.displayName)
+                                .font(.caption2.bold())
+                                .foregroundStyle(isLit ? .primary : .secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.58)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 58)
+                        .background(Color.primary.opacity(isLit ? 0.06 : 0.035), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(subject.accentColor.opacity(isLit ? 0.23 : 0.08), lineWidth: 1))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(subject.displayName), \(isLit ? "lit" : "unlit")")
+                        .accessibilityIdentifier("worldRelicForgeSubject_\(subject.rawValue)")
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    Label(forge.rewardText, systemImage: "gift.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(forge.featuredRelic.subject.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.68)
+                        .accessibilityIdentifier("worldRelicForgeReward")
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.1))
+                            Capsule()
+                                .fill(LinearGradient(colors: [forge.featuredRelic.subject.accentColor, .orange, .mint], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * forge.progress)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(forge.progressText)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .frame(width: 86, alignment: .trailing)
+                        .accessibilityIdentifier("worldRelicForgeProgressText")
+                }
+
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        _ = store.startWorldRelicForge()
+                    }
+                } label: {
+                    Label(forge.ctaTitle, systemImage: forge.isReady ? "hammer.fill" : "sparkle.magnifyingglass")
+                        .font(.caption.bold())
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(forge.isReady && !forge.isClaimedToday ? forge.featuredRelic.subject.accentColor : forge.nextSubject.accentColor)
+                .disabled(forge.isClaimedToday)
+                .accessibilityIdentifier("worldRelicForgeButton")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(forge.accessibilityLabel)
+        .accessibilityIdentifier("worldRelicForgePanel")
     }
 }
 

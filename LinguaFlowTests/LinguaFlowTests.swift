@@ -299,6 +299,49 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldRelicForgeTargetsNextDomainAndCraftsCollectible() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.totalReviews = 1
+            store.stats.reviewedToday = 1
+            store.stats.selectedSubject = .languages
+            store.stats.xp = 100
+            store.stats.gems = 1
+
+            var forge = store.worldRelicForge
+            XCTAssertFalse(forge.isReady)
+            XCTAssertEqual(forge.progressText, "1/2 domains")
+            XCTAssertEqual(forge.nextSubject, .history)
+            XCTAssertEqual(forge.ctaTitle, "Light 🏛️ History")
+
+            XCTAssertFalse(store.startWorldRelicForge(now: Date()))
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertEqual(store.currentWorld?.id, "ancient-rome")
+            XCTAssertTrue(store.feedbackMessage.contains("Relic Forge needs 1/2 domains"))
+
+            var history = store.stats.progress(for: .history)
+            history.completedChallengeIds = ["rome-01"]
+            store.stats.updateProgress(for: .history, history)
+
+            forge = store.worldRelicForge
+            XCTAssertTrue(forge.isReady)
+            XCTAssertEqual(forge.progressText, "2/2 domains")
+            XCTAssertEqual(forge.rewardXP, 28)
+
+            let relicId = forge.featuredRelic.id
+            XCTAssertTrue(store.startWorldRelicForge(now: Date()))
+            XCTAssertEqual(store.stats.xp, 128)
+            XCTAssertEqual(store.stats.gems, 4)
+            XCTAssertTrue(store.stats.collectedRelicSet.contains(relicId))
+            XCTAssertTrue(store.worldRelicForge.isClaimedToday)
+            XCTAssertTrue(store.feedbackMessage.contains("Relic Forge crafted"))
+
+            XCTAssertFalse(store.startWorldRelicForge(now: Date()))
+            XCTAssertEqual(store.stats.xp, 128)
+            XCTAssertEqual(store.stats.gems, 4)
+        }
+    }
+
     func testDailyFinaleRequiresAllGatesAndClaimsOncePerDay() async {
         await MainActor.run {
             let store = AppStore()

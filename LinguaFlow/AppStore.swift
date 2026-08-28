@@ -112,6 +112,9 @@ final class AppStore: ObservableObject {
             alreadyCollected: stats.collectedRelicSet.contains(relic.id)
         )
     }
+    var worldRelicForge: WorldRelicForge {
+        stats.worldRelicForge
+    }
     var dailyFinale: DailyFinale {
         let claimedToday = stats.lastDailyFinaleClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
         return DailyFinale(
@@ -1391,6 +1394,34 @@ final class AppStore: ObservableObject {
         }
         stats.collectedRelicIds = collected
         feedbackMessage = "Relic secured: \(relicDrop.relic.title). \(relicDrop.relic.lore)"
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func startWorldRelicForge(now: Date = Date()) -> Bool {
+        let forge = worldRelicForge
+        guard forge.isReady, !forge.isClaimedToday else {
+            stats.selectedSubject = forge.nextSubject
+            if forge.nextSubject != .languages, let playableWorld = forge.nextSubject.worlds.first(where: { $0.isUnlocked(withXP: stats.xp) }) {
+                select(worldId: playableWorld.id, for: forge.nextSubject)
+            }
+            feedbackMessage = forge.isClaimedToday ? "Today's Relic Forge is already complete." : "Relic Forge needs \(forge.progressText). Opened \(forge.nextSubject.displayName)."
+            save()
+            objectWillChange.send()
+            return false
+        }
+
+        stats.xp += forge.rewardXP
+        stats.gems += forge.rewardGems
+        stats.lastRelicForgeClaimDate = now
+        var collected = stats.collectedRelicIds ?? []
+        if !collected.contains(forge.featuredRelic.id) {
+            collected.append(forge.featuredRelic.id)
+        }
+        stats.collectedRelicIds = collected
+        feedbackMessage = "Relic Forge crafted \(forge.featuredRelic.title): \(forge.featuredRelic.lore)"
         save()
         objectWillChange.send()
         return true
