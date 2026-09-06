@@ -172,6 +172,7 @@ struct DashboardView: View {
                     Color.clear.frame(height: 0).accessibilityIdentifier("dashboardReady")
                     header
                     subjectHeader
+                    ActiveLearningArenaView()
                     DailyWorldCompassView()
                     DailyQuestMapView()
                     DailyAdventureTrailView()
@@ -220,34 +221,7 @@ struct DashboardView: View {
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
                     }
-                    if store.stats.selectedSubject == .languages {
-                        FluencyDropView()
-                        GoalView()
-                        ReviewCardView()
-                    } else if store.stats.selectedSubject == .history {
-                        HistoryWorldView()
-                        HistoryChallengeView()
-                    } else if store.stats.selectedSubject == .science {
-                        ScienceWorldView()
-                        ScienceChallengeView()
-                    } else if store.stats.selectedSubject == .geography {
-                        GeographyWorldView()
-                        GeographyChallengeView()
-                    } else if store.stats.selectedSubject == .math {
-                        MathWorldView()
-                        MathChallengeView()
-                    } else if store.stats.selectedSubject == .culture {
-                        CultureWorldView()
-                        CultureChallengeView()
-                    } else if store.stats.selectedSubject == .business {
-                        BusinessWorldView()
-                        BusinessChallengeView()
-                    } else if store.stats.selectedSubject == .health {
-                        HealthWorldView()
-                        HealthChallengeView()
-                    } else {
-                        ComingSoonSubjectView()
-                    }
+                    LearningProgressShelfView()
                     PomodoroView()
                     statsGrid
                     Spacer().frame(height: keyboardHeight + 40)
@@ -312,6 +286,142 @@ struct DashboardView: View {
             StatPill(title: "XP", value: "\(store.stats.xp)", icon: "sparkles")
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
+        }
+    }
+}
+
+struct ActiveLearningArenaView: View {
+    @EnvironmentObject var store: AppStore
+
+    private var arenaTitle: String {
+        if store.stats.selectedSubject == .languages {
+            return store.stats.selectedLanguagePair.displayName
+        }
+        return store.currentWorld?.name ?? store.stats.selectedSubject.mapTitle
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.18))
+                            .frame(width: 42, height: 42)
+                        Image(systemName: store.stats.selectedSubject.icon)
+                            .font(.headline.bold())
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("NOW PLAYING")
+                            .font(.caption2.bold())
+                            .tracking(1.2)
+                            .foregroundStyle(.white.opacity(0.78))
+                        Text(arenaTitle)
+                            .font(.title3.bold())
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .accessibilityIdentifier("activeLearningArenaTitle")
+                    }
+
+                    Spacer()
+
+                    Text("+\(store.stats.selectedSubject == .languages ? 10 : 12) XP")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.white.opacity(0.16), in: Capsule())
+                }
+
+                Text("One smart move starts the run. Answer the live challenge, build your combo, and unlock the next world.")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.88))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 8) {
+                    ArenaStatChip(icon: "sparkles", value: "\(store.stats.xp) XP")
+                    ArenaStatChip(icon: "flame.fill", value: "\(store.stats.streak) day")
+                    ArenaStatChip(icon: "diamond.fill", value: "\(store.stats.gems) gems")
+                }
+            }
+            .padding(16)
+            .background(
+                LinearGradient(
+                    colors: [
+                        store.stats.selectedSubject.accentColor.opacity(0.98),
+                        store.stats.selectedSubject.accentColor.opacity(0.68),
+                        Color.indigo.opacity(0.82)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+            )
+            .shadow(color: store.stats.selectedSubject.accentColor.opacity(0.24), radius: 16, y: 8)
+
+            activeChallenge
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("activeLearningArenaPanel")
+    }
+
+    @ViewBuilder
+    private var activeChallenge: some View {
+        switch store.stats.selectedSubject {
+        case .languages: ReviewCardView()
+        case .history: HistoryChallengeView()
+        case .science: ScienceChallengeView()
+        case .geography: GeographyChallengeView()
+        case .math: MathChallengeView()
+        case .culture: CultureChallengeView()
+        case .business: BusinessChallengeView()
+        case .health: HealthChallengeView()
+        default: ComingSoonSubjectView()
+        }
+    }
+}
+
+struct ArenaStatChip: View {
+    let icon: String
+    let value: String
+
+    var body: some View {
+        Label(value, systemImage: icon)
+            .font(.caption2.bold())
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(Color.black.opacity(0.12), in: Capsule())
+    }
+}
+
+struct LearningProgressShelfView: View {
+    @EnvironmentObject var store: AppStore
+
+    @ViewBuilder
+    var body: some View {
+        switch store.stats.selectedSubject {
+        case .languages:
+            FluencyDropView()
+            GoalView()
+        case .history: HistoryWorldView()
+        case .science: ScienceWorldView()
+        case .geography: GeographyWorldView()
+        case .math: MathWorldView()
+        case .culture: CultureWorldView()
+        case .business: BusinessWorldView()
+        case .health: HealthWorldView()
+        default: EmptyView()
         }
     }
 }
