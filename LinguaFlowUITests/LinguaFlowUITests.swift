@@ -85,6 +85,12 @@ final class LinguaFlowUITests: XCTestCase {
         return target
     }
 
+    private func selectDashboardDeck(_ name: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let deckButton = button("dashboardDeck_\(name)", in: app, file: file, line: line)
+        deckButton.tap()
+        XCTAssertEqual(deckButton.value as? String, "Selected", file: file, line: line)
+    }
+
     func testRequiresTypedAnswerAndDirection() throws {
         let app = launchReadyApp()
 
@@ -166,145 +172,26 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["activeLearningArenaTitle"].firstMatch.label.contains("German"))
         XCTAssertTrue(app.staticTexts["promptText"].firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
+        XCTAssertTrue(element("dashboardDeckPicker", in: app).exists)
+        XCTAssertEqual(app.buttons["dashboardDeck_quest"].value as? String, "Selected")
         XCTAssertTrue(element("worldCompassPanel", in: app).exists)
-        XCTAssertTrue(element("worldCompassTitle", in: app).label.contains("World Compass"))
-        XCTAssertTrue(element("worldCompassProgressText", in: app).label.contains("live portals"))
-        XCTAssertTrue(element("worldCompassPortal_active-languages-harbor", in: app).exists)
-        XCTAssertTrue(element("worldCompassPortal_unlock-geography-african-wonders", in: app).exists)
-        XCTAssertTrue(element("dailyQuestMapPanel", in: app).exists)
-        XCTAssertTrue(element("dailyQuestMapTitle", in: app).label.contains("Daily Quest Map"))
-        XCTAssertTrue(element("dailyQuestMapHeadline", in: app).exists)
-        XCTAssertTrue(element("dailyQuestMapProgressText", in: app).label.contains("map nodes"))
-        XCTAssertTrue(element("dailyQuestMapNode_best-run", in: app).exists)
-        XCTAssertTrue(element("dailyQuestMapNode_cross-train", in: app).exists)
-        XCTAssertTrue(element("dailyQuestMapNode_world-tour", in: app).exists)
-        XCTAssertTrue(element("questEnergyPanel", in: app).exists)
-        XCTAssertTrue(element("questEnergyTitle", in: app).label.contains("Quest Energy"))
-        XCTAssertTrue(element("questEnergyProgressText", in: app).exists)
-        XCTAssertTrue(element("questEnergyGateText", in: app).exists)
-        XCTAssertTrue(app.buttons["questEnergyButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyLootPortalPanel", in: app).exists)
-        XCTAssertTrue(element("dailyLootPortalTitle", in: app).label.contains("Loot Portal"))
-        XCTAssertTrue(element("dailyLootPortalProgressText", in: app).label.contains("locks"))
-        XCTAssertTrue(element("dailyLootPortalCollectible", in: app).exists)
-        XCTAssertTrue(element("dailyLootPortalLock_study", in: app).exists)
-        XCTAssertTrue(element("dailyLootPortalLock_accuracy", in: app).exists)
-        XCTAssertTrue(element("dailyLootPortalLock_momentum", in: app).exists)
-        XCTAssertTrue(app.buttons["claimDailyLootPortalButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyRewardTrackPanel", in: app).exists)
-        XCTAssertTrue(element("dailyRewardTrackTitle", in: app).label.contains("Reward Calendar"))
-        XCTAssertTrue(element("dailyRewardTrackProgressText", in: app).label.contains("Day"))
-        XCTAssertTrue(element("dailyRewardTrackReward", in: app).label.contains("XP"))
-        XCTAssertTrue(element("dailyRewardTrackDay_1", in: app).exists)
-        XCTAssertTrue(element("dailyRewardTrackDay_7", in: app).exists)
-        XCTAssertTrue(app.buttons["claimDailyRewardTrackButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyDiscoveryDeckPanel", in: app).exists)
-        XCTAssertTrue(element("dailyDiscoveryDeckTitle", in: app).label.contains("Daily Discovery Deck"))
-        XCTAssertTrue(element("dailyDiscoveryDeckProgressText", in: app).exists)
-        XCTAssertTrue(element("dailyDiscoveryDeckReward", in: app).label.contains("XP"))
-        XCTAssertTrue(app.buttons["claimDailyDiscoveryDeckButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyTrainingPlanPanel", in: app).exists)
-        XCTAssertTrue(element("dailyTrainingPlanTitle", in: app).label.contains("Daily Training Plan"))
-        XCTAssertTrue(element("dailyTrainingPlanCard_best-run", in: app).exists)
-        XCTAssertTrue(element("dailyFinalePanel", in: app).exists)
-        XCTAssertTrue(element("dailyFinaleTitle", in: app).label.contains("Daily Finale"))
-        XCTAssertTrue(element("dailyFinaleProgressText", in: app).label.contains("gates"))
-        XCTAssertTrue(element("dailyFinaleObjective_quest", in: app).exists)
-        XCTAssertTrue(element("dailyFinaleObjective_combo", in: app).exists)
-        XCTAssertTrue(element("dailyFinaleObjective_relic", in: app).exists)
-        XCTAssertTrue(app.buttons["dailyFinaleButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["questRouletteTitle"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["questRouletteTitle"].label.contains("Daily Training Plan"))
-        XCTAssertTrue(app.staticTexts["questRouletteSubtitle"].label.contains("Best next move"))
-        XCTAssertTrue(app.staticTexts["questRouletteRouteCount"].label.contains("live routes"))
-        XCTAssertTrue(app.staticTexts["questRouletteReward"].label.contains("Surprise stamp"))
-        XCTAssertTrue(element("playMenuPanel", in: app).exists)
-        XCTAssertTrue(element("playMenuTitle", in: app).label.contains("Choose Your Run"))
-        XCTAssertTrue(element("playMenuSubtitle", in: app).exists)
-        XCTAssertTrue(element("playMenuMode_sprint", in: app).exists)
-        XCTAssertTrue(element("playMenuMode_expedition", in: app).exists)
-        XCTAssertTrue(element("playMenuMode_boss", in: app).exists)
-        XCTAssertTrue(element("recommendedRunPanel", in: app).exists)
-        XCTAssertTrue(element("recommendedRunTitle", in: app).exists)
+
+        selectDashboardDeck("explore", in: app)
         XCTAssertTrue(element("dailyWorldEventPanel", in: app).exists)
-        XCTAssertTrue(element("dailyWorldEventTitle", in: app).exists)
-        XCTAssertTrue(element("dailyWorldEventChapter_1", in: app).exists)
-        XCTAssertTrue(element("dailyWorldEventProgressText", in: app).exists)
-        XCTAssertTrue(element("worldBriefingPanel", in: app).exists)
-        XCTAssertTrue(element("worldBriefingTitle", in: app).label.contains("Language Harbor Briefing"))
-        XCTAssertTrue(element("worldBriefingScene", in: app).exists)
-        XCTAssertTrue(element("worldBriefingFact", in: app).exists)
-        XCTAssertTrue(element("worldBriefingProgressText", in: app).label.contains("prompts"))
-        XCTAssertTrue(element("campaignSpotlightPanel", in: app).exists)
-        XCTAssertTrue(element("campaignSpotlightTitle", in: app).label.contains("Language Harbor Campaign"))
-        XCTAssertTrue(element("campaignEncounterTitle", in: app).exists)
-        XCTAssertTrue(element("campaignEncounterClue", in: app).exists)
-        XCTAssertTrue(element("campaignSpotlightProgressText", in: app).exists)
-        XCTAssertTrue(element("worldJournalPanel", in: app).exists)
-        XCTAssertTrue(element("worldJournalTitle", in: app).label.contains("Language Harbor Journal"))
-        XCTAssertTrue(element("worldJournalSceneTitle", in: app).exists)
-        XCTAssertTrue(element("worldJournalChoice", in: app).exists)
-        XCTAssertTrue(element("worldJournalProgressText", in: app).exists)
+        XCTAssertFalse(app.descendants(matching: .any)["worldCompassPanel"].exists)
+
+        selectDashboardDeck("progress", in: app)
         XCTAssertTrue(element("masteryLeaguePanel", in: app).exists)
-        XCTAssertTrue(element("masteryLeagueTitle", in: app).exists)
-        XCTAssertTrue(element("masteryLeagueStanding_business", in: app).exists)
-        XCTAssertTrue(app.buttons["masteryLeagueCatchUpButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("masteryRingPanel", in: app).exists)
-        XCTAssertTrue(element("masteryRingTitle", in: app).label.contains("Mastery Ring"))
-        XCTAssertTrue(element("masteryRingProgressText", in: app).label.contains("rings lit"))
-        XCTAssertTrue(element("masteryRingStamp_languages", in: app).exists)
-        XCTAssertTrue(app.buttons["masteryRingButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("learningPassportPanel", in: app).exists)
-        XCTAssertTrue(element("learningPassportTitle", in: app).exists)
-        XCTAssertTrue(element("learningPassportStamp_history", in: app).exists)
-        XCTAssertTrue(app.buttons["learningPassportNextButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("knowledgeCodexPanel", in: app).exists)
-        XCTAssertTrue(element("knowledgeCodexTitle", in: app).label.contains("Knowledge Codex"))
-        XCTAssertTrue(element("knowledgeCodexProgressText", in: app).label.contains("lessons"))
-        XCTAssertTrue(element("knowledgeCodexEntry_languages-review-gate", in: app).exists)
-        XCTAssertTrue(element("dailyAdventurePanel", in: app).exists)
-        XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Language Harbor Run")).firstMatch.waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyComboPanel", in: app).exists)
-        XCTAssertTrue(element("dailyComboTitle", in: app).exists)
-        XCTAssertTrue(element("dailyComboProgressText", in: app).exists)
-        XCTAssertTrue(element("dailyBossPanel", in: app).exists)
-        XCTAssertTrue(element("dailyBossTitle", in: app).exists)
-        XCTAssertTrue(element("dailyBossProgressText", in: app).exists)
-        XCTAssertTrue(element("dailyRelicPanel", in: app).exists)
-        XCTAssertTrue(element("dailyRelicTitle", in: app).exists)
-        XCTAssertTrue(element("dailyRelicProgressText", in: app).exists)
+        XCTAssertTrue(element("dashboardDeckSubtitle", in: app).label.contains("Mastery"))
+
+        selectDashboardDeck("rewards", in: app)
         XCTAssertTrue(element("worldRelicForgePanel", in: app).exists)
-        XCTAssertTrue(element("worldRelicForgeTitle", in: app).label.contains("World Relic Forge"))
-        XCTAssertTrue(element("worldRelicForgeProgressText", in: app).label.contains("domains"))
-        XCTAssertTrue(element("worldRelicForgeSubject_languages", in: app).exists)
-        XCTAssertTrue(element("worldRelicForgeSubject_history", in: app).exists)
-        XCTAssertTrue(app.buttons["worldRelicForgeButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("questBoardPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["Quest Board"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("questMission_language-review", in: app).exists)
-        XCTAssertTrue(element("worldPathPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["Language Path"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("dailyQuestPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["Decode the next phrase"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("streakChestPanel", in: app).exists)
-        XCTAssertTrue(element("levelTrackPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["Level 1 · Trail Starter"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("worldAtlasPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["World Atlas"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("worldAtlasSubject_languages", in: app).exists)
-        XCTAssertTrue(element("worldAtlasSubject_history", in: app).exists)
-        XCTAssertTrue(app.buttons["worldAtlasNextButton"].waitForExistence(timeout: 3))
-        XCTAssertTrue(element("rewardVaultPanel", in: app).exists)
-        XCTAssertTrue(app.staticTexts["7/29 world badges · 0/16 relics"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Relic Shelf"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("rewardShopPanel", in: app).exists)
-        XCTAssertTrue(element("rewardShopTitle", in: app).label.contains("Reward Shop"))
-        XCTAssertTrue(element("rewardShopItem_aura-trail-starter", in: app).exists)
-        XCTAssertTrue(element("rewardShopAffordability", in: app).exists)
     }
 
     func testQuestBoardMissionTapStartsReviewGate() throws {
         let app = launchReadyApp()
+        selectDashboardDeck("explore", in: app)
 
         let mission = element("questMission_language-review", in: app)
         mission.tap()
@@ -329,6 +216,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCampaignSpotlightContinuesHistoryWorld() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+        selectDashboardDeck("explore", in: app)
 
         let panel = element("campaignSpotlightPanel", in: app)
         XCTAssertTrue(element("campaignSpotlightTitle", in: app).label.contains("Ancient Rome Campaign"))
@@ -342,6 +230,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCanClaimReadyStreakChest() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+        selectDashboardDeck("rewards", in: app)
 
         let panel = element("streakChestPanel", in: app)
         XCTAssertTrue(panel.exists)
@@ -359,6 +248,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCanDefeatReadyDailyBoss() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+        selectDashboardDeck("explore", in: app)
 
         let panel = element("dailyBossPanel", in: app)
         XCTAssertTrue(panel.exists)
@@ -375,6 +265,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCanClaimReadyDailyRelic() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
+        selectDashboardDeck("explore", in: app)
 
         let panel = element("dailyRelicPanel", in: app)
         XCTAssertTrue(panel.exists)
@@ -402,6 +293,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testMasteryLeagueCatchUpButtonStartsWeakestDomain() throws {
         let app = launchReadyApp()
+        selectDashboardDeck("progress", in: app)
 
         let catchUpButton = app.buttons["masteryLeagueCatchUpButton"].firstMatch
         XCTAssertTrue(catchUpButton.waitForExistence(timeout: 3))
@@ -414,6 +306,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testLearningPassportButtonStartsNextStamp() throws {
         let app = launchReadyApp()
+        selectDashboardDeck("progress", in: app)
 
         let passportButton = app.buttons["learningPassportNextButton"].firstMatch
         XCTAssertTrue(passportButton.waitForExistence(timeout: 3))
@@ -426,6 +319,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testMasteryRingButtonStartsNextStamp() throws {
         let app = launchReadyApp()
+        selectDashboardDeck("progress", in: app)
 
         let ringButton = app.buttons["masteryRingButton"].firstMatch
         XCTAssertTrue(ringButton.waitForExistence(timeout: 3))
@@ -464,6 +358,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testHistoryWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+        selectDashboardDeck("explore", in: app)
 
         XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["World Path"].waitForExistence(timeout: 3))

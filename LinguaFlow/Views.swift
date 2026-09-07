@@ -161,6 +161,7 @@ struct DashboardView: View {
     @Binding var showSubjectPicker: Bool
     @State private var keyboardHeight: CGFloat = 0
     @State private var showingSettings = false
+    @State private var selectedDeck: DashboardDeck = .quest
     init(showLevelPicker: Binding<Bool> = .constant(false), showSubjectPicker: Binding<Bool> = .constant(false)) {
         _showLevelPicker = showLevelPicker
         _showSubjectPicker = showSubjectPicker
@@ -173,27 +174,6 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     ActiveLearningArenaView()
-                    DailyWorldCompassView()
-                    DailyQuestMapView()
-                    DailyAdventureTrailView()
-                    QuestEnergyView()
-                    DailyLootPortalView()
-                    DailyRewardTrackView()
-                    DailyDiscoveryDeckView()
-                    DailyTrainingPlanView()
-                    SkillTreeView()
-                    DailyFinaleView()
-                    RandomStudyView()
-                    PlayMenuView()
-                    RecommendedRunView()
-                    DailyWorldEventView()
-                    WorldBriefingView()
-                    CampaignSpotlightView()
-                    WorldJournalView()
-                    MasteryLeagueView()
-                    MasteryRingView()
-                    LearningPassportView()
-                    KnowledgeCodexView()
                     ChallengeUITestControls()
                     if !store.feedbackMessage.isEmpty {
                         FeedbackBanner(text: store.feedbackMessage)
@@ -204,26 +184,11 @@ struct DashboardView: View {
                     if let completion = store.newlyCompletedWorld {
                         WorldCompletionBanner(completion: completion) { store.newlyCompletedWorld = nil }
                     }
-                    DailyAdventureView()
-                    DailyComboView()
-                    DailyBossView()
-                    DailyRelicView()
-                    WorldRelicForgeView()
-                    QuestBoardView()
-                    WorldPathView()
-                    DailyQuestView()
-                    StreakChestView()
-                    LevelTrackView()
-                    WorldAtlasView()
-                    RewardVaultView()
-                    RewardShopView()
-                    PetView()
+                    DashboardDeckPicker(selectedDeck: $selectedDeck)
+                    dashboardDeckContent
                     if let unlocked = store.newlyUnlockedLevel {
                         UnlockBanner(level: unlocked) { store.newlyUnlockedLevel = nil }
                     }
-                    LearningProgressShelfView()
-                    PomodoroView()
-                    statsGrid
                     Spacer().frame(height: keyboardHeight + 40)
                 }.padding(18)
             }
@@ -239,6 +204,54 @@ struct DashboardView: View {
                 withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
             }
             .accessibilityIdentifier("dashboardView")
+        }
+    }
+
+    @ViewBuilder
+    private var dashboardDeckContent: some View {
+        switch selectedDeck {
+        case .quest:
+            DailyWorldCompassView()
+            DailyQuestMapView()
+            DailyAdventureTrailView()
+            QuestEnergyView()
+            DailyLootPortalView()
+            DailyRewardTrackView()
+            DailyDiscoveryDeckView()
+            DailyTrainingPlanView()
+            SkillTreeView()
+            DailyFinaleView()
+            RandomStudyView()
+            PlayMenuView()
+            RecommendedRunView()
+        case .explore:
+            DailyWorldEventView()
+            WorldBriefingView()
+            CampaignSpotlightView()
+            WorldJournalView()
+            DailyAdventureView()
+            DailyComboView()
+            DailyBossView()
+            DailyRelicView()
+            QuestBoardView()
+            WorldPathView()
+            LearningProgressShelfView()
+        case .progress:
+            MasteryLeagueView()
+            MasteryRingView()
+            LearningPassportView()
+            KnowledgeCodexView()
+            DailyQuestView()
+            LevelTrackView()
+            WorldAtlasView()
+            PomodoroView()
+            statsGrid
+        case .rewards:
+            WorldRelicForgeView()
+            StreakChestView()
+            RewardVaultView()
+            RewardShopView()
+            PetView()
         }
     }
     var header: some View {
@@ -287,6 +300,107 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+enum DashboardDeck: String, CaseIterable, Identifiable {
+    case quest
+    case explore
+    case progress
+    case rewards
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .quest: return "Quest"
+        case .explore: return "Explore"
+        case .progress: return "Progress"
+        case .rewards: return "Rewards"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .quest: return "bolt.fill"
+        case .explore: return "map.fill"
+        case .progress: return "chart.bar.fill"
+        case .rewards: return "gift.fill"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .quest: return "Your best next moves"
+        case .explore: return "Worlds, stories, and encounters"
+        case .progress: return "Mastery across every subject"
+        case .rewards: return "Relics, gems, and companions"
+        }
+    }
+}
+
+struct DashboardDeckPicker: View {
+    @EnvironmentObject var store: AppStore
+    @Binding var selectedDeck: DashboardDeck
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ADVENTURE DECK")
+                        .font(.caption2.bold())
+                        .tracking(1.1)
+                        .foregroundStyle(store.stats.selectedSubject.accentColor)
+                    Text(selectedDeck.subtitle)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("dashboardDeckSubtitle")
+                }
+                Spacer()
+                Text("\((DashboardDeck.allCases.firstIndex(of: selectedDeck) ?? 0) + 1) of \(DashboardDeck.allCases.count)")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("dashboardDeckPosition")
+            }
+
+            HStack(spacing: 7) {
+                ForEach(DashboardDeck.allCases) { deck in
+                    Button {
+                        withAnimation(.snappy(duration: 0.28)) { selectedDeck = deck }
+                    } label: {
+                        VStack(spacing: 5) {
+                            Image(systemName: deck.icon)
+                                .font(.subheadline.bold())
+                            Text(deck.title)
+                                .font(.caption2.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                        }
+                        .foregroundStyle(selectedDeck == deck ? Color.white : Color.primary.opacity(0.7))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            selectedDeck == deck
+                                ? store.stats.selectedSubject.accentColor
+                                : Color.primary.opacity(0.06),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(deck.title) deck")
+                    .accessibilityValue(selectedDeck == deck ? "Selected" : "Not selected")
+                    .accessibilityIdentifier("dashboardDeck_\(deck.rawValue)")
+                }
+            }
+        }
+        .padding(14)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(store.stats.selectedSubject.accentColor.opacity(0.22), lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("dashboardDeckPicker")
     }
 }
 
