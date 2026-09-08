@@ -412,6 +412,21 @@ struct QuestFocusAction: View {
     let identifier: String
     let action: () -> Void
 
+    private var backgroundGradient: LinearGradient {
+        if isPrimary {
+            return LinearGradient(
+                colors: [tint, tint.opacity(0.72), Color.indigo.opacity(0.78)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        return LinearGradient(
+            colors: [Color.primary.opacity(0.055), tint.opacity(0.035)],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
@@ -458,16 +473,7 @@ struct QuestFocusAction: View {
             }
             .padding(11)
             .frame(minHeight: 72)
-            .background(
-                Group {
-                    if isPrimary {
-                        LinearGradient(colors: [tint, tint.opacity(0.72), Color.indigo.opacity(0.78)], startPoint: .leading, endPoint: .trailing)
-                    } else {
-                        LinearGradient(colors: [Color.primary.opacity(0.055), tint.opacity(0.035)], startPoint: .leading, endPoint: .trailing)
-                    }
-                },
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-            )
+            .background(backgroundGradient, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(isPrimary ? Color.white.opacity(0.17) : tint.opacity(0.13), lineWidth: 1)
