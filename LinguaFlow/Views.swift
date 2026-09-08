@@ -211,19 +211,7 @@ struct DashboardView: View {
     private var dashboardDeckContent: some View {
         switch selectedDeck {
         case .quest:
-            DailyWorldCompassView()
-            DailyQuestMapView()
-            DailyAdventureTrailView()
-            QuestEnergyView()
-            DailyLootPortalView()
-            DailyRewardTrackView()
-            DailyDiscoveryDeckView()
-            DailyTrainingPlanView()
-            SkillTreeView()
-            DailyFinaleView()
-            RandomStudyView()
-            PlayMenuView()
-            RecommendedRunView()
+            QuestFocusView()
         case .explore:
             DailyWorldEventView()
             WorldBriefingView()
@@ -300,6 +288,195 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct QuestFocusView: View {
+    @EnvironmentObject var store: AppStore
+
+    private var supportingRoutes: [TrainingPlanCard] {
+        store.dailyTrainingPlan.cards.filter { $0.action != .recommendedRun }
+    }
+
+    var body: some View {
+        let recommendation = store.recommendedRun
+
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        store.stats.selectedSubject.accentColor.opacity(0.28),
+                                        .purple.opacity(0.18),
+                                        .yellow.opacity(0.14)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 52, height: 52)
+                        Image(systemName: "scope")
+                            .font(.title3.bold())
+                            .foregroundStyle(store.stats.selectedSubject.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("FOCUS FOUR")
+                            .font(.caption2.bold())
+                            .tracking(1.1)
+                            .foregroundStyle(store.stats.selectedSubject.accentColor)
+                        Text("Pick one move. Keep momentum.")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("questFocusTitle")
+                        Text("Choose the route that fits your energy right now.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text("4 routes")
+                        .font(.caption.bold())
+                        .foregroundStyle(store.stats.selectedSubject.accentColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(store.stats.selectedSubject.accentColor.opacity(0.12), in: Capsule())
+                }
+
+                QuestFocusAction(
+                    eyebrow: "BEST NEXT MOVE",
+                    title: recommendation.title,
+                    subtitle: recommendation.subtitle,
+                    reward: recommendation.reward,
+                    systemImage: recommendation.systemImage,
+                    tint: recommendation.subject.accentColor,
+                    isPrimary: true,
+                    identifier: "questFocusAction_recommended"
+                ) {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.startRecommendedRun(recommendation)
+                    }
+                }
+
+                ForEach(supportingRoutes) { route in
+                    QuestFocusAction(
+                        eyebrow: route.eyebrow.uppercased(),
+                        title: route.title,
+                        subtitle: route.subtitle,
+                        reward: route.reward,
+                        systemImage: route.systemImage,
+                        tint: route.subject.accentColor,
+                        isPrimary: false,
+                        identifier: "questFocusAction_\(route.id)"
+                    ) {
+                        withAnimation(.spring(duration: 0.35)) {
+                            store.startTrainingPlanCard(route)
+                        }
+                    }
+                }
+
+                QuestFocusAction(
+                    eyebrow: "SURPRISE ME",
+                    title: "Quest Roulette",
+                    subtitle: "Jump into a useful route from any unlocked subject.",
+                    reward: store.stats.questRoulette.rewardText,
+                    systemImage: "shuffle.circle.fill",
+                    tint: .purple,
+                    isPrimary: false,
+                    identifier: "randomStudyButton"
+                ) {
+                    withAnimation(.spring(duration: 0.35)) {
+                        store.startRandomStudy()
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Focus Four. Four daily learning routes. Pick one move and keep momentum.")
+        .accessibilityIdentifier("questFocusPanel")
+    }
+}
+
+struct QuestFocusAction: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let tint: Color
+    let isPrimary: Bool
+    let identifier: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(isPrimary ? Color.white.opacity(0.18) : tint.opacity(0.13))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: systemImage)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(isPrimary ? .white : tint)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(eyebrow)
+                        .font(.caption2.bold())
+                        .tracking(0.5)
+                        .foregroundStyle(isPrimary ? Color.white.opacity(0.78) : tint)
+                    Text(title)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(isPrimary ? Color.white : Color.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(isPrimary ? Color.white.opacity(0.82) : Color.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                }
+
+                Spacer(minLength: 4)
+
+                VStack(alignment: .trailing, spacing: 5) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.headline.bold())
+                        .foregroundStyle(isPrimary ? .white : tint)
+                    Text(reward)
+                        .font(.caption2.bold())
+                        .foregroundStyle(isPrimary ? Color.white.opacity(0.8) : Color.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.62)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 94, alignment: .trailing)
+                }
+            }
+            .padding(11)
+            .frame(minHeight: 72)
+            .background(
+                Group {
+                    if isPrimary {
+                        LinearGradient(colors: [tint, tint.opacity(0.72), Color.indigo.opacity(0.78)], startPoint: .leading, endPoint: .trailing)
+                    } else {
+                        LinearGradient(colors: [Color.primary.opacity(0.055), tint.opacity(0.035)], startPoint: .leading, endPoint: .trailing)
+                    }
+                },
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(isPrimary ? Color.white.opacity(0.17) : tint.opacity(0.13), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(eyebrow). \(title). \(subtitle). Reward \(reward).")
+        .accessibilityIdentifier(identifier)
     }
 }
 

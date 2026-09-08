@@ -174,7 +174,12 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["randomStudyButton"].waitForExistence(timeout: 3))
         XCTAssertTrue(element("dashboardDeckPicker", in: app).exists)
         XCTAssertEqual(app.buttons["dashboardDeck_quest"].value as? String, "Selected")
-        XCTAssertTrue(element("worldCompassPanel", in: app).exists)
+        XCTAssertTrue(element("questFocusPanel", in: app).exists)
+        XCTAssertTrue(app.buttons["questFocusAction_recommended"].exists)
+        XCTAssertTrue(app.buttons["questFocusAction_cross-train"].exists)
+        XCTAssertTrue(app.buttons["questFocusAction_world-tour"].exists)
+        XCTAssertTrue(app.buttons["randomStudyButton"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["dailyQuestMapPanel"].exists)
 
         selectDashboardDeck("explore", in: app)
         XCTAssertTrue(element("dailyWorldEventPanel", in: app).exists)
@@ -204,9 +209,9 @@ final class LinguaFlowUITests: XCTestCase {
     func testRecommendedRunPanelStartsSuggestedAdventure() throws {
         let app = launchReadyApp()
 
-        let panel = element("recommendedRunPanel", in: app)
-        XCTAssertTrue(app.staticTexts["recommendedRunEyebrow"].label.contains("Recommended"))
-        XCTAssertTrue(app.staticTexts["recommendedRunTitle"].label.contains("Language Harbor Run"))
+        let panel = element("questFocusAction_recommended", in: app)
+        XCTAssertTrue(panel.label.contains("BEST NEXT MOVE"))
+        XCTAssertTrue(panel.label.contains("Language Harbor Run"))
         panel.tap()
 
         let feedback = app.staticTexts["answerFeedback"].firstMatch
