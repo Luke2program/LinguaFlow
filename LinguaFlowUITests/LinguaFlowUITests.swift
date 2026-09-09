@@ -182,7 +182,12 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["dailyQuestMapPanel"].exists)
 
         selectDashboardDeck("explore", in: app)
-        XCTAssertTrue(element("dailyWorldEventPanel", in: app).exists)
+        XCTAssertTrue(element("exploreFocusPanel", in: app).exists)
+        XCTAssertTrue(element("campaignSpotlightPanel", in: app).exists)
+        XCTAssertTrue(app.buttons["exploreRoute_worldTour"].exists)
+        XCTAssertTrue(app.buttons["exploreRoute_fieldNotes"].exists)
+        XCTAssertTrue(app.buttons["exploreRoute_worldMap"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["dailyWorldEventPanel"].exists)
         XCTAssertFalse(app.descendants(matching: .any)["worldCompassPanel"].exists)
 
         selectDashboardDeck("progress", in: app)
@@ -194,16 +199,17 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("rewardShopPanel", in: app).exists)
     }
 
-    func testQuestBoardMissionTapStartsReviewGate() throws {
+    func testExploreWorldTourStartsCurrentChapter() throws {
         let app = launchReadyApp()
         selectDashboardDeck("explore", in: app)
 
-        let mission = element("questMission_language-review", in: app)
-        mission.tap()
+        let route = app.buttons["exploreRoute_worldTour"].firstMatch
+        XCTAssertTrue(route.waitForExistence(timeout: 3))
+        route.tap()
 
         let feedback = app.staticTexts["answerFeedback"].firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 3))
-        XCTAssertTrue(feedback.label.contains("review gate"))
+        XCTAssertTrue(feedback.label.contains("World Tour opened"))
     }
 
     func testRecommendedRunPanelStartsSuggestedAdventure() throws {
@@ -253,7 +259,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCanDefeatReadyDailyBoss() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
-        selectDashboardDeck("explore", in: app)
+        selectDashboardDeck("rewards", in: app)
 
         let panel = element("dailyBossPanel", in: app)
         XCTAssertTrue(panel.exists)
@@ -270,7 +276,7 @@ final class LinguaFlowUITests: XCTestCase {
 
     func testCanClaimReadyDailyRelic() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-chest-ready"])
-        selectDashboardDeck("explore", in: app)
+        selectDashboardDeck("rewards", in: app)
 
         let panel = element("dailyRelicPanel", in: app)
         XCTAssertTrue(panel.exists)
@@ -364,6 +370,7 @@ final class LinguaFlowUITests: XCTestCase {
     func testHistoryWorldSelection() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
         selectDashboardDeck("explore", in: app)
+        app.buttons["exploreRoute_worldMap"].tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["worldPathPanel"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["World Path"].waitForExistence(timeout: 3))

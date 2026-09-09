@@ -213,17 +213,7 @@ struct DashboardView: View {
         case .quest:
             QuestFocusView()
         case .explore:
-            DailyWorldEventView()
-            WorldBriefingView()
-            CampaignSpotlightView()
-            WorldJournalView()
-            DailyAdventureView()
-            DailyComboView()
-            DailyBossView()
-            DailyRelicView()
-            QuestBoardView()
-            WorldPathView()
-            LearningProgressShelfView()
+            ExploreFocusView()
         case .progress:
             MasteryLeagueView()
             MasteryRingView()
@@ -237,6 +227,8 @@ struct DashboardView: View {
         case .rewards:
             WorldRelicForgeView()
             StreakChestView()
+            DailyBossView()
+            DailyRelicView()
             RewardVaultView()
             RewardShopView()
             PetView()
@@ -288,6 +280,164 @@ struct DashboardView: View {
             StatPill(title: "Streak", value: "\(store.stats.streak)", icon: "flame.fill")
             StatPill(title: "Gems", value: "\(store.stats.gems)", icon: "diamond.fill")
         }
+    }
+}
+
+struct ExploreFocusView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var expandedRoute: ExploreRoute?
+
+    var body: some View {
+        VStack(spacing: 12) {
+            CampaignSpotlightView()
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                .fill(LinearGradient(
+                                    colors: [.indigo.opacity(0.24), store.stats.selectedSubject.accentColor.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 48, height: 48)
+                            Image(systemName: "map.fill")
+                                .font(.headline.bold())
+                                .foregroundStyle(.indigo)
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("EXPEDITION TOOLS")
+                                .font(.caption2.bold())
+                                .tracking(1)
+                                .foregroundStyle(.indigo)
+                            Text("Choose how to explore")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .accessibilityIdentifier("exploreFocusTitle")
+                            Text("One story stays in focus. Open details only when you need them.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+
+                    ExploreRouteAction(
+                        title: "World Tour",
+                        subtitle: store.dailyWorldEvent.currentChapter.map { "Step \($0.step): \($0.title)" } ?? "Spin into a new world",
+                        reward: store.dailyWorldEvent.rewardText,
+                        systemImage: "sparkles",
+                        tint: .indigo,
+                        identifier: "exploreRoute_worldTour"
+                    ) {
+                        withAnimation(.spring(duration: 0.35)) {
+                            store.startDailyWorldEvent()
+                        }
+                    }
+
+                    HStack(spacing: 10) {
+                        ExploreRouteAction(
+                            title: "Field Notes",
+                            subtitle: "Context, stakes, and a grounded fact",
+                            reward: "Briefing",
+                            systemImage: "book.pages.fill",
+                            tint: store.stats.selectedSubject.accentColor,
+                            identifier: "exploreRoute_fieldNotes",
+                            compact: true
+                        ) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                expandedRoute = expandedRoute == .fieldNotes ? nil : .fieldNotes
+                            }
+                        }
+
+                        ExploreRouteAction(
+                            title: "World Map",
+                            subtitle: "Pick a playable world and route",
+                            reward: "Atlas",
+                            systemImage: "map.fill",
+                            tint: .orange,
+                            identifier: "exploreRoute_worldMap",
+                            compact: true
+                        ) {
+                            withAnimation(.spring(duration: 0.35)) {
+                                expandedRoute = expandedRoute == .worldMap ? nil : .worldMap
+                            }
+                        }
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("exploreFocusPanel")
+
+            if expandedRoute == .fieldNotes {
+                WorldBriefingView()
+                WorldJournalView()
+            } else if expandedRoute == .worldMap {
+                WorldPathView()
+            }
+        }
+    }
+}
+
+private enum ExploreRoute {
+    case fieldNotes
+    case worldMap
+}
+
+struct ExploreRouteAction: View {
+    let title: String
+    let subtitle: String
+    let reward: String
+    let systemImage: String
+    let tint: Color
+    let identifier: String
+    var compact = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(tint)
+                    .frame(width: 38, height: 38)
+                    .background(tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(compact ? 2 : 1)
+                        .minimumScaleFactor(0.72)
+                    Text(reward)
+                        .font(.caption2.bold())
+                        .foregroundStyle(tint)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+
+                if !compact {
+                    Spacer(minLength: 4)
+                    Image(systemName: "arrow.right.circle.fill")
+                        .foregroundStyle(tint)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: compact ? 82 : 58, alignment: .leading)
+            .padding(10)
+            .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(tint.opacity(0.14), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title). \(subtitle). \(reward).")
+        .accessibilityIdentifier(identifier)
     }
 }
 
@@ -2400,7 +2550,7 @@ struct CampaignSpotlightView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Campaign Map")
+                        Text("TODAY'S STORY")
                             .font(.caption.bold())
                             .foregroundStyle(spotlight.subject.accentColor)
                             .accessibilityIdentifier("campaignSpotlightEyebrow")
