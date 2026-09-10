@@ -401,11 +401,15 @@ final class LinguaFlowUITests: XCTestCase {
     func testHistoryChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
 
-        // Answer a history choice
-        let choiceA = button("historyChoiceTestAction", in: app)
+        // Answer the grounded Rubicon choice in the visible encounter.
+        let choiceA = button("historyChoice_a", in: app)
         choiceA.tap()
 
-        // Verify result shows
+        XCTAssertTrue(element("historyEncounterRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("historyStoryBeatTitle", in: app).label, "Republic · 49 BCE")
+        XCTAssertTrue(element("historyRouteProgress", in: app).label.contains("1/5 encounters cleared"))
+        XCTAssertTrue(element("historyNextRouteStop", in: app).label.contains("64 CE"))
+
         let nextButton = app.buttons["nextHistoryChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }

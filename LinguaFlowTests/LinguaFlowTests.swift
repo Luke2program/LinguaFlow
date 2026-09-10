@@ -435,6 +435,53 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(historyWorlds.contains { $0.id == "nile-kingdoms" && $0.unlockRequirement.xpRequired == 2000 })
         XCTAssertTrue(historyWorlds.contains { $0.id == "industrial-revolution" && $0.unlockRequirement.xpRequired == 2500 })
     }
+
+    func testHistoryEncounterRecapAdvancesRouteToNextRealEvent() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = []
+            store.stats.updateProgress(for: .history, progress)
+
+            let challenge = HistoryData.challenges(for: "ancient-rome")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitHistoryAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.historyEncounterRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "STORY BEAT SECURED")
+            XCTAssertEqual(recap.title, "Republic · 49 BCE")
+            XCTAssertEqual(recap.progressText, "1/5 encounters cleared")
+            XCTAssertEqual(recap.progress, 0.2, accuracy: 0.001)
+            XCTAssertEqual(recap.nextStopTitle, "Next stop · 64 CE")
+            XCTAssertTrue(recap.nextStopDetail.contains("Nero"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testHistoryEncounterRecapMarksCompletedWorldRoute() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .history
+            let challenges = HistoryData.challenges(for: "ancient-rome")
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .history, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitHistoryAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.historyEncounterRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "5/5 encounters cleared")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextStopTitle, "World route complete")
+            XCTAssertTrue(recap.nextStopDetail.contains("Ancient Rome"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
     
     func testAncientRomeChallengesLoaded() {
         let challenges = HistoryData.challenges(for: "ancient-rome")

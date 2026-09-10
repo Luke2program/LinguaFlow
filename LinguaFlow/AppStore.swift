@@ -1488,6 +1488,27 @@ final class AppStore: ObservableObject {
     func submitHistoryAnswer(challenge: HistoryChallenge, choice: HistoryChoice) {
         completeSubjectChallenge(subject: .history, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
+
+    func historyEncounterRecap(challenge: HistoryChallenge, choice: HistoryChoice) -> HistoryEncounterRecap {
+        let challenges = HistoryData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .history).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.history.worlds.first { $0.id == challenge.worldId }?.name ?? "History world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return HistoryEncounterRecap(
+            eyebrow: choice.isCorrect ? "STORY BEAT SECURED" : "TIMELINE CORRECTED",
+            title: "\(challenge.era) · \(challenge.yearLabel)",
+            storyBeat: choice.isCorrect ? choice.consequence : choice.historicalOutcome,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) encounters cleared",
+            nextStopTitle: isWorldComplete ? "World route complete" : "Next stop · \(nextChallenge?.yearLabel ?? "Unknown date")",
+            nextStopDetail: isWorldComplete ? "You mapped every encounter in \(worldName). Your world-clear reward is ready." : (nextChallenge?.question ?? "The next grounded story is being prepared."),
+            isWorldComplete: isWorldComplete
+        )
+    }
     
     func submitScienceAnswer(challenge: ScienceChallenge, choice: ScienceChoice) {
         completeSubjectChallenge(subject: .science, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)

@@ -227,6 +227,17 @@ struct HistoryChoice: Codable, Equatable {
     let historicalOutcome: String
 }
 
+struct HistoryEncounterRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let storyBeat: String
+    let progress: Double
+    let progressText: String
+    let nextStopTitle: String
+    let nextStopDetail: String
+    let isWorldComplete: Bool
+}
+
 enum HistoryData {
     static let ancientRomeChallenges: [HistoryChallenge] = [
         HistoryChallenge(

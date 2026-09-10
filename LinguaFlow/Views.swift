@@ -6525,6 +6525,8 @@ struct HistoryChallengeView: View {
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            HistoryEncounterRecapView(recap: store.historyEncounterRecap(challenge: challenge, choice: choice))
                         }
 
                         if !showResult {
@@ -6585,6 +6587,82 @@ struct HistoryChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextHistoryChallenge
+    }
+}
+
+private struct HistoryEncounterRecapView: View {
+    let recap: HistoryEncounterRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "flag.checkered.2.crossed" : "map.fill")
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(Color.orange.gradient, in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.1)
+                        .foregroundStyle(.orange)
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("historyStoryBeatTitle")
+                }
+            }
+
+            Text(recap.storyBeat)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .accessibilityIdentifier("historyStoryBeatText")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("EXPEDITION MAP")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.orange)
+                        .accessibilityIdentifier("historyRouteProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.orange)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "location.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .orange)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextStopTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextStopDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("historyNextRouteStop")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.orange.opacity(0.16), Color.yellow.opacity(0.07)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.orange.opacity(0.28), lineWidth: 1)
+        )
+        .accessibilityIdentifier("historyEncounterRecap")
     }
 }
 
