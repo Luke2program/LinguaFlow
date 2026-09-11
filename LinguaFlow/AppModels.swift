@@ -646,6 +646,17 @@ struct ScienceChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct ScienceExperimentRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let discovery: String
+    let progress: Double
+    let progressText: String
+    let nextMissionTitle: String
+    let nextMissionDetail: String
+    let isWorldComplete: Bool
+}
+
 enum ScienceData {
     static let spaceExplorationChallenges: [ScienceChallenge] = [
         ScienceChallenge(

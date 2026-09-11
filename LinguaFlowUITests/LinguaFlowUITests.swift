@@ -460,11 +460,16 @@ final class LinguaFlowUITests: XCTestCase {
     func testScienceChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
-        // Answer a science choice
-        let choiceB = button("scienceChoiceTestAction", in: app)
+        // Confirm Sputnik in the visible experiment.
+        let choiceB = button("scienceChoice_b", in: app)
         choiceB.tap()
 
-        // Verify result shows
+        XCTAssertTrue(element("scienceExperimentRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("scienceExperimentStatus", in: app).label, "HYPOTHESIS CONFIRMED")
+        XCTAssertEqual(element("scienceExperimentTitle", in: app).label, "Aerospace result logged")
+        XCTAssertTrue(element("scienceResearchProgress", in: app).label.contains("1/6 experiments logged"))
+        XCTAssertTrue(element("scienceNextExperiment", in: app).label.contains("1961"))
+
         let nextButton = app.buttons["nextScienceChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }

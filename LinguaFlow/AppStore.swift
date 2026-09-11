@@ -1514,6 +1514,27 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .science, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func scienceExperimentRecap(challenge: ScienceChallenge, choice: ScienceChoice) -> ScienceExperimentRecap {
+        let challenges = ScienceData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .science).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.science.worlds.first { $0.id == challenge.worldId }?.name ?? "Science world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return ScienceExperimentRecap(
+            eyebrow: choice.isCorrect ? "HYPOTHESIS CONFIRMED" : "MODEL RECALIBRATED",
+            title: "\(challenge.field) result logged",
+            discovery: challenge.funFact,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) experiments logged",
+            nextMissionTitle: isWorldComplete ? "Lab world complete" : "Next experiment · \(nextChallenge?.era ?? "New mission")",
+            nextMissionDetail: isWorldComplete ? "Your \(worldName) research log is complete. The world-clear reward is ready." : (nextChallenge?.question ?? "The next experiment is being prepared."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     func submitGeographyAnswer(challenge: GeographyChallenge, choice: GeographyChoice) {
         completeSubjectChallenge(subject: .geography, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }

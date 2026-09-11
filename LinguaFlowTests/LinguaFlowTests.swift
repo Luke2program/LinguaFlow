@@ -1955,7 +1955,54 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(progress.completedChallengeIds.contains(challenge.id))
         }
     }
-    
+
+    func testScienceExperimentRecapAdvancesResearchLog() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            var progress = store.stats.progress(for: .science)
+            progress.currentWorldId = "space-exploration"
+            progress.completedChallengeIds = []
+            store.stats.updateProgress(for: .science, progress)
+
+            let challenge = ScienceData.challenges(for: "space-exploration")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.scienceExperimentRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "HYPOTHESIS CONFIRMED")
+            XCTAssertEqual(recap.title, "Aerospace result logged")
+            XCTAssertEqual(recap.progressText, "1/6 experiments logged")
+            XCTAssertEqual(recap.progress, 1.0 / 6.0, accuracy: 0.001)
+            XCTAssertEqual(recap.nextMissionTitle, "Next experiment · 1961")
+            XCTAssertTrue(recap.nextMissionDetail.contains("Yuri Gagarin"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testScienceExperimentRecapMarksCompletedLabWorld() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .science
+            let challenges = ScienceData.challenges(for: "space-exploration")
+            var progress = store.stats.progress(for: .science)
+            progress.currentWorldId = "space-exploration"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .science, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitScienceAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.scienceExperimentRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "6/6 experiments logged")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextMissionTitle, "Lab world complete")
+            XCTAssertTrue(recap.nextMissionDetail.contains("Space Frontiers"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testScienceProgressPercent() async {
         await MainActor.run {
             let store = AppStore()

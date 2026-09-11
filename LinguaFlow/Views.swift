@@ -6789,10 +6789,8 @@ struct ScienceChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.funFact)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
+
+                                ScienceExperimentRecapView(recap: store.scienceExperimentRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -6861,6 +6859,95 @@ struct ScienceChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextScienceChallenge
+    }
+}
+
+private struct ScienceExperimentRecapView: View {
+    let recap: ScienceExperimentRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "flask.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.green, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.green)
+                        .accessibilityIdentifier("scienceExperimentStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("scienceExperimentTitle")
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(.cyan)
+                    .padding(.top, 2)
+                Text(recap.discovery)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier("scienceDiscoveryLog")
+            }
+            .padding(10)
+            .background(Color.cyan.opacity(0.09), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("RESEARCH LOG")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.green)
+                        .accessibilityIdentifier("scienceResearchProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.green)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "arrow.right.circle.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .green)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextMissionTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextMissionDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("scienceNextExperiment")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.green.opacity(0.15), Color.cyan.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.green.opacity(0.28), lineWidth: 1)
+        )
+        .accessibilityIdentifier("scienceExperimentRecap")
     }
 }
 
