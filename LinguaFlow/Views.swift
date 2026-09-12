@@ -7075,11 +7075,6 @@ struct GeographyChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.fieldNote)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
-
                                 GeographyExpeditionRecapView(recap: store.geographyExpeditionRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
