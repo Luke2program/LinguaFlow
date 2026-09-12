@@ -508,8 +508,14 @@ final class LinguaFlowUITests: XCTestCase {
     func testGeographyChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-geography-world"])
 
-        let choice = button("geographyChoiceTestAction", in: app)
+        let choice = button("geographyChoice_a", in: app)
         choice.tap()
+
+        XCTAssertTrue(element("geographyExpeditionRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("geographyExpeditionStatus", in: app).label, "ROUTE STAMPED")
+        XCTAssertEqual(element("geographyExpeditionTitle", in: app).label, "Central Europe · Austria")
+        XCTAssertTrue(element("geographyRouteProgress", in: app).label.contains("1/4 stops mapped"))
+        XCTAssertTrue(element("geographyNextRouteStop", in: app).label.contains("Iberian Peninsula"))
 
         let nextButton = app.buttons["nextGeographyChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))

@@ -7079,6 +7079,8 @@ struct GeographyChallengeView: View {
                                     .font(.caption)
                                     .foregroundStyle(.blue)
                                     .padding(.top, 4)
+
+                                GeographyExpeditionRecapView(recap: store.geographyExpeditionRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -7148,6 +7150,95 @@ struct GeographyChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextGeographyChallenge
+    }
+}
+
+private struct GeographyExpeditionRecapView: View {
+    let recap: GeographyExpeditionRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "seal.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.cyan)
+                        .accessibilityIdentifier("geographyExpeditionStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("geographyExpeditionTitle")
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "map.fill")
+                    .foregroundStyle(.blue)
+                    .padding(.top, 2)
+                Text(recap.fieldNote)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier("geographyFieldJournal")
+            }
+            .padding(10)
+            .background(Color.blue.opacity(0.09), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("EXPEDITION ATLAS")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.cyan)
+                        .accessibilityIdentifier("geographyRouteProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.cyan)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "location.circle.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .cyan)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextStopTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextStopDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("geographyNextRouteStop")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.cyan.opacity(0.16), Color.blue.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.cyan.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityIdentifier("geographyExpeditionRecap")
     }
 }
 

@@ -1539,6 +1539,27 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .geography, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func geographyExpeditionRecap(challenge: GeographyChallenge, choice: GeographyChoice) -> GeographyExpeditionRecap {
+        let challenges = GeographyData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .geography).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.geography.worlds.first { $0.id == challenge.worldId }?.name ?? "Geography world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return GeographyExpeditionRecap(
+            eyebrow: choice.isCorrect ? "ROUTE STAMPED" : "COURSE CORRECTED",
+            title: "\(challenge.region) · \(challenge.mapTargetLabel)",
+            fieldNote: challenge.fieldNote,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) stops mapped",
+            nextStopTitle: isWorldComplete ? "Atlas route complete" : "Next stop · \(nextChallenge?.region ?? "Uncharted")",
+            nextStopDetail: isWorldComplete ? "You mapped every stop in \(worldName). Your world-clear reward is ready." : (nextChallenge?.mapClue ?? "The next route is being charted."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     func submitMathAnswer(challenge: MathChallenge, choice: MathChoice) {
         completeSubjectChallenge(subject: .math, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }

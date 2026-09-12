@@ -2176,6 +2176,50 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testGeographyExpeditionRecapAdvancesAtlasRoute() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            store.select(worldId: "european-capitals", for: .geography)
+
+            let challenge = GeographyData.challenges(for: "european-capitals")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitGeographyAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.geographyExpeditionRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "ROUTE STAMPED")
+            XCTAssertEqual(recap.title, "Central Europe · Austria")
+            XCTAssertEqual(recap.progressText, "1/4 stops mapped")
+            XCTAssertEqual(recap.progress, 0.25, accuracy: 0.001)
+            XCTAssertEqual(recap.nextStopTitle, "Next stop · Iberian Peninsula")
+            XCTAssertTrue(recap.nextStopDetail.contains("Tagus"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testGeographyExpeditionRecapMarksCompletedAtlasRoute() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .geography
+            let challenges = GeographyData.challenges(for: "european-capitals")
+            var progress = store.stats.progress(for: .geography)
+            progress.currentWorldId = "european-capitals"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .geography, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitGeographyAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.geographyExpeditionRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "4/4 stops mapped")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextStopTitle, "Atlas route complete")
+            XCTAssertTrue(recap.nextStopDetail.contains("European Capitals"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testGeographyProgressPercent() async {
         await MainActor.run {
             let store = AppStore()

@@ -975,6 +975,17 @@ struct GeographyChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct GeographyExpeditionRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let fieldNote: String
+    let progress: Double
+    let progressText: String
+    let nextStopTitle: String
+    let nextStopDetail: String
+    let isWorldComplete: Bool
+}
+
 enum GeographyData {
     static let europeanCapitalsChallenges: [GeographyChallenge] = [
         GeographyChallenge(
