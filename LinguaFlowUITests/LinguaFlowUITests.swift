@@ -555,8 +555,15 @@ final class LinguaFlowUITests: XCTestCase {
     func testMathChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-math-world"])
 
-        let choice = button("mathChoiceTestAction", in: app)
+        let choice = button("mathChoice_c", in: app)
         choice.tap()
+
+        XCTAssertTrue(element("mathPuzzleRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("mathPuzzleStatus", in: app).label, "VAULT UNLOCKED")
+        XCTAssertEqual(element("mathPuzzleTitle", in: app).label, "Sequences solve path")
+        XCTAssertTrue(element("mathSolvePath", in: app).label.contains("48"))
+        XCTAssertTrue(element("mathVaultProgress", in: app).label.contains("1/4 locks solved"))
+        XCTAssertTrue(element("mathNextPuzzle", in: app).label.contains("Ratios"))
 
         let nextButton = app.buttons["nextMathChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))

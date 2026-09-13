@@ -1349,6 +1349,19 @@ struct MathChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct MathPuzzleRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let clue: String
+    let answer: String
+    let rule: String
+    let progress: Double
+    let progressText: String
+    let nextPuzzleTitle: String
+    let nextPuzzleDetail: String
+    let isWorldComplete: Bool
+}
+
 enum MathData {
     static let logicGateChallenges: [MathChallenge] = [
         MathChallenge(

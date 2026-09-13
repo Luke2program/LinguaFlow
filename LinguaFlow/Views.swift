@@ -7490,10 +7490,8 @@ struct MathChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.ruleExplanation)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
+
+                                MathPuzzleRecapView(recap: store.mathPuzzleRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -7563,6 +7561,121 @@ struct MathChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextMathChallenge
+    }
+}
+
+private struct MathPuzzleRecapView: View {
+    let recap: MathPuzzleRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "lock.open.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.purple)
+                        .accessibilityIdentifier("mathPuzzleStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("mathPuzzleTitle")
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                MathSolveStep(number: 1, label: "READ THE CLUE", detail: recap.clue, color: .indigo)
+                MathSolveStep(number: 2, label: "CRACK THE CODE", detail: recap.answer, color: .purple)
+                MathSolveStep(number: 3, label: "KEEP THE RULE", detail: recap.rule, color: .blue)
+            }
+            .padding(10)
+            .background(Color.purple.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("mathSolvePath")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("VAULT PROGRESS")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.purple)
+                        .accessibilityIdentifier("mathVaultProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.purple)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "key.horizontal.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .purple)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextPuzzleTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextPuzzleDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("mathNextPuzzle")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.purple.opacity(0.16), Color.indigo.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityIdentifier("mathPuzzleRecap")
+    }
+}
+
+private struct MathSolveStep: View {
+    let number: Int
+    let label: String
+    let detail: String
+    let color: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 9) {
+            Text("\(number)")
+                .font(.caption2.weight(.black))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(color, in: Circle())
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.caption2.weight(.black))
+                    .tracking(0.65)
+                    .foregroundStyle(color)
+                Text(detail)
+                    .font(.caption.weight(number == 2 ? .bold : .medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(number == 3 ? 3 : 2)
+            }
+        }
     }
 }
 

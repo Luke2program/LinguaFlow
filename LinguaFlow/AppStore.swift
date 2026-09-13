@@ -1564,6 +1564,30 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .math, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func mathPuzzleRecap(challenge: MathChallenge, choice: MathChoice) -> MathPuzzleRecap {
+        let challenges = MathData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .math).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let correctAnswer = challenge.choices.first(where: \.isCorrect)?.text ?? choice.text
+        let worldName = Subject.math.worlds.first { $0.id == challenge.worldId }?.name ?? "Math world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return MathPuzzleRecap(
+            eyebrow: choice.isCorrect ? "VAULT UNLOCKED" : "CODE RECALIBRATED",
+            title: "\(challenge.domain) solve path",
+            clue: challenge.patternClue,
+            answer: correctAnswer,
+            rule: challenge.ruleExplanation,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) locks solved",
+            nextPuzzleTitle: isWorldComplete ? "Puzzle vault complete" : "Next lock · \(nextChallenge?.domain ?? "Mystery puzzle")",
+            nextPuzzleDetail: isWorldComplete ? "You cracked every lock in \(worldName). Your world-clear reward is ready." : (nextChallenge?.question ?? "The next puzzle is being forged."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     func submitCultureAnswer(challenge: CultureChallenge, choice: CultureChoice) {
         completeSubjectChallenge(subject: .culture, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }

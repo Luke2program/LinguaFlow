@@ -2389,6 +2389,51 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testMathPuzzleRecapAdvancesVaultAndPreviewsNextLock() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            store.select(worldId: "logic-gates", for: .math)
+
+            let challenge = MathData.challenges(for: "logic-gates")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitMathAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.mathPuzzleRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "VAULT UNLOCKED")
+            XCTAssertEqual(recap.title, "Sequences solve path")
+            XCTAssertEqual(recap.answer, "48")
+            XCTAssertEqual(recap.progressText, "1/4 locks solved")
+            XCTAssertEqual(recap.progress, 0.25, accuracy: 0.001)
+            XCTAssertEqual(recap.nextPuzzleTitle, "Next lock · Ratios")
+            XCTAssertTrue(recap.nextPuzzleDetail.contains("potion"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testMathPuzzleRecapMarksCompletedVault() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .math
+            let challenges = MathData.challenges(for: "logic-gates")
+            var progress = store.stats.progress(for: .math)
+            progress.currentWorldId = "logic-gates"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .math, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitMathAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.mathPuzzleRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "4/4 locks solved")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextPuzzleTitle, "Puzzle vault complete")
+            XCTAssertTrue(recap.nextPuzzleDetail.contains("Logic Gates"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testMathProgressPercent() async {
         await MainActor.run {
             let store = AppStore()
