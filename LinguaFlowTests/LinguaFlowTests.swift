@@ -2611,6 +2611,51 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testCultureGalleryRecapCollectsCardAndPreviewsNextExhibit() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .culture
+            store.select(worldId: "heritage-kitchens", for: .culture)
+
+            let challenge = CultureData.challenges(for: "heritage-kitchens")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitCultureAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.cultureGalleryRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "STORY CARD COLLECTED")
+            XCTAssertEqual(recap.title, "Japan heritage card")
+            XCTAssertTrue(recap.culturalNote.contains("ramen shop"))
+            XCTAssertEqual(recap.progressText, "1/4 cards collected")
+            XCTAssertEqual(recap.progress, 0.25, accuracy: 0.001)
+            XCTAssertEqual(recap.nextExhibitTitle, "Next exhibit · Morocco")
+            XCTAssertTrue(recap.nextExhibitDetail.contains("invisible borders"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testCultureGalleryRecapMarksCompletedGallery() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .culture
+            let challenges = CultureData.challenges(for: "heritage-kitchens")
+            var progress = store.stats.progress(for: .culture)
+            progress.currentWorldId = "heritage-kitchens"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .culture, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitCultureAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.cultureGalleryRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "4/4 cards collected")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextExhibitTitle, "Gallery complete")
+            XCTAssertTrue(recap.nextExhibitDetail.contains("Heritage Kitchens"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testCultureProgressPercent() async {
         await MainActor.run {
             let store = AppStore()

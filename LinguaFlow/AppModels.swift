@@ -1645,6 +1645,18 @@ struct CultureChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct CultureGalleryRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let clue: String
+    let culturalNote: String
+    let progress: Double
+    let progressText: String
+    let nextExhibitTitle: String
+    let nextExhibitDetail: String
+    let isWorldComplete: Bool
+}
+
 enum CultureData {
     static let heritageKitchenChallenges: [CultureChallenge] = [
         CultureChallenge(

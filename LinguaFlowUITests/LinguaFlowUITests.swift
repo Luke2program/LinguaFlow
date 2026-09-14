@@ -603,8 +603,15 @@ final class LinguaFlowUITests: XCTestCase {
     func testCultureChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-culture-world"])
 
-        let choice = button("cultureChoiceTestAction", in: app)
+        let choice = button("cultureChoice_a", in: app)
         choice.tap()
+
+        XCTAssertTrue(element("cultureGalleryRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("cultureGalleryStatus", in: app).label, "STORY CARD COLLECTED")
+        XCTAssertEqual(element("cultureGalleryTitle", in: app).label, "Japan heritage card")
+        XCTAssertTrue(element("cultureGalleryCard", in: app).label.contains("ramen shop"))
+        XCTAssertTrue(element("cultureGalleryProgress", in: app).label.contains("1/4 cards collected"))
+        XCTAssertTrue(element("cultureNextExhibit", in: app).label.contains("Morocco"))
 
         let nextButton = app.buttons["nextCultureChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))

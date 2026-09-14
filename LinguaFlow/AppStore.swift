@@ -1592,6 +1592,28 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .culture, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func cultureGalleryRecap(challenge: CultureChallenge, choice: CultureChoice) -> CultureGalleryRecap {
+        let challenges = CultureData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .culture).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.culture.worlds.first { $0.id == challenge.worldId }?.name ?? "Culture world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return CultureGalleryRecap(
+            eyebrow: choice.isCorrect ? "STORY CARD COLLECTED" : "CONTEXT RESTORED",
+            title: "\(challenge.region) heritage card",
+            clue: challenge.traditionClue,
+            culturalNote: challenge.culturalNote,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) cards collected",
+            nextExhibitTitle: isWorldComplete ? "Gallery complete" : "Next exhibit · \(nextChallenge?.region ?? "Hidden tradition")",
+            nextExhibitDetail: isWorldComplete ? "You curated every story in \(worldName). Your world-clear reward is ready." : (nextChallenge?.traditionClue ?? "The next story card is being prepared."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     func submitBusinessAnswer(challenge: BusinessChallenge, choice: BusinessChoice) {
         completeSubjectChallenge(subject: .business, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }

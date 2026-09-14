@@ -7820,10 +7820,8 @@ struct CultureChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.culturalNote)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
+
+                                CultureGalleryRecapView(recap: store.cultureGalleryRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -7893,6 +7891,116 @@ struct CultureChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextCultureChallenge
+    }
+}
+
+private struct CultureGalleryRecapView: View {
+    let recap: CultureGalleryRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "sparkles.rectangle.stack.fill" : "photo.on.rectangle.angled")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.pink)
+                        .accessibilityIdentifier("cultureGalleryStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("cultureGalleryTitle")
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                CultureGalleryLabel(systemImage: "quote.bubble.fill", label: "TRADITION CLUE", detail: recap.clue, color: .pink)
+                CultureGalleryLabel(systemImage: "globe.europe.africa.fill", label: "CULTURAL CONTEXT", detail: recap.culturalNote, color: .orange)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("cultureGalleryCard")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("GALLERY PROGRESS")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.pink)
+                        .accessibilityIdentifier("cultureGalleryProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.pink)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "sparkles")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .pink)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextExhibitTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextExhibitDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("cultureNextExhibit")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.pink.opacity(0.16), Color.orange.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.pink.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityIdentifier("cultureGalleryRecap")
+    }
+}
+
+private struct CultureGalleryLabel: View {
+    let systemImage: String
+    let label: String
+    let detail: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.caption.bold())
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2.weight(.black))
+                .tracking(0.55)
+                .foregroundStyle(color)
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .lineLimit(4)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(10)
+        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
