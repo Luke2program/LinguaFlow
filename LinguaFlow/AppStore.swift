@@ -1618,6 +1618,29 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .business, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func businessDecisionRecap(challenge: BusinessChallenge, choice: BusinessChoice) -> BusinessDecisionRecap {
+        let challenges = BusinessData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .business).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.business.worlds.first { $0.id == challenge.worldId }?.name ?? "Business world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return BusinessDecisionRecap(
+            eyebrow: choice.isCorrect ? "DECISION BANKED" : "STRATEGY RECALIBRATED",
+            title: "\(challenge.domain) decision ledger",
+            signal: challenge.marketSignal,
+            decision: choice.text,
+            lesson: challenge.lesson,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) decisions banked",
+            nextDecisionTitle: isWorldComplete ? "Deal room complete" : "Next case · \(nextChallenge?.domain ?? "Hidden opportunity")",
+            nextDecisionDetail: isWorldComplete ? "You resolved every case in \(worldName). Your world-clear reward is ready." : (nextChallenge?.marketSignal ?? "The next market brief is being prepared."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     func submitHealthAnswer(challenge: HealthChallenge, choice: HealthChoice) {
         completeSubjectChallenge(subject: .health, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }

@@ -654,6 +654,14 @@ final class LinguaFlowUITests: XCTestCase {
         let choice = button("businessChoiceTestAction", in: app)
         choice.tap()
 
+        XCTAssertTrue(element("businessDecisionRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("businessLedgerStatus", in: app).label, "DECISION BANKED")
+        XCTAssertEqual(element("businessLedgerTitle", in: app).label, "Customer Discovery decision ledger")
+        XCTAssertTrue(element("businessLedgerEntry", in: app).label.contains("Interview target users"))
+        XCTAssertTrue(element("businessStrategyNote", in: app).label.contains("test demand"))
+        XCTAssertTrue(element("businessLedgerProgress", in: app).label.contains("1/4 decisions banked"))
+        XCTAssertTrue(element("businessNextDecision", in: app).label.contains("Pricing"))
+
         let nextButton = app.buttons["nextBusinessChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }

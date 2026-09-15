@@ -2822,6 +2822,53 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testBusinessDecisionRecapBanksDecisionAndPreviewsNextCase() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .business
+            store.select(worldId: "founder-guild", for: .business)
+
+            let challenge = BusinessData.challenges(for: "founder-guild")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitBusinessAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.businessDecisionRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "DECISION BANKED")
+            XCTAssertEqual(recap.title, "Customer Discovery decision ledger")
+            XCTAssertTrue(recap.signal.contains("unclear pain point"))
+            XCTAssertTrue(recap.decision.contains("Interview target users"))
+            XCTAssertTrue(recap.lesson.contains("test demand"))
+            XCTAssertEqual(recap.progressText, "1/4 decisions banked")
+            XCTAssertEqual(recap.progress, 0.25, accuracy: 0.001)
+            XCTAssertEqual(recap.nextDecisionTitle, "Next case · Pricing")
+            XCTAssertTrue(recap.nextDecisionDetail.contains("time savings"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testBusinessDecisionRecapMarksCompletedDealRoom() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .business
+            let challenges = BusinessData.challenges(for: "founder-guild")
+            var progress = store.stats.progress(for: .business)
+            progress.currentWorldId = "founder-guild"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .business, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitBusinessAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.businessDecisionRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "4/4 decisions banked")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextDecisionTitle, "Deal room complete")
+            XCTAssertTrue(recap.nextDecisionDetail.contains("Founder Guild"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testBusinessProgressPercent() async {
         await MainActor.run {
             let store = AppStore()

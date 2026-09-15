@@ -1940,6 +1940,19 @@ struct BusinessChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct BusinessDecisionRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let signal: String
+    let decision: String
+    let lesson: String
+    let progress: Double
+    let progressText: String
+    let nextDecisionTitle: String
+    let nextDecisionDetail: String
+    let isWorldComplete: Bool
+}
+
 enum BusinessData {
     static let founderGuildChallenges: [BusinessChallenge] = [
         BusinessChallenge(

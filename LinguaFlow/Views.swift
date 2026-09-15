@@ -8145,10 +8145,8 @@ struct BusinessChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.lesson)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
+
+                                BusinessDecisionRecapView(recap: store.businessDecisionRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -8218,6 +8216,119 @@ struct BusinessChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextBusinessChallenge
+    }
+}
+
+private struct BusinessDecisionRecapView: View {
+    let recap: BusinessDecisionRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "signature")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.indigo, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.indigo)
+                        .accessibilityIdentifier("businessLedgerStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("businessLedgerTitle")
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                BusinessLedgerLabel(systemImage: "waveform.path.ecg", label: "SIGNAL", detail: recap.signal, color: .indigo)
+                BusinessLedgerLabel(systemImage: "arrow.turn.down.right", label: "YOUR MOVE", detail: recap.decision, color: .cyan)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("businessLedgerEntry")
+
+            BusinessLedgerLabel(systemImage: "lightbulb.fill", label: "STRATEGY NOTE", detail: recap.lesson, color: .blue)
+                .accessibilityIdentifier("businessStrategyNote")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("DEAL ROOM PROGRESS")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.indigo)
+                        .accessibilityIdentifier("businessLedgerProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.indigo)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "briefcase.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .indigo)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextDecisionTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextDecisionDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("businessNextDecision")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.indigo.opacity(0.16), Color.cyan.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.indigo.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityIdentifier("businessDecisionRecap")
+    }
+}
+
+private struct BusinessLedgerLabel: View {
+    let systemImage: String
+    let label: String
+    let detail: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.caption.bold())
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2.weight(.black))
+                .tracking(0.55)
+                .foregroundStyle(color)
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .lineLimit(4)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(10)
+        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
