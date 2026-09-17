@@ -1645,6 +1645,29 @@ final class AppStore: ObservableObject {
         completeSubjectChallenge(subject: .health, challengeId: challenge.id, worldId: challenge.worldId, isCorrect: choice.isCorrect)
     }
 
+    func healthHabitRecap(challenge: HealthChallenge, choice: HealthChoice) -> HealthHabitRecap {
+        let challenges = HealthData.challenges(for: challenge.worldId)
+        let completedIds = stats.progress(for: .health).completedChallengeIds
+        let completed = challenges.filter { completedIds.contains($0.id) }.count
+        let total = max(challenges.count, 1)
+        let nextChallenge = challenges.first { !completedIds.contains($0.id) }
+        let worldName = Subject.health.worlds.first { $0.id == challenge.worldId }?.name ?? "Health world"
+        let isWorldComplete = !challenges.isEmpty && completed >= challenges.count
+
+        return HealthHabitRecap(
+            eyebrow: choice.isCorrect ? "HABIT PROTOCOL SAVED" : "PROTOCOL RECALIBRATED",
+            title: "\(challenge.domain) routine",
+            bodySignal: challenge.bodySignal,
+            action: choice.text,
+            lesson: challenge.habitLesson,
+            progress: min(1, Double(completed) / Double(total)),
+            progressText: "\(completed)/\(challenges.count) habits stabilized",
+            nextHabitTitle: isWorldComplete ? "Clinic complete" : "Next check-in · \(nextChallenge?.domain ?? "Hidden habit")",
+            nextHabitDetail: isWorldComplete ? "You stabilized every system in \(worldName). Your world-clear reward is ready." : (nextChallenge?.bodySignal ?? "The next body signal is being prepared."),
+            isWorldComplete: isWorldComplete
+        )
+    }
+
     private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
         let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
         var progress = stats.progress(for: subject)

@@ -2236,6 +2236,19 @@ struct HealthChoice: Codable, Equatable {
     let explanation: String
 }
 
+struct HealthHabitRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let bodySignal: String
+    let action: String
+    let lesson: String
+    let progress: Double
+    let progressText: String
+    let nextHabitTitle: String
+    let nextHabitDetail: String
+    let isWorldComplete: Bool
+}
+
 enum HealthData {
     static let energyClinicChallenges: [HealthChallenge] = [
         HealthChallenge(

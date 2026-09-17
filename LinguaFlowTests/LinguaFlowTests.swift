@@ -3001,6 +3001,53 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testHealthHabitRecapSavesProtocolAndPreviewsNextCheckIn() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            store.select(worldId: "energy-clinic", for: .health)
+
+            let challenge = HealthData.challenges(for: "energy-clinic")[0]
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.healthHabitRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.eyebrow, "HABIT PROTOCOL SAVED")
+            XCTAssertEqual(recap.title, "Sleep routine")
+            XCTAssertTrue(recap.bodySignal.contains("Wired but tired"))
+            XCTAssertTrue(recap.action.contains("Dim lights"))
+            XCTAssertTrue(recap.lesson.contains("repeated cues"))
+            XCTAssertEqual(recap.progressText, "1/4 habits stabilized")
+            XCTAssertEqual(recap.progress, 0.25, accuracy: 0.001)
+            XCTAssertEqual(recap.nextHabitTitle, "Next check-in · Nutrition")
+            XCTAssertTrue(recap.nextHabitDetail.contains("Hunger"))
+            XCTAssertFalse(recap.isWorldComplete)
+        }
+    }
+
+    func testHealthHabitRecapMarksCompletedClinic() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.selectedSubject = .health
+            let challenges = HealthData.challenges(for: "energy-clinic")
+            var progress = store.stats.progress(for: .health)
+            progress.currentWorldId = "energy-clinic"
+            progress.completedChallengeIds = Array(challenges.dropLast().map(\.id))
+            store.stats.updateProgress(for: .health, progress)
+
+            let challenge = challenges.last!
+            let correctChoice = challenge.choices.first { $0.isCorrect }!
+            store.submitHealthAnswer(challenge: challenge, choice: correctChoice)
+            let recap = store.healthHabitRecap(challenge: challenge, choice: correctChoice)
+
+            XCTAssertEqual(recap.progressText, "4/4 habits stabilized")
+            XCTAssertEqual(recap.progress, 1, accuracy: 0.001)
+            XCTAssertEqual(recap.nextHabitTitle, "Clinic complete")
+            XCTAssertTrue(recap.nextHabitDetail.contains("Energy Clinic"))
+            XCTAssertTrue(recap.isWorldComplete)
+        }
+    }
+
     func testHealthProgressPercent() async {
         await MainActor.run {
             let store = AppStore()

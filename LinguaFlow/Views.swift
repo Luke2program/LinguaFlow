@@ -8473,10 +8473,8 @@ struct HealthChallengeView: View {
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
-                                Text(challenge.habitLesson)
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                                    .padding(.top, 4)
+
+                                HealthHabitRecapView(recap: store.healthHabitRecap(challenge: challenge, choice: choice))
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.05))
@@ -8546,6 +8544,119 @@ struct HealthChallengeView: View {
 
     private func loadNextChallenge() {
         currentChallenge = store.nextHealthChallenge
+    }
+}
+
+private struct HealthHabitRecapView: View {
+    let recap: HealthHabitRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 9) {
+                Image(systemName: recap.isWorldComplete ? "trophy.fill" : "heart.text.square.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        LinearGradient(colors: [.mint, .teal], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Circle()
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(1.05)
+                        .foregroundStyle(.mint)
+                        .accessibilityIdentifier("healthProtocolStatus")
+                    Text(recap.title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("healthProtocolTitle")
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                HealthProtocolLabel(systemImage: "waveform.path.ecg", label: "BODY CLUE", detail: recap.bodySignal, color: .mint)
+                HealthProtocolLabel(systemImage: "figure.walk.motion", label: "YOUR MOVE", detail: recap.action, color: .teal)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("healthProtocolAction")
+
+            HealthProtocolLabel(systemImage: "lightbulb.fill", label: "WHY IT WORKS", detail: recap.lesson, color: .cyan)
+                .accessibilityIdentifier("healthProtocolLesson")
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("WELLBEING PROGRESS")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(recap.progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.mint)
+                        .accessibilityIdentifier("healthProtocolProgress")
+                }
+                ProgressView(value: recap.progress)
+                    .tint(.mint)
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: recap.isWorldComplete ? "checkmark.seal.fill" : "heart.circle.fill")
+                    .foregroundStyle(recap.isWorldComplete ? .yellow : .mint)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextHabitTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.primary)
+                    Text(recap.nextHabitDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("healthNextHabit")
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [Color.mint.opacity(0.16), Color.teal.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.mint.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityIdentifier("healthHabitRecap")
+    }
+}
+
+private struct HealthProtocolLabel: View {
+    let systemImage: String
+    let label: String
+    let detail: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.caption.bold())
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2.weight(.black))
+                .tracking(0.7)
+                .foregroundStyle(.secondary)
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .lineLimit(4)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(10)
+        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

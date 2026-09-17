@@ -708,6 +708,14 @@ final class LinguaFlowUITests: XCTestCase {
         let choice = button("healthChoiceTestAction", in: app)
         choice.tap()
 
+        XCTAssertTrue(element("healthHabitRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(element("healthProtocolStatus", in: app).label, "HABIT PROTOCOL SAVED")
+        XCTAssertEqual(element("healthProtocolTitle", in: app).label, "Sleep routine")
+        XCTAssertTrue(element("healthProtocolAction", in: app).label.contains("Dim lights"))
+        XCTAssertTrue(element("healthProtocolLesson", in: app).label.contains("repeated cues"))
+        XCTAssertTrue(element("healthProtocolProgress", in: app).label.contains("1/4 habits stabilized"))
+        XCTAssertTrue(element("healthNextHabit", in: app).label.contains("Nutrition"))
+
         let nextButton = app.buttons["nextHealthChallenge"].firstMatch
         XCTAssertTrue(nextButton.waitForExistence(timeout: 3))
     }
