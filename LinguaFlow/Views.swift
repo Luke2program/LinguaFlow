@@ -5281,6 +5281,10 @@ struct ReviewCardView: View {
                                 .transition(.opacity.combined(with: .move(edge: .top)))
                                 .accessibilityIdentifier("answerFeedback")
                         }
+                        if let recap = store.latestLanguagePhraseRecap {
+                            LanguagePhraseRecapView(recap: recap)
+                                .transition(.scale(scale: 0.96).combined(with: .opacity))
+                        }
                         HStack(spacing: 10) {
                             ForEach(ReviewGrade.allCases) { grade in
                                 Button(grade.title) { store.grade(grade, expected: store.currentAnswer) }
@@ -5299,6 +5303,90 @@ struct ReviewCardView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         _ = store.submit(answer: answer)
         typedAnswer = ""
+    }
+}
+
+private struct LanguagePhraseRecapView: View {
+    let recap: LanguagePhraseRecap
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(recap.eyebrow)
+                        .font(.caption2.bold())
+                        .tracking(0.8)
+                        .foregroundStyle(.white.opacity(0.72))
+                    Text(recap.title)
+                        .font(.headline.bold())
+                        .foregroundStyle(.white)
+                        .accessibilityIdentifier("languagePassportTitle")
+                }
+                Spacer()
+                Image(systemName: recap.isMastered ? "checkmark.seal.fill" : "passport.fill")
+                    .font(.title2)
+                    .foregroundStyle(recap.isMastered ? .yellow : .cyan)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(recap.phrase)
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
+                    .accessibilityIdentifier("languagePassportPhrase")
+                Text(recap.translation)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.72))
+                Text(recap.contextLine)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.82))
+                    .italic()
+                    .lineLimit(2)
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text(recap.progressText)
+                    Spacer()
+                    Text("+ PASSPORT XP")
+                }
+                .font(.caption2.bold())
+                .foregroundStyle(.white.opacity(0.76))
+                ProgressView(value: recap.progress)
+                    .tint(recap.isMastered ? .yellow : .cyan)
+                    .accessibilityIdentifier("languagePassportProgress")
+            }
+
+            HStack(spacing: 9) {
+                Image(systemName: recap.isMastered ? "trophy.fill" : "location.fill")
+                    .foregroundStyle(recap.isMastered ? .yellow : .cyan)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recap.nextStopTitle)
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                    Text(recap.nextStopDetail)
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.72))
+                        .lineLimit(2)
+                        .accessibilityIdentifier("languagePassportNextStop")
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Color.indigo.opacity(0.96), Color.blue.opacity(0.78), Color.cyan.opacity(0.48)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(.white.opacity(0.18), lineWidth: 1)
+        )
+        .shadow(color: .blue.opacity(0.22), radius: 14, y: 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("languagePassportRecap")
     }
 }
 

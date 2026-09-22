@@ -22,6 +22,7 @@ final class AppStore: ObservableObject {
     @Published var pomodoroRemaining = 25 * 60
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false
+    @Published var latestLanguagePhraseRecap: LanguagePhraseRecap? = nil
 
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -616,8 +617,11 @@ final class AppStore: ObservableObject {
 
     func grade(_ grade: ReviewGrade, expected: String) {
         guard let card = currentCard else { return }
+        let reviewedDirection = activeDirection
+        let reviewedMode = challengeMode
         let old = schedules[card.id] ?? CardSchedule()
-        schedules[card.id] = scheduler.nextSchedule(from: old, grade: grade)
+        let updatedSchedule = scheduler.nextSchedule(from: old, grade: grade)
+        schedules[card.id] = updatedSchedule
         refreshPracticeDay()
         stats.totalReviews += 1
         stats.reviewedToday += 1
@@ -633,6 +637,51 @@ final class AppStore: ObservableObject {
         save()
         checkForLevelUnlock()
         pickNextCard(excluding: card.id)
+        latestLanguagePhraseRecap = languagePhraseRecap(
+            card: card,
+            direction: reviewedDirection,
+            mode: reviewedMode,
+            grade: grade,
+            schedule: updatedSchedule,
+            nextCard: currentCard
+        )
+    }
+
+    func languagePhraseRecap(
+        card: VocabularyCard,
+        direction: ReviewDirection,
+        mode: ChallengeMode,
+        grade: ReviewGrade,
+        schedule: CardSchedule,
+        nextCard: VocabularyCard?
+    ) -> LanguagePhraseRecap {
+        let progressSteps = min(3, schedule.repetitions)
+        let isMastered = schedule.repetitions >= 3 && schedule.easeFactor >= 2.3
+        let source = card.prompt(for: direction, mode: mode)
+        let target = card.answer(for: direction, mode: mode)
+        let context = direction == .sourceToTarget ? card.exampleTarget : card.exampleSource
+        let resultTitle: String
+        switch grade {
+        case .again: resultTitle = "Phrase marked for rescue"
+        case .hard: resultTitle = "Phrase secured — reinforcement queued"
+        case .good: resultTitle = "Phrase stamped in your passport"
+        case .easy: resultTitle = "Phrase stamped with confidence"
+        }
+
+        return LanguagePhraseRecap(
+            eyebrow: "FLUENCY PASSPORT · \(card.level.rawValue) · \(card.category.uppercased())",
+            title: resultTitle,
+            phrase: target,
+            translation: source,
+            contextLine: context,
+            progress: Double(progressSteps) / 3.0,
+            progressText: isMastered ? "Mastery stamp complete" : "\(progressSteps)/3 mastery stamps",
+            nextStopTitle: isMastered ? "Phrase mastered" : "Next harbor phrase",
+            nextStopDetail: isMastered
+                ? "This phrase now counts toward your \(card.level.rawValue) route unlock."
+                : (nextCard.map { "\($0.hint): \($0.prompt(for: activeDirection, mode: challengeMode))" } ?? "A fresh phrase is ready at the next dock."),
+            isMastered: isMastered
+        )
     }
 
     func feedPet(correctCount: Int) {

@@ -58,6 +58,53 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(AnswerEvaluator.evaluate("adios", expected: "Hola"), .wrong)
         XCTAssertEqual(AnswerEvaluator.evaluate("estar", expected: "ser / estar"), .correct)
     }
+
+    func testLanguagePhraseRecapBuildsPassportProgressAndNextStop() async {
+        await MainActor.run {
+            let store = AppStore()
+            let cards = VocabularyData.cards(for: store.stats.selectedLanguagePair)
+            let card = cards[0]
+            let nextCard = cards[1]
+            let recap = store.languagePhraseRecap(
+                card: card,
+                direction: .sourceToTarget,
+                mode: .word,
+                grade: .good,
+                schedule: CardSchedule(repetitions: 1, intervalDays: 1, easeFactor: 2.5, dueDate: Date()),
+                nextCard: nextCard
+            )
+
+            XCTAssertEqual(recap.title, "Phrase stamped in your passport")
+            XCTAssertEqual(recap.phrase, "Hola")
+            XCTAssertEqual(recap.translation, "Hallo")
+            XCTAssertEqual(recap.progressText, "1/3 mastery stamps")
+            XCTAssertEqual(recap.progress, 1.0 / 3.0, accuracy: 0.001)
+            XCTAssertEqual(recap.nextStopTitle, "Next harbor phrase")
+            XCTAssertTrue(recap.nextStopDetail.contains("Danke"))
+            XCTAssertFalse(recap.isMastered)
+        }
+    }
+
+    func testLanguagePhraseRecapCelebratesMasteredPhrase() async {
+        await MainActor.run {
+            let store = AppStore()
+            let card = VocabularyData.cards(for: store.stats.selectedLanguagePair)[0]
+            let recap = store.languagePhraseRecap(
+                card: card,
+                direction: .sourceToTarget,
+                mode: .sentence,
+                grade: .easy,
+                schedule: CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.6, dueDate: Date()),
+                nextCard: nil
+            )
+
+            XCTAssertEqual(recap.progress, 1)
+            XCTAssertEqual(recap.progressText, "Mastery stamp complete")
+            XCTAssertEqual(recap.nextStopTitle, "Phrase mastered")
+            XCTAssertTrue(recap.nextStopDetail.contains("A1 route unlock"))
+            XCTAssertTrue(recap.isMastered)
+        }
+    }
     
     // MARK: - Subject System Tests
     func testSubjectEnumHasAllCases() {

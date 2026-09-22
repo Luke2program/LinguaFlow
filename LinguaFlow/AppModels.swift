@@ -4587,6 +4587,19 @@ struct VocabularyCard: Identifiable, Codable, Hashable {
     }
 }
 
+struct LanguagePhraseRecap: Equatable {
+    let eyebrow: String
+    let title: String
+    let phrase: String
+    let translation: String
+    let contextLine: String
+    let progress: Double
+    let progressText: String
+    let nextStopTitle: String
+    let nextStopDetail: String
+    let isMastered: Bool
+}
+
 enum ReviewGrade: Int, Codable, CaseIterable, Identifiable {
     case again = 1, hard = 2, good = 3, easy = 4
     var id: Int { rawValue }

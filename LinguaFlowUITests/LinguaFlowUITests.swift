@@ -102,6 +102,10 @@ final class LinguaFlowUITests: XCTestCase {
         answerField.typeText("Hola")
         app.buttons["checkAnswerButton"].tap()
         XCTAssertTrue(app.staticTexts["answerFeedback"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["languagePassportRecap"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["languagePassportTitle"].exists)
+        XCTAssertTrue(app.staticTexts["languagePassportPhrase"].exists)
+        XCTAssertTrue(app.staticTexts["languagePassportNextStop"].exists)
         app.buttons["directionToggle"].tap()
         XCTAssertTrue(app.staticTexts["promptText"].exists)
     }
