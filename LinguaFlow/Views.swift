@@ -4372,10 +4372,98 @@ struct LanguageWorldPathView: View {
                         .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                 }
+
+                LanguageRoutePassportView(passport: store.languageRoutePassport)
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("worldPathPanel")
+    }
+}
+
+private struct LanguageRoutePassportView: View {
+    let passport: LanguageRoutePassport
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ROUTE COLLECTION")
+                        .font(.caption2.bold())
+                        .tracking(0.8)
+                        .foregroundStyle(.blue)
+                    Text("Fluency Passport")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("languageRoutePassportTitle")
+                    Text("\(passport.pairName) · master 5 phrases at each level")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(passport.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.blue)
+                        .accessibilityIdentifier("languageRoutePassportProgress")
+                    Text(passport.nextRewardText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .accessibilityIdentifier("languageRoutePassportNextReward")
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(passport.stamps) { stamp in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text(stamp.level.rawValue)
+                                    .font(.caption.bold())
+                                Spacer()
+                                Image(systemName: stamp.isEarned ? "checkmark.seal.fill" : "seal")
+                                    .foregroundStyle(stamp.isEarned ? .yellow : .blue)
+                            }
+                            Text(stamp.title)
+                                .font(.caption.bold())
+                                .lineLimit(1)
+                            ProgressView(value: stamp.progress)
+                                .tint(stamp.isEarned ? .yellow : .blue)
+                            Text(stamp.progressText)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Label(stamp.reward, systemImage: "gift.fill")
+                                .font(.caption2.bold())
+                                .foregroundStyle(stamp.isEarned ? .orange : .secondary)
+                                .lineLimit(1)
+                        }
+                        .frame(width: 132, alignment: .leading)
+                        .padding(10)
+                        .background(
+                            LinearGradient(
+                                colors: stamp.isEarned
+                                    ? [Color.orange.opacity(0.18), Color.yellow.opacity(0.08)]
+                                    : [Color.blue.opacity(0.10), Color.cyan.opacity(0.04)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke((stamp.isEarned ? Color.orange : Color.blue).opacity(0.18), lineWidth: 1))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(stamp.accessibilityLabel)
+                        .accessibilityIdentifier("languageRouteStamp_\(stamp.level.rawValue)")
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.blue.opacity(0.12), lineWidth: 1))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("languageRoutePassport")
     }
 }
 

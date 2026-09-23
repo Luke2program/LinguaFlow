@@ -41,6 +41,32 @@ final class AppStore: ObservableObject {
     var dueCount: Int { scheduler.dueCards(from: availableCards, schedules: schedules, limit: 999).count }
     var learnedCount: Int { availableCards.filter { (schedules[$0.id]?.repetitions ?? 0) > 0 }.count }
     var masteredCount: Int { availableCards.filter { (schedules[$0.id]?.repetitions ?? 0) >= 3 && (schedules[$0.id]?.easeFactor ?? 0) >= 2.3 }.count }
+    var languageRoutePassport: LanguageRoutePassport {
+        let cards = VocabularyData.cards(for: stats.selectedLanguagePair)
+        let rewards: [CEFRLevel: (String, String)] = [
+            .a1: ("First Landing", "Harbor Compass"),
+            .a2: ("City Explorer", "Market Phrasebook"),
+            .b1: ("Story Navigator", "Conversation Key"),
+            .b2: ("Culture Pathfinder", "Silver Voice Crest"),
+            .c1: ("Fluency Vanguard", "Polyglot Crown")
+        ]
+        let stamps = CEFRLevel.allCases.map { level in
+            let levelCards = cards.filter { $0.level == level }
+            let mastered = levelCards.filter {
+                (schedules[$0.id]?.repetitions ?? 0) >= 3 && (schedules[$0.id]?.easeFactor ?? 0) >= 2.3
+            }.count
+            let milestone = min(5, max(1, levelCards.count))
+            let copy = rewards[level] ?? ("Route Stamp", "Fluency Reward")
+            return LanguageRouteStamp(
+                level: level,
+                title: copy.0,
+                reward: copy.1,
+                masteredCount: mastered,
+                targetCount: milestone
+            )
+        }
+        return LanguageRoutePassport(pairName: stats.selectedLanguagePair.displayName, stamps: stamps)
+    }
     var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
     var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
     var daysUntilGoal: Int { max(1, Calendar.current.dateComponents([.day], from: Date(), to: stats.goalDate).day ?? 1) }

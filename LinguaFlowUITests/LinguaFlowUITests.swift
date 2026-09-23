@@ -110,6 +110,17 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["promptText"].exists)
     }
 
+    func testLanguagePathShowsPersistentRouteCollection() throws {
+        let app = launchReadyApp()
+        selectDashboardDeck("progress", in: app)
+
+        XCTAssertTrue(element("languageRoutePassport", in: app).waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["languageRoutePassportTitle"].exists)
+        XCTAssertTrue(app.staticTexts["languageRoutePassportProgress"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["languageRouteStamp_A1"].exists)
+        XCTAssertTrue(app.staticTexts["languageRoutePassportNextReward"].exists)
+    }
+
     func testCanChangeLearningLanguageAfterOnboarding() throws {
         let app = launchReadyApp()
 

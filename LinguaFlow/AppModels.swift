@@ -4600,6 +4600,40 @@ struct LanguagePhraseRecap: Equatable {
     let isMastered: Bool
 }
 
+struct LanguageRouteStamp: Identifiable, Equatable {
+    let level: CEFRLevel
+    let title: String
+    let reward: String
+    let masteredCount: Int
+    let targetCount: Int
+
+    var id: String { level.rawValue }
+    var isEarned: Bool { masteredCount >= targetCount }
+    var progress: Double {
+        guard targetCount > 0 else { return 0 }
+        return min(1, Double(masteredCount) / Double(targetCount))
+    }
+    var progressText: String {
+        isEarned ? "Stamp earned" : "\(masteredCount)/\(targetCount) phrases"
+    }
+    var accessibilityLabel: String {
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward)."
+    }
+}
+
+struct LanguageRoutePassport: Equatable {
+    let pairName: String
+    let stamps: [LanguageRouteStamp]
+
+    var earnedCount: Int { stamps.filter(\.isEarned).count }
+    var nextStamp: LanguageRouteStamp? { stamps.first { !$0.isEarned } }
+    var progressText: String { "\(earnedCount)/\(stamps.count) route stamps" }
+    var nextRewardText: String {
+        guard let nextStamp else { return "Grand Polyglot Crest unlocked" }
+        return "Next: \(nextStamp.reward)"
+    }
+}
+
 enum ReviewGrade: Int, Codable, CaseIterable, Identifiable {
     case again = 1, hard = 2, good = 3, easy = 4
     var id: Int { rawValue }

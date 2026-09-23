@@ -105,6 +105,29 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(recap.isMastered)
         }
     }
+
+    func testLanguageRoutePassportPersistsMasteredPhraseMilestones() async {
+        await MainActor.run {
+            let store = AppStore()
+            let a1Cards = VocabularyData.cards(for: store.stats.selectedLanguagePair).filter { $0.level == .a1 }
+            for card in a1Cards.prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+
+            let passport = store.languageRoutePassport
+            let a1 = passport.stamps.first { $0.level == .a1 }
+
+            XCTAssertEqual(passport.stamps.count, CEFRLevel.allCases.count)
+            XCTAssertEqual(passport.earnedCount, 1)
+            XCTAssertEqual(passport.progressText, "1/5 route stamps")
+            XCTAssertEqual(a1?.title, "First Landing")
+            XCTAssertEqual(a1?.reward, "Harbor Compass")
+            XCTAssertEqual(a1?.progress, 1)
+            XCTAssertTrue(a1?.isEarned ?? false)
+            XCTAssertEqual(passport.nextStamp?.level, .a2)
+            XCTAssertEqual(passport.nextRewardText, "Next: Market Phrasebook")
+        }
+    }
     
     // MARK: - Subject System Tests
     func testSubjectEnumHasAllCases() {
