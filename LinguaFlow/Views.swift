@@ -4373,7 +4373,11 @@ struct LanguageWorldPathView: View {
                     }
                 }
 
-                LanguageRoutePassportView(passport: store.languageRoutePassport)
+                LanguageRoutePassportView(passport: store.languageRoutePassport) { stamp in
+                    withAnimation(.spring(duration: 0.35)) {
+                        _ = store.equipLanguageRouteReward(stamp)
+                    }
+                }
             }
         }
         .accessibilityElement(children: .contain)
@@ -4383,6 +4387,7 @@ struct LanguageWorldPathView: View {
 
 private struct LanguageRoutePassportView: View {
     let passport: LanguageRoutePassport
+    let equip: (LanguageRouteStamp) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -4418,13 +4423,16 @@ private struct LanguageRoutePassportView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(passport.stamps) { stamp in
-                        VStack(alignment: .leading, spacing: 6) {
+                        Button {
+                            equip(stamp)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Text(stamp.level.rawValue)
                                     .font(.caption.bold())
                                 Spacer()
-                                Image(systemName: stamp.isEarned ? "checkmark.seal.fill" : "seal")
-                                    .foregroundStyle(stamp.isEarned ? .yellow : .blue)
+                                Image(systemName: stamp.isEquipped ? "checkmark.circle.fill" : (stamp.isEarned ? "checkmark.seal.fill" : "seal"))
+                                    .foregroundStyle(stamp.isEquipped ? .green : (stamp.isEarned ? .yellow : .blue))
                             }
                             Text(stamp.title)
                                 .font(.caption.bold())
@@ -4438,7 +4446,14 @@ private struct LanguageRoutePassportView: View {
                                 .font(.caption2.bold())
                                 .foregroundStyle(stamp.isEarned ? .orange : .secondary)
                                 .lineLimit(1)
+                            Text(stamp.actionText)
+                                .font(.caption2.bold())
+                                .foregroundStyle(stamp.isEquipped ? .green : (stamp.isEarned ? .blue : .secondary))
+                                .accessibilityIdentifier("languageRouteRewardAction_\(stamp.level.rawValue)")
+                            }
                         }
+                        .buttonStyle(.plain)
+                        .disabled(!stamp.isEarned)
                         .frame(width: 132, alignment: .leading)
                         .padding(10)
                         .background(
@@ -4451,7 +4466,7 @@ private struct LanguageRoutePassportView: View {
                             ),
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                         )
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke((stamp.isEarned ? Color.orange : Color.blue).opacity(0.18), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke((stamp.isEquipped ? Color.green : (stamp.isEarned ? Color.orange : Color.blue)).opacity(stamp.isEquipped ? 0.42 : 0.18), lineWidth: stamp.isEquipped ? 2 : 1))
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(stamp.accessibilityLabel)
                         .accessibilityIdentifier("languageRouteStamp_\(stamp.level.rawValue)")
@@ -5337,6 +5352,32 @@ struct ReviewCardView: View {
         GlassCard {
             VStack(alignment: .leading, spacing: 14) {
                 HStack { Text("Review").font(.headline); Spacer(); Text(store.challengeMode == .sentence ? "Sentence" : "Word").font(.caption).foregroundStyle(.secondary) }
+                if let reward = store.equippedLanguageRouteReward {
+                    HStack(spacing: 10) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(.yellow)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(reward.reward)
+                                .font(.caption.bold())
+                            Text("\(reward.level.rawValue) route reward active")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text("EQUIPPED")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.green)
+                    }
+                    .padding(10)
+                    .background(
+                        LinearGradient(colors: [.yellow.opacity(0.15), .green.opacity(0.08)], startPoint: .leading, endPoint: .trailing),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    )
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.yellow.opacity(0.24), lineWidth: 1))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Equipped route reward \(reward.reward), earned at \(reward.level.rawValue).")
+                    .accessibilityIdentifier("equippedLanguageRouteReward")
+                }
                 if let card = store.currentCard {
                     Group {
                         VStack(alignment: .leading, spacing: 6) {

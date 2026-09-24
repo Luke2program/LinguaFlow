@@ -62,10 +62,14 @@ final class AppStore: ObservableObject {
                 title: copy.0,
                 reward: copy.1,
                 masteredCount: mastered,
-                targetCount: milestone
+                targetCount: milestone,
+                isEquipped: stats.equippedLanguageRouteLevel == level
             )
         }
         return LanguageRoutePassport(pairName: stats.selectedLanguagePair.displayName, stamps: stamps)
+    }
+    var equippedLanguageRouteReward: LanguageRouteStamp? {
+        languageRoutePassport.stamps.first { $0.isEquipped && $0.isEarned }
     }
     var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
     var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
@@ -1092,6 +1096,20 @@ final class AppStore: ObservableObject {
         stats.ownedRewardIds = owned
         stats.equippedRewardId = item.id
         feedbackMessage = "Unlocked and equipped \(item.title)."
+        save()
+        objectWillChange.send()
+        return true
+    }
+
+    @discardableResult
+    func equipLanguageRouteReward(_ stamp: LanguageRouteStamp) -> Bool {
+        guard stamp.isEarned else {
+            feedbackMessage = "Master \(stamp.targetCount) \(stamp.level.rawValue) phrases to unlock \(stamp.reward)."
+            return false
+        }
+
+        stats.equippedLanguageRouteLevel = stamp.level
+        feedbackMessage = "Equipped \(stamp.reward) for language reviews."
         save()
         objectWillChange.send()
         return true

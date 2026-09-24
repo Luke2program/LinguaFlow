@@ -119,6 +119,7 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["languageRoutePassportProgress"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["languageRouteStamp_A1"].exists)
         XCTAssertTrue(app.staticTexts["languageRoutePassportNextReward"].exists)
+        XCTAssertTrue(app.staticTexts["languageRouteRewardAction_A1"].exists)
     }
 
     func testCanChangeLearningLanguageAfterOnboarding() throws {

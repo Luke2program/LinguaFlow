@@ -4606,6 +4606,7 @@ struct LanguageRouteStamp: Identifiable, Equatable {
     let reward: String
     let masteredCount: Int
     let targetCount: Int
+    let isEquipped: Bool
 
     var id: String { level.rawValue }
     var isEarned: Bool { masteredCount >= targetCount }
@@ -4616,8 +4617,12 @@ struct LanguageRouteStamp: Identifiable, Equatable {
     var progressText: String {
         isEarned ? "Stamp earned" : "\(masteredCount)/\(targetCount) phrases"
     }
+    var actionText: String {
+        if isEquipped { return "Equipped" }
+        return isEarned ? "Equip reward" : "Locked"
+    }
     var accessibilityLabel: String {
-        "\(level.rawValue) \(title). \(progressText). Reward \(reward)."
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward). \(actionText)."
     }
 }
 
@@ -4887,6 +4892,7 @@ struct UserStats: Codable, Equatable {
     var collectedRelicIds: [String]? = nil
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
+    var equippedLanguageRouteLevel: CEFRLevel? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false

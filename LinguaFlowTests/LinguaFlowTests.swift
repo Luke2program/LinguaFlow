@@ -124,8 +124,30 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(a1?.reward, "Harbor Compass")
             XCTAssertEqual(a1?.progress, 1)
             XCTAssertTrue(a1?.isEarned ?? false)
+            XCTAssertFalse(a1?.isEquipped ?? true)
             XCTAssertEqual(passport.nextStamp?.level, .a2)
             XCTAssertEqual(passport.nextRewardText, "Next: Market Phrasebook")
+        }
+    }
+
+    func testEarnedLanguageRouteRewardCanBeEquippedAndShownInReviews() async {
+        await MainActor.run {
+            let store = AppStore()
+            let a1Cards = VocabularyData.cards(for: store.stats.selectedLanguagePair).filter { $0.level == .a1 }
+            for card in a1Cards.prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+
+            let earned = store.languageRoutePassport.stamps.first { $0.level == .a1 }!
+            let locked = store.languageRoutePassport.stamps.first { $0.level == .a2 }!
+
+            XCTAssertFalse(store.equipLanguageRouteReward(locked))
+            XCTAssertNil(store.stats.equippedLanguageRouteLevel)
+            XCTAssertTrue(store.equipLanguageRouteReward(earned))
+            XCTAssertEqual(store.stats.equippedLanguageRouteLevel, .a1)
+            XCTAssertEqual(store.equippedLanguageRouteReward?.reward, "Harbor Compass")
+            XCTAssertTrue(store.languageRoutePassport.stamps.first { $0.level == .a1 }?.isEquipped ?? false)
+            XCTAssertTrue(store.feedbackMessage.contains("language reviews"))
         }
     }
     
