@@ -122,6 +122,19 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["languageRouteRewardAction_A1"].exists)
     }
 
+    func testEarnedRouteRewardEquipsWithNamedVisualEffect() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-language-route-reward"])
+        selectDashboardDeck("progress", in: app)
+
+        let stamp = element("languageRouteStamp_A1", in: app)
+        XCTAssertTrue(stamp.label.contains("Compass Wake"))
+        XCTAssertTrue(stamp.label.contains("Equip reward"))
+        stamp.tap()
+
+        XCTAssertTrue(stamp.waitForExistence(timeout: 3))
+        XCTAssertTrue(stamp.label.contains("Equipped"))
+    }
+
     func testCanChangeLearningLanguageAfterOnboarding() throws {
         let app = launchReadyApp()
 

@@ -4388,6 +4388,18 @@ struct LanguageWorldPathView: View {
 private struct LanguageRoutePassportView: View {
     let passport: LanguageRoutePassport
     let equip: (LanguageRouteStamp) -> Void
+    @State private var rewardBurstID: String?
+    @State private var rewardEquipPulse = 0
+
+    private func palette(for level: CEFRLevel) -> [Color] {
+        switch level {
+        case .a1: return [.cyan, .blue]
+        case .a2: return [.orange, .pink]
+        case .b1: return [.mint, .teal]
+        case .b2: return [.indigo, .purple]
+        case .c1: return [.yellow, .orange]
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -4424,10 +4436,28 @@ private struct LanguageRoutePassportView: View {
                 HStack(spacing: 8) {
                     ForEach(passport.stamps) { stamp in
                         Button {
-                            equip(stamp)
+                            withAnimation(.bouncy(duration: 0.5, extraBounce: 0.22)) {
+                                equip(stamp)
+                                rewardBurstID = stamp.id
+                                rewardEquipPulse += 1
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    if rewardBurstID == stamp.id { rewardBurstID = nil }
+                                }
+                            }
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
                             HStack {
+                                ZStack {
+                                    Circle()
+                                        .fill(LinearGradient(colors: palette(for: stamp.level).map { $0.opacity(stamp.isEarned ? 0.28 : 0.09) }, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    Image(systemName: stamp.rewardSymbol)
+                                        .font(.caption.bold())
+                                        .foregroundStyle(stamp.isEarned ? palette(for: stamp.level)[0] : .secondary)
+                                        .symbolEffect(.bounce, value: stamp.isEquipped)
+                                }
+                                .frame(width: 28, height: 28)
                                 Text(stamp.level.rawValue)
                                     .font(.caption.bold())
                                 Spacer()
@@ -4442,9 +4472,13 @@ private struct LanguageRoutePassportView: View {
                             Text(stamp.progressText)
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
-                            Label(stamp.reward, systemImage: "gift.fill")
+                            Label(stamp.reward, systemImage: stamp.rewardSymbol)
                                 .font(.caption2.bold())
-                                .foregroundStyle(stamp.isEarned ? .orange : .secondary)
+                                .foregroundStyle(stamp.isEarned ? palette(for: stamp.level)[0] : .secondary)
+                                .lineLimit(1)
+                            Text(stamp.effectName)
+                                .font(.system(size: 9, weight: .bold, design: .rounded))
+                                .foregroundStyle(stamp.isEquipped ? palette(for: stamp.level)[0] : .secondary)
                                 .lineLimit(1)
                             Text(stamp.actionText)
                                 .font(.caption2.bold())
@@ -4459,14 +4493,31 @@ private struct LanguageRoutePassportView: View {
                         .background(
                             LinearGradient(
                                 colors: stamp.isEarned
-                                    ? [Color.orange.opacity(0.18), Color.yellow.opacity(0.08)]
+                                    ? palette(for: stamp.level).map { $0.opacity(stamp.isEquipped ? 0.24 : 0.13) }
                                     : [Color.blue.opacity(0.10), Color.cyan.opacity(0.04)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                         )
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke((stamp.isEquipped ? Color.green : (stamp.isEarned ? Color.orange : Color.blue)).opacity(stamp.isEquipped ? 0.42 : 0.18), lineWidth: stamp.isEquipped ? 2 : 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke((stamp.isEquipped ? palette(for: stamp.level)[0] : (stamp.isEarned ? palette(for: stamp.level)[1] : Color.blue)).opacity(stamp.isEquipped ? 0.62 : 0.18), lineWidth: stamp.isEquipped ? 2 : 1))
+                        .overlay {
+                            if rewardBurstID == stamp.id {
+                                ZStack {
+                                    ForEach(0..<6, id: \.self) { index in
+                                        Image(systemName: index.isMultiple(of: 2) ? "sparkle" : "star.fill")
+                                            .font(.system(size: 8))
+                                            .foregroundStyle(palette(for: stamp.level)[index.isMultiple(of: 2) ? 0 : 1])
+                                            .offset(
+                                                x: CGFloat(cos(Double(index) * .pi / 3) * 54),
+                                                y: CGFloat(sin(Double(index) * .pi / 3) * 52)
+                                            )
+                                    }
+                                }
+                                .transition(.scale.combined(with: .opacity))
+                                .allowsHitTesting(false)
+                            }
+                        }
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(stamp.accessibilityLabel)
                         .accessibilityIdentifier("languageRouteStamp_\(stamp.level.rawValue)")
@@ -4477,6 +4528,7 @@ private struct LanguageRoutePassportView: View {
         .padding(12)
         .background(Color.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.blue.opacity(0.12), lineWidth: 1))
+        .sensoryFeedback(.success, trigger: rewardEquipPulse)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("languageRoutePassport")
     }
@@ -5353,13 +5405,27 @@ struct ReviewCardView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack { Text("Review").font(.headline); Spacer(); Text(store.challengeMode == .sentence ? "Sentence" : "Word").font(.caption).foregroundStyle(.secondary) }
                 if let reward = store.equippedLanguageRouteReward {
+                    let rewardPalette: [Color] = {
+                        switch reward.level {
+                        case .a1: return [.cyan, .blue]
+                        case .a2: return [.orange, .pink]
+                        case .b1: return [.mint, .teal]
+                        case .b2: return [.indigo, .purple]
+                        case .c1: return [.yellow, .orange]
+                        }
+                    }()
                     HStack(spacing: 10) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(.yellow)
+                        ZStack {
+                            Circle().fill(LinearGradient(colors: rewardPalette.map { $0.opacity(0.28) }, startPoint: .topLeading, endPoint: .bottomTrailing))
+                            Image(systemName: reward.rewardSymbol)
+                                .foregroundStyle(rewardPalette[0])
+                                .symbolEffect(.pulse)
+                        }
+                        .frame(width: 34, height: 34)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(reward.reward)
                                 .font(.caption.bold())
-                            Text("\(reward.level.rawValue) route reward active")
+                            Text("\(reward.effectName) · \(reward.level.rawValue) aura")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -5370,12 +5436,12 @@ struct ReviewCardView: View {
                     }
                     .padding(10)
                     .background(
-                        LinearGradient(colors: [.yellow.opacity(0.15), .green.opacity(0.08)], startPoint: .leading, endPoint: .trailing),
+                        LinearGradient(colors: rewardPalette.map { $0.opacity(0.15) }, startPoint: .leading, endPoint: .trailing),
                         in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                     )
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.yellow.opacity(0.24), lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(rewardPalette[0].opacity(0.32), lineWidth: 1))
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Equipped route reward \(reward.reward), earned at \(reward.level.rawValue).")
+                    .accessibilityLabel("Equipped route reward \(reward.reward), \(reward.effectName), earned at \(reward.level.rawValue).")
                     .accessibilityIdentifier("equippedLanguageRouteReward")
                 }
                 if let card = store.currentCard {

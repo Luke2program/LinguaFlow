@@ -4621,8 +4621,26 @@ struct LanguageRouteStamp: Identifiable, Equatable {
         if isEquipped { return "Equipped" }
         return isEarned ? "Equip reward" : "Locked"
     }
+    var rewardSymbol: String {
+        switch level {
+        case .a1: return "location.north.fill"
+        case .a2: return "book.pages.fill"
+        case .b1: return "key.fill"
+        case .b2: return "waveform.badge.mic"
+        case .c1: return "crown.fill"
+        }
+    }
+    var effectName: String {
+        switch level {
+        case .a1: return "Compass Wake"
+        case .a2: return "Phrasebook Glow"
+        case .b1: return "Story Key Pulse"
+        case .b2: return "Silver Voice Trail"
+        case .c1: return "Crown Radiance"
+        }
+    }
     var accessibilityLabel: String {
-        "\(level.rawValue) \(title). \(progressText). Reward \(reward). \(actionText)."
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). \(actionText)."
     }
 }
 

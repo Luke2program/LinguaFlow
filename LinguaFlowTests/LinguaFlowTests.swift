@@ -122,6 +122,8 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(passport.progressText, "1/5 route stamps")
             XCTAssertEqual(a1?.title, "First Landing")
             XCTAssertEqual(a1?.reward, "Harbor Compass")
+            XCTAssertEqual(a1?.rewardSymbol, "location.north.fill")
+            XCTAssertEqual(a1?.effectName, "Compass Wake")
             XCTAssertEqual(a1?.progress, 1)
             XCTAssertTrue(a1?.isEarned ?? false)
             XCTAssertFalse(a1?.isEquipped ?? true)
@@ -148,6 +150,17 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.equippedLanguageRouteReward?.reward, "Harbor Compass")
             XCTAssertTrue(store.languageRoutePassport.stamps.first { $0.level == .a1 }?.isEquipped ?? false)
             XCTAssertTrue(store.feedbackMessage.contains("language reviews"))
+            XCTAssertTrue(store.feedbackMessage.contains("Compass Wake"))
+        }
+    }
+
+    func testEveryLanguageRouteRewardHasDistinctGameFeel() async {
+        await MainActor.run {
+            let stamps = AppStore().languageRoutePassport.stamps
+
+            XCTAssertEqual(Set(stamps.map(\.rewardSymbol)).count, CEFRLevel.allCases.count)
+            XCTAssertEqual(Set(stamps.map(\.effectName)).count, CEFRLevel.allCases.count)
+            XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.effectName) })
         }
     }
     

@@ -595,6 +595,12 @@ final class AppStore: ObservableObject {
                 stats.lastStreakChestClaimDate = nil
             }
             prepareSchedulesForCurrentSelection()
+            if arguments.contains("--ui-testing-language-route-reward") {
+                let a1Cards = VocabularyData.cards(for: stats.selectedLanguagePair).filter { $0.level == .a1 }
+                for card in a1Cards.prefix(5) {
+                    schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+                }
+            }
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
     }
@@ -1109,7 +1115,7 @@ final class AppStore: ObservableObject {
         }
 
         stats.equippedLanguageRouteLevel = stamp.level
-        feedbackMessage = "Equipped \(stamp.reward) for language reviews."
+        feedbackMessage = "Equipped \(stamp.reward) · \(stamp.effectName) is active in language reviews."
         save()
         objectWillChange.send()
         return true
