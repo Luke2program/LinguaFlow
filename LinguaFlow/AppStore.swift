@@ -601,6 +601,13 @@ final class AppStore: ObservableObject {
                     schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
                 }
             }
+            if arguments.contains("--ui-testing-equipped-language-route-reward") {
+                let a1Cards = VocabularyData.cards(for: stats.selectedLanguagePair).filter { $0.level == .a1 }
+                for card in a1Cards.prefix(5) {
+                    schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+                }
+                stats.equippedLanguageRouteLevel = .a1
+            }
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
     }
@@ -703,6 +710,7 @@ final class AppStore: ObservableObject {
         case .good: resultTitle = "Phrase stamped in your passport"
         case .easy: resultTitle = "Phrase stamped with confidence"
         }
+        let activeRouteReward = grade == .good || grade == .easy ? equippedLanguageRouteReward : nil
 
         return LanguagePhraseRecap(
             eyebrow: "FLUENCY PASSPORT · \(card.level.rawValue) · \(card.category.uppercased())",
@@ -716,7 +724,8 @@ final class AppStore: ObservableObject {
             nextStopDetail: isMastered
                 ? "This phrase now counts toward your \(card.level.rawValue) route unlock."
                 : (nextCard.map { "\($0.hint): \($0.prompt(for: activeDirection, mode: challengeMode))" } ?? "A fresh phrase is ready at the next dock."),
-            isMastered: isMastered
+            isMastered: isMastered,
+            routeReward: activeRouteReward
         )
     }
 
@@ -747,7 +756,11 @@ final class AppStore: ObservableObject {
         let result = AnswerEvaluator.evaluate(attempt, expected: expected)
         switch result {
         case .correct:
-            feedbackMessage = "✅ Correct. +fluency 💧"
+            if let reward = equippedLanguageRouteReward {
+                feedbackMessage = "✅ Correct · \(reward.effectName) activated. +fluency 💧"
+            } else {
+                feedbackMessage = "✅ Correct. +fluency 💧"
+            }
             grade(.good, expected: expected)
         case .almost:
             feedbackMessage = "🟡 Almost. Correct answer: \(expected). It comes back sooner."

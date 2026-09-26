@@ -5504,6 +5504,17 @@ struct ReviewCardView: View {
 private struct LanguagePhraseRecapView: View {
     let recap: LanguagePhraseRecap
 
+    private var rewardPalette: [Color] {
+        switch recap.routeReward?.level {
+        case .a1: return [.cyan, .blue]
+        case .a2: return [.orange, .pink]
+        case .b1: return [.mint, .teal]
+        case .b2: return [.indigo, .purple]
+        case .c1: return [.yellow, .orange]
+        case nil: return [.indigo, .blue, .cyan]
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -5521,6 +5532,39 @@ private struct LanguagePhraseRecapView: View {
                 Image(systemName: recap.isMastered ? "checkmark.seal.fill" : "passport.fill")
                     .font(.title2)
                     .foregroundStyle(recap.isMastered ? .yellow : .cyan)
+            }
+
+            if let reward = recap.routeReward {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.15))
+                        Image(systemName: reward.rewardSymbol)
+                            .font(.headline.bold())
+                            .foregroundStyle(.white)
+                            .symbolEffect(.bounce, value: recap.phrase)
+                    }
+                    .frame(width: 38, height: 38)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("\(reward.effectName) ACTIVATED")
+                            .font(.caption.bold())
+                            .tracking(0.7)
+                            .foregroundStyle(.white)
+                        Text("\(reward.reward) powered this correct answer")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.76))
+                    }
+                    Spacer()
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.yellow)
+                        .symbolEffect(.pulse, options: .repeating)
+                }
+                .padding(10)
+                .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.18), lineWidth: 1))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Route reward activated. \(reward.reward). \(reward.effectName).")
+                .accessibilityIdentifier("languageRouteRewardCelebration")
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -5569,7 +5613,9 @@ private struct LanguagePhraseRecapView: View {
         .padding(16)
         .background(
             LinearGradient(
-                colors: [Color.indigo.opacity(0.96), Color.blue.opacity(0.78), Color.cyan.opacity(0.48)],
+                colors: rewardPalette.enumerated().map { index, color in
+                    color.opacity(index == 0 ? 0.96 : (index == 1 ? 0.78 : 0.52))
+                },
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
@@ -5580,6 +5626,19 @@ private struct LanguagePhraseRecapView: View {
                 .stroke(.white.opacity(0.18), lineWidth: 1)
         )
         .shadow(color: .blue.opacity(0.22), radius: 14, y: 8)
+        .overlay(alignment: .topTrailing) {
+            if recap.routeReward != nil {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkle")
+                    Image(systemName: "star.fill")
+                    Image(systemName: "sparkle")
+                }
+                .font(.caption2)
+                .foregroundStyle(.yellow.opacity(0.9))
+                .offset(x: -18, y: -6)
+                .allowsHitTesting(false)
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("languagePassportRecap")
     }

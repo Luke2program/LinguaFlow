@@ -82,6 +82,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(recap.nextStopTitle, "Next harbor phrase")
             XCTAssertTrue(recap.nextStopDetail.contains("Danke"))
             XCTAssertFalse(recap.isMastered)
+            XCTAssertNil(recap.routeReward)
         }
     }
 
@@ -161,6 +162,40 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(Set(stamps.map(\.rewardSymbol)).count, CEFRLevel.allCases.count)
             XCTAssertEqual(Set(stamps.map(\.effectName)).count, CEFRLevel.allCases.count)
             XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.effectName) })
+        }
+    }
+
+    func testEquippedRouteRewardPowersCorrectAnswerRecap() async {
+        await MainActor.run {
+            let store = AppStore()
+            let cards = VocabularyData.cards(for: store.stats.selectedLanguagePair)
+            for card in cards.filter({ $0.level == .a1 }).prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+            let earned = store.languageRoutePassport.stamps.first { $0.level == .a1 }!
+            XCTAssertTrue(store.equipLanguageRouteReward(earned))
+
+            let recap = store.languagePhraseRecap(
+                card: cards[0],
+                direction: .sourceToTarget,
+                mode: .word,
+                grade: .good,
+                schedule: CardSchedule(repetitions: 1, intervalDays: 1, easeFactor: 2.5, dueDate: Date()),
+                nextCard: cards[1]
+            )
+
+            XCTAssertEqual(recap.routeReward?.reward, "Harbor Compass")
+            XCTAssertEqual(recap.routeReward?.effectName, "Compass Wake")
+
+            let rescueRecap = store.languagePhraseRecap(
+                card: cards[0],
+                direction: .sourceToTarget,
+                mode: .word,
+                grade: .again,
+                schedule: CardSchedule(),
+                nextCard: cards[1]
+            )
+            XCTAssertNil(rescueRecap.routeReward)
         }
     }
     

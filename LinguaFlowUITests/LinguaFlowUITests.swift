@@ -135,6 +135,21 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(stamp.label.contains("Equipped"))
     }
 
+    func testEquippedRouteRewardCelebratesCorrectAnswer() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-equipped-language-route-reward"])
+        let answerField = app.textFields["answerInput"].firstMatch
+        XCTAssertTrue(answerField.waitForExistence(timeout: 3))
+        answerField.tap()
+        answerField.typeText("Hola")
+        app.buttons["checkAnswerButton"].tap()
+
+        let celebration = app.descendants(matching: .any)["languageRouteRewardCelebration"].firstMatch
+        XCTAssertTrue(celebration.waitForExistence(timeout: 3))
+        XCTAssertTrue(celebration.label.contains("Harbor Compass"))
+        XCTAssertTrue(celebration.label.contains("Compass Wake"))
+        XCTAssertTrue(app.staticTexts["answerFeedback"].label.contains("Compass Wake activated"))
+    }
+
     func testCanChangeLearningLanguageAfterOnboarding() throws {
         let app = launchReadyApp()
 

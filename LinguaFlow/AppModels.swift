@@ -4598,6 +4598,7 @@ struct LanguagePhraseRecap: Equatable {
     let nextStopTitle: String
     let nextStopDetail: String
     let isMastered: Bool
+    let routeReward: LanguageRouteStamp?
 }
 
 struct LanguageRouteStamp: Identifiable, Equatable {
