@@ -183,6 +183,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(store.equipLanguageRouteReward(earned))
             let startingXP = store.stats.xp
             let startingGems = store.stats.gems
+            store.feedbackMessage = ""
 
             store.grade(.good, expected: store.currentAnswer)
 
