@@ -5550,7 +5550,7 @@ private struct LanguagePhraseRecapView: View {
                             .font(.caption.bold())
                             .tracking(0.7)
                             .foregroundStyle(.white)
-                        Text("\(reward.reward) powered this correct answer")
+                        Text("\(reward.reward) granted \(reward.powerText)")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.76))
                     }
@@ -5563,7 +5563,7 @@ private struct LanguagePhraseRecapView: View {
                 .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.18), lineWidth: 1))
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Route reward activated. \(reward.reward). \(reward.effectName).")
+                .accessibilityLabel("Route reward activated. \(reward.reward). \(reward.effectName). \(reward.powerText).")
                 .accessibilityIdentifier("languageRouteRewardCelebration")
             }
 

@@ -670,6 +670,12 @@ final class AppStore: ObservableObject {
         stats.reviewedToday += 1
         stats.xp += grade.xp
         stats.gems += grade == .easy ? 2 : (grade == .good ? 1 : 0)
+        if (grade == .good || grade == .easy), let reward = equippedLanguageRouteReward {
+            stats.xp += reward.bonusXP
+            stats.gems += reward.bonusGems
+            let gemText = reward.bonusGems > 0 ? " +\(reward.bonusGems) gem." : ""
+            feedbackMessage += " +\(reward.bonusXP) bonus XP.\(gemText)"
+        }
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
         if grade != .again { awardDailyComboBonusIfNeeded() }
@@ -1128,7 +1134,7 @@ final class AppStore: ObservableObject {
         }
 
         stats.equippedLanguageRouteLevel = stamp.level
-        feedbackMessage = "Equipped \(stamp.reward) · \(stamp.effectName) is active in language reviews."
+        feedbackMessage = "Equipped \(stamp.reward) · \(stamp.effectName) is active. \(stamp.powerText)."
         save()
         objectWillChange.send()
         return true

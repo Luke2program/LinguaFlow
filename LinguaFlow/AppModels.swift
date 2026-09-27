@@ -4640,8 +4640,22 @@ struct LanguageRouteStamp: Identifiable, Equatable {
         case .c1: return "Crown Radiance"
         }
     }
+    var bonusXP: Int {
+        switch level {
+        case .a1: return 2
+        case .a2: return 3
+        case .b1: return 4
+        case .b2: return 5
+        case .c1: return 6
+        }
+    }
+    var bonusGems: Int { level == .c1 ? 1 : 0 }
+    var powerText: String {
+        let gemText = bonusGems > 0 ? " and +\(bonusGems) gem" : ""
+        return "+\(bonusXP) bonus XP\(gemText) on every strong answer"
+    }
     var accessibilityLabel: String {
-        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). \(actionText)."
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). Power: \(powerText). \(actionText)."
     }
 }
 

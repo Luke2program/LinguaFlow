@@ -147,7 +147,9 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(celebration.waitForExistence(timeout: 3))
         XCTAssertTrue(celebration.label.contains("Harbor Compass"))
         XCTAssertTrue(celebration.label.contains("Compass Wake"))
+        XCTAssertTrue(celebration.label.contains("+2 bonus XP"))
         XCTAssertTrue(app.staticTexts["answerFeedback"].label.contains("Compass Wake activated"))
+        XCTAssertTrue(app.staticTexts["answerFeedback"].label.contains("+2 bonus XP"))
     }
 
     func testCanChangeLearningLanguageAfterOnboarding() throws {

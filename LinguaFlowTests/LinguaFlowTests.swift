@@ -125,6 +125,9 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(a1?.reward, "Harbor Compass")
             XCTAssertEqual(a1?.rewardSymbol, "location.north.fill")
             XCTAssertEqual(a1?.effectName, "Compass Wake")
+            XCTAssertEqual(a1?.bonusXP, 2)
+            XCTAssertEqual(a1?.bonusGems, 0)
+            XCTAssertEqual(a1?.powerText, "+2 bonus XP on every strong answer")
             XCTAssertEqual(a1?.progress, 1)
             XCTAssertTrue(a1?.isEarned ?? false)
             XCTAssertFalse(a1?.isEquipped ?? true)
@@ -152,6 +155,7 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertTrue(store.languageRoutePassport.stamps.first { $0.level == .a1 }?.isEquipped ?? false)
             XCTAssertTrue(store.feedbackMessage.contains("language reviews"))
             XCTAssertTrue(store.feedbackMessage.contains("Compass Wake"))
+            XCTAssertTrue(store.feedbackMessage.contains("+2 bonus XP"))
         }
     }
 
@@ -161,7 +165,31 @@ final class LinguaFlowTests: XCTestCase {
 
             XCTAssertEqual(Set(stamps.map(\.rewardSymbol)).count, CEFRLevel.allCases.count)
             XCTAssertEqual(Set(stamps.map(\.effectName)).count, CEFRLevel.allCases.count)
+            XCTAssertEqual(stamps.map(\.bonusXP), [2, 3, 4, 5, 6])
+            XCTAssertEqual(stamps.last?.bonusGems, 1)
             XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.effectName) })
+            XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.powerText) })
+        }
+    }
+
+    func testEquippedRouteRewardGrantsMechanicalAnswerBonus() async {
+        await MainActor.run {
+            let store = AppStore()
+            let a1Cards = VocabularyData.cards(for: store.stats.selectedLanguagePair).filter { $0.level == .a1 }
+            for card in a1Cards.prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+            let earned = store.languageRoutePassport.stamps.first { $0.level == .a1 }!
+            XCTAssertTrue(store.equipLanguageRouteReward(earned))
+            let startingXP = store.stats.xp
+            let startingGems = store.stats.gems
+
+            store.grade(.good, expected: store.currentAnswer)
+
+            XCTAssertEqual(store.stats.xp, startingXP + ReviewGrade.good.xp + earned.bonusXP)
+            XCTAssertEqual(store.stats.gems, startingGems + 1)
+            XCTAssertTrue(store.feedbackMessage.contains("+2 bonus XP"))
+            XCTAssertEqual(store.latestLanguagePhraseRecap?.routeReward?.powerText, "+2 bonus XP on every strong answer")
         }
     }
 
