@@ -165,10 +165,53 @@ final class LinguaFlowTests: XCTestCase {
 
             XCTAssertEqual(Set(stamps.map(\.rewardSymbol)).count, CEFRLevel.allCases.count)
             XCTAssertEqual(Set(stamps.map(\.effectName)).count, CEFRLevel.allCases.count)
+            XCTAssertEqual(Set(stamps.map(\.trialTitle)).count, CEFRLevel.allCases.count)
+            XCTAssertEqual(Set(stamps.map(\.trialRule)).count, CEFRLevel.allCases.count)
             XCTAssertEqual(stamps.map(\.bonusXP), [2, 3, 4, 5, 6])
             XCTAssertEqual(stamps.last?.bonusGems, 1)
             XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.effectName) })
             XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.powerText) })
+            XCTAssertTrue(stamps.allSatisfy { $0.accessibilityLabel.contains($0.trialTitle) })
+        }
+    }
+
+    func testEquippedRouteTrialsChangeReviewPlayStyle() async {
+        await MainActor.run {
+            let store = AppStore()
+            let cards = VocabularyData.cards(for: store.stats.selectedLanguagePair)
+            for level in CEFRLevel.allCases {
+                for card in cards.filter({ $0.level == level }).prefix(5) {
+                    store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+                }
+            }
+
+            store.stats.equippedLanguageRouteLevel = .a1
+            store.stats.totalReviews = 1
+            store.pickNextCard()
+            XCTAssertEqual(store.activeDirection, .targetToSource)
+
+            store.stats.equippedLanguageRouteLevel = .a2
+            store.stats.totalReviews = 2
+            store.pickNextCard()
+            XCTAssertEqual(store.challengeMode, .sentence)
+
+            store.stats.equippedLanguageRouteLevel = .b1
+            store.combo = 2
+            store.pickNextCard()
+            XCTAssertEqual(store.activeDirection, .targetToSource)
+            XCTAssertEqual(store.challengeMode, .sentence)
+
+            store.stats.equippedLanguageRouteLevel = .b2
+            store.stats.totalReviews = 1
+            store.combo = 0
+            store.pickNextCard()
+            XCTAssertEqual(store.challengeMode, .sentence)
+
+            store.stats.equippedLanguageRouteLevel = .c1
+            store.stats.totalReviews = 3
+            store.pickNextCard()
+            XCTAssertEqual(store.activeDirection, .targetToSource)
+            XCTAssertEqual(store.challengeMode, .sentence)
         }
     }
 

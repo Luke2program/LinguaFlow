@@ -4654,8 +4654,35 @@ struct LanguageRouteStamp: Identifiable, Equatable {
         let gemText = bonusGems > 0 ? " and +\(bonusGems) gem" : ""
         return "+\(bonusXP) bonus XP\(gemText) on every strong answer"
     }
+    var trialTitle: String {
+        switch level {
+        case .a1: return "Compass Switch"
+        case .a2: return "Phrasebook Sprint"
+        case .b1: return "Story Chain"
+        case .b2: return "Immersion Run"
+        case .c1: return "Crown Gauntlet"
+        }
+    }
+    var trialRule: String {
+        switch level {
+        case .a1: return "Alternate translation direction after every answer."
+        case .a2: return "Every second prompt becomes a full sentence."
+        case .b1: return "Build a 2-answer combo to unlock reverse sentence prompts."
+        case .b2: return "Every prompt becomes a full-sentence immersion challenge."
+        case .c1: return "Every prompt is a sentence and direction flips each round."
+        }
+    }
+    var trialStatus: String {
+        switch level {
+        case .a1: return "Direction compass active"
+        case .a2: return "Sentence gates every 2 rounds"
+        case .b1: return "2-combo activates story mode"
+        case .b2: return "Full immersion active"
+        case .c1: return "Expert gauntlet active"
+        }
+    }
     var accessibilityLabel: String {
-        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). Power: \(powerText). \(actionText)."
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). Power: \(powerText). Route trial \(trialTitle): \(trialRule) \(actionText)."
     }
 }
 

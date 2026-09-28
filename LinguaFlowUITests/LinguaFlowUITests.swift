@@ -150,6 +150,10 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(celebration.label.contains("+2 bonus XP"))
         XCTAssertTrue(app.staticTexts["answerFeedback"].label.contains("Compass Wake activated"))
         XCTAssertTrue(app.staticTexts["answerFeedback"].label.contains("+2 bonus XP"))
+        let routeTrial = app.descendants(matching: .any)["languageRouteTrial"].firstMatch
+        XCTAssertTrue(routeTrial.exists)
+        XCTAssertTrue(routeTrial.label.contains("Compass Switch"))
+        XCTAssertTrue(routeTrial.label.contains("Alternate translation direction"))
     }
 
     func testCanChangeLearningLanguageAfterOnboarding() throws {

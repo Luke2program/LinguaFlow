@@ -754,6 +754,27 @@ final class AppStore: ObservableObject {
         currentCard = due.first ?? availableCards.filter { $0.id != id }.randomElement() ?? availableCards.first
         activeDirection = stats.autoMixDirections ? (stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource) : stats.direction
         challengeMode = stats.totalReviews > 0 && stats.totalReviews.isMultiple(of: 4) ? .sentence : .word
+        applyEquippedRouteTrial()
+    }
+
+    func applyEquippedRouteTrial() {
+        guard let reward = equippedLanguageRouteReward else { return }
+        switch reward.level {
+        case .a1:
+            activeDirection = stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource
+        case .a2:
+            challengeMode = stats.totalReviews > 0 && stats.totalReviews.isMultiple(of: 2) ? .sentence : .word
+        case .b1:
+            if combo >= 2 {
+                activeDirection = .targetToSource
+                challengeMode = .sentence
+            }
+        case .b2:
+            challengeMode = .sentence
+        case .c1:
+            activeDirection = stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource
+            challengeMode = .sentence
+        }
     }
 
     @discardableResult

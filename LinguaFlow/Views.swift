@@ -5443,6 +5443,33 @@ struct ReviewCardView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("Equipped route reward \(reward.reward), \(reward.effectName), earned at \(reward.level.rawValue).")
                     .accessibilityIdentifier("equippedLanguageRouteReward")
+
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "flag.checkered.2.crossed")
+                            .font(.caption.bold())
+                            .foregroundStyle(rewardPalette[0])
+                            .frame(width: 28, height: 28)
+                            .background(rewardPalette[0].opacity(0.14), in: Circle())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("ROUTE TRIAL · \(reward.trialTitle.uppercased())")
+                                .font(.caption2.bold())
+                                .tracking(0.55)
+                                .foregroundStyle(rewardPalette[0])
+                            Text(reward.trialRule)
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+                            Text(reward.trialStatus)
+                                .font(.caption2.bold())
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(10)
+                    .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(rewardPalette[0].opacity(0.20), lineWidth: 1))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Route trial \(reward.trialTitle). \(reward.trialRule) \(reward.trialStatus).")
+                    .accessibilityIdentifier("languageRouteTrial")
                 }
                 if let card = store.currentCard {
                     Group {
