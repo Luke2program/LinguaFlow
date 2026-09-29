@@ -23,6 +23,7 @@ final class AppStore: ObservableObject {
     @Published var pomodoroRunning = false
     @Published var pomodoroIsBreak = false
     @Published var latestLanguagePhraseRecap: LanguagePhraseRecap? = nil
+    @Published var latestLanguageRouteTrialCompletion: LanguageRouteTrialCompletion? = nil
 
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -70,6 +71,16 @@ final class AppStore: ObservableObject {
     }
     var equippedLanguageRouteReward: LanguageRouteStamp? {
         languageRoutePassport.stamps.first { $0.isEquipped && $0.isEarned }
+    }
+    var languageRouteTrialRun: LanguageRouteTrialRun? {
+        guard let stamp = equippedLanguageRouteReward else { return nil }
+        let key = languageRouteTrialKey(for: stamp.level)
+        return LanguageRouteTrialRun(
+            stamp: stamp,
+            strongAnswers: stats.languageRouteTrialProgress?[key] ?? 0,
+            target: 5,
+            completedRuns: stats.languageRouteTrialCompletions?[key] ?? 0
+        )
     }
     var currentPrompt: String { currentCard?.prompt(for: activeDirection, mode: challengeMode) ?? "" }
     var currentAnswer: String { currentCard?.answer(for: activeDirection, mode: challengeMode) ?? "" }
@@ -675,6 +686,7 @@ final class AppStore: ObservableObject {
             stats.gems += reward.bonusGems
             let gemText = reward.bonusGems > 0 ? " +\(reward.bonusGems) gem." : ""
             feedbackMessage += " +\(reward.bonusXP) bonus XP.\(gemText)"
+            advanceLanguageRouteTrial(with: reward)
         }
         stats.fluentDrops += grade.fluencyDrops
         if grade == .again { combo = 0 } else { combo += 1; stats.correctToday += 1 }
@@ -775,6 +787,45 @@ final class AppStore: ObservableObject {
             activeDirection = stats.totalReviews.isMultiple(of: 2) ? .sourceToTarget : .targetToSource
             challengeMode = .sentence
         }
+    }
+
+    private func languageRouteTrialKey(for level: CEFRLevel) -> String {
+        "\(stats.selectedLanguagePair.id)|\(level.rawValue)"
+    }
+
+    func advanceLanguageRouteTrial(with stamp: LanguageRouteStamp) {
+        let key = languageRouteTrialKey(for: stamp.level)
+        var progress = stats.languageRouteTrialProgress ?? [:]
+        var completions = stats.languageRouteTrialCompletions ?? [:]
+        let nextProgress = (progress[key] ?? 0) + 1
+
+        if nextProgress >= 5 {
+            let preview = LanguageRouteTrialRun(
+                stamp: stamp,
+                strongAnswers: 5,
+                target: 5,
+                completedRuns: completions[key] ?? 0
+            )
+            let completedRuns = (completions[key] ?? 0) + 1
+            progress[key] = 0
+            completions[key] = completedRuns
+            stats.xp += preview.rewardXP
+            stats.gems += preview.rewardGems
+            latestLanguageRouteTrialCompletion = LanguageRouteTrialCompletion(
+                trialTitle: stamp.trialTitle,
+                lootName: preview.lootName,
+                rewardXP: preview.rewardXP,
+                rewardGems: preview.rewardGems,
+                completedRuns: completedRuns
+            )
+            feedbackMessage += " \(preview.lootName) opened: \(preview.rewardText)."
+        } else {
+            progress[key] = nextProgress
+            latestLanguageRouteTrialCompletion = nil
+        }
+
+        stats.languageRouteTrialProgress = progress
+        stats.languageRouteTrialCompletions = completions
     }
 
     @discardableResult

@@ -215,6 +215,49 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testRouteTrialProgressPersistsAndFifthStrongAnswerOpensTierLoot() async {
+        await MainActor.run {
+            let store = AppStore()
+            let a1Cards = VocabularyData.cards(for: store.stats.selectedLanguagePair).filter { $0.level == .a1 }
+            for card in a1Cards.prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+            store.stats.equippedLanguageRouteLevel = .a1
+            let stamp = store.equippedLanguageRouteReward!
+            let startingXP = store.stats.xp
+            let startingGems = store.stats.gems
+
+            for _ in 0..<4 { store.advanceLanguageRouteTrial(with: stamp) }
+
+            XCTAssertEqual(store.languageRouteTrialRun?.strongAnswers, 4)
+            XCTAssertEqual(store.languageRouteTrialRun?.lootName, "Compass Cache")
+            XCTAssertEqual(store.languageRouteTrialRun?.completedRuns, 0)
+            XCTAssertNil(store.latestLanguageRouteTrialCompletion)
+
+            store.advanceLanguageRouteTrial(with: stamp)
+
+            XCTAssertEqual(store.languageRouteTrialRun?.strongAnswers, 0)
+            XCTAssertEqual(store.languageRouteTrialRun?.completedRuns, 1)
+            XCTAssertEqual(store.stats.xp, startingXP + 12)
+            XCTAssertEqual(store.stats.gems, startingGems + 1)
+            XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.lootName, "Compass Cache")
+            XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.rewardText, "+12 XP · +1 gem")
+            XCTAssertTrue(store.feedbackMessage.contains("Compass Cache opened"))
+        }
+    }
+
+    func testEveryRouteTrialTierHasDistinctLoot() async {
+        await MainActor.run {
+            let stamps = AppStore().languageRoutePassport.stamps
+            let runs = stamps.map { LanguageRouteTrialRun(stamp: $0, strongAnswers: 0, target: 5, completedRuns: 0) }
+
+            XCTAssertEqual(Set(runs.map(\.lootName)).count, CEFRLevel.allCases.count)
+            XCTAssertEqual(runs.map(\.rewardXP), [12, 16, 20, 24, 30])
+            XCTAssertEqual(runs.map(\.rewardGems), [1, 2, 3, 4, 5])
+            XCTAssertTrue(runs.allSatisfy { $0.accessibilityLabel.contains($0.lootName) })
+        }
+    }
+
     func testEquippedRouteRewardGrantsMechanicalAnswerBonus() async {
         await MainActor.run {
             let store = AppStore()

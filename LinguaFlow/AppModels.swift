@@ -4699,6 +4699,60 @@ struct LanguageRoutePassport: Equatable {
     }
 }
 
+struct LanguageRouteTrialRun: Equatable {
+    let stamp: LanguageRouteStamp
+    let strongAnswers: Int
+    let target: Int
+    let completedRuns: Int
+
+    var progress: Double { min(1, Double(strongAnswers) / Double(max(1, target))) }
+    var progressText: String { "\(min(strongAnswers, target))/\(target) strong answers" }
+    var lootName: String {
+        switch stamp.level {
+        case .a1: return "Compass Cache"
+        case .a2: return "Phrasebook Pack"
+        case .b1: return "Story Key Chest"
+        case .b2: return "Silver Voice Vault"
+        case .c1: return "Crown Treasury"
+        }
+    }
+    var rewardXP: Int {
+        switch stamp.level {
+        case .a1: return 12
+        case .a2: return 16
+        case .b1: return 20
+        case .b2: return 24
+        case .c1: return 30
+        }
+    }
+    var rewardGems: Int {
+        switch stamp.level {
+        case .a1: return 1
+        case .a2: return 2
+        case .b1: return 3
+        case .b2: return 4
+        case .c1: return 5
+        }
+    }
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var accessibilityLabel: String {
+        "\(stamp.trialTitle). \(progressText). Reward \(lootName), \(rewardText). \(completedRuns) completed runs."
+    }
+}
+
+struct LanguageRouteTrialCompletion: Equatable {
+    let trialTitle: String
+    let lootName: String
+    let rewardXP: Int
+    let rewardGems: Int
+    let completedRuns: Int
+
+    var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var accessibilityLabel: String {
+        "Route trial complete. \(trialTitle). \(lootName) opened. \(rewardText). Run \(completedRuns)."
+    }
+}
+
 enum ReviewGrade: Int, Codable, CaseIterable, Identifiable {
     case again = 1, hard = 2, good = 3, easy = 4
     var id: Int { rawValue }
@@ -4953,6 +5007,8 @@ struct UserStats: Codable, Equatable {
     var ownedRewardIds: [String]? = nil
     var equippedRewardId: String? = nil
     var equippedLanguageRouteLevel: CEFRLevel? = nil
+    var languageRouteTrialProgress: [String: Int]? = nil
+    var languageRouteTrialCompletions: [String: Int]? = nil
     var unlockedLevels: [CEFRLevel] = [.a1]
     var pet: Pet = Pet()
     var hasSeenPetPicker: Bool = false

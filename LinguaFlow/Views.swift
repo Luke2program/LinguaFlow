@@ -5450,7 +5450,7 @@ struct ReviewCardView: View {
                             .foregroundStyle(rewardPalette[0])
                             .frame(width: 28, height: 28)
                             .background(rewardPalette[0].opacity(0.14), in: Circle())
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text("ROUTE TRIAL · \(reward.trialTitle.uppercased())")
                                 .font(.caption2.bold())
                                 .tracking(0.55)
@@ -5461,6 +5461,21 @@ struct ReviewCardView: View {
                             Text(reward.trialStatus)
                                 .font(.caption2.bold())
                                 .foregroundStyle(.secondary)
+                            if let run = store.languageRouteTrialRun {
+                                HStack {
+                                    Text(run.progressText)
+                                    Spacer()
+                                    Text(run.lootName)
+                                }
+                                .font(.caption2.bold())
+                                .foregroundStyle(rewardPalette[0])
+                                ProgressView(value: run.progress)
+                                    .tint(rewardPalette[0])
+                                    .accessibilityIdentifier("languageRouteTrialProgress")
+                                Text("\(run.rewardText) · \(run.completedRuns) cleared")
+                                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         Spacer(minLength: 0)
                     }
@@ -5468,7 +5483,7 @@ struct ReviewCardView: View {
                     .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(rewardPalette[0].opacity(0.20), lineWidth: 1))
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Route trial \(reward.trialTitle). \(reward.trialRule) \(reward.trialStatus).")
+                    .accessibilityLabel(store.languageRouteTrialRun?.accessibilityLabel ?? "Route trial \(reward.trialTitle). \(reward.trialRule) \(reward.trialStatus).")
                     .accessibilityIdentifier("languageRouteTrial")
                 }
                 if let card = store.currentCard {
@@ -5507,6 +5522,10 @@ struct ReviewCardView: View {
                             LanguagePhraseRecapView(recap: recap)
                                 .transition(.scale(scale: 0.96).combined(with: .opacity))
                         }
+                        if let completion = store.latestLanguageRouteTrialCompletion {
+                            LanguageRouteTrialCompletionView(completion: completion)
+                                .transition(.scale(scale: 0.92).combined(with: .opacity))
+                        }
                         HStack(spacing: 10) {
                             ForEach(ReviewGrade.allCases) { grade in
                                 Button(grade.title) { store.grade(grade, expected: store.currentAnswer) }
@@ -5525,6 +5544,50 @@ struct ReviewCardView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         _ = store.submit(answer: answer)
         typedAnswer = ""
+    }
+}
+
+private struct LanguageRouteTrialCompletionView: View {
+    let completion: LanguageRouteTrialCompletion
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(.yellow.opacity(0.22))
+                Image(systemName: "shippingbox.fill")
+                    .font(.title3.bold())
+                    .foregroundStyle(.yellow)
+                    .symbolEffect(.bounce, value: completion.completedRuns)
+            }
+            .frame(width: 46, height: 46)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("ROUTE TRIAL COMPLETE")
+                    .font(.caption2.bold())
+                    .tracking(0.8)
+                    .foregroundStyle(.yellow)
+                Text(completion.lootName)
+                    .font(.headline.bold())
+                    .foregroundStyle(.white)
+                Text("\(completion.rewardText) · run \(completion.completedRuns)")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.76))
+            }
+            Spacer()
+            Image(systemName: "sparkles")
+                .foregroundStyle(.yellow)
+                .symbolEffect(.pulse, options: .repeating)
+        }
+        .padding(14)
+        .background(
+            LinearGradient(colors: [.purple.opacity(0.96), .indigo.opacity(0.88), .blue.opacity(0.78)], startPoint: .topLeading, endPoint: .bottomTrailing),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.yellow.opacity(0.34), lineWidth: 1))
+        .shadow(color: .purple.opacity(0.25), radius: 12, y: 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(completion.accessibilityLabel)
+        .accessibilityIdentifier("languageRouteTrialCompletion")
     }
 }
 
