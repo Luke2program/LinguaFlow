@@ -4608,6 +4608,7 @@ struct LanguageRouteStamp: Identifiable, Equatable {
     let masteredCount: Int
     let targetCount: Int
     let isEquipped: Bool
+    let trialClears: Int
 
     var id: String { level.rawValue }
     var isEarned: Bool { masteredCount >= targetCount }
@@ -4621,6 +4622,34 @@ struct LanguageRouteStamp: Identifiable, Equatable {
     var actionText: String {
         if isEquipped { return "Equipped" }
         return isEarned ? "Equip reward" : "Locked"
+    }
+    var masteryBadgeName: String {
+        switch trialClears {
+        case 6...: return "Gold Trailblazer"
+        case 3...: return "Silver Pathfinder"
+        case 1...: return "Bronze Wayfinder"
+        default: return "Badge unearned"
+        }
+    }
+    var masteryBadgeSymbol: String {
+        switch trialClears {
+        case 6...: return "medal.fill"
+        case 3...: return "shield.lefthalf.filled"
+        case 1...: return "seal.fill"
+        default: return "seal"
+        }
+    }
+    var nextMasteryBadgeText: String {
+        switch trialClears {
+        case 6...: return "Gold badge maxed"
+        case 3...:
+            let remaining = 6 - trialClears
+            return "\(remaining) clear\(remaining == 1 ? "" : "s") to Gold"
+        case 1...:
+            let remaining = 3 - trialClears
+            return "\(remaining) clear\(remaining == 1 ? "" : "s") to Silver"
+        default: return "1 clear to Bronze"
+        }
     }
     var rewardSymbol: String {
         switch level {
@@ -4682,7 +4711,7 @@ struct LanguageRouteStamp: Identifiable, Equatable {
         }
     }
     var accessibilityLabel: String {
-        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). Power: \(powerText). Route trial \(trialTitle): \(trialRule) \(actionText)."
+        "\(level.rawValue) \(title). \(progressText). Reward \(reward), effect \(effectName). Power: \(powerText). Route trial \(trialTitle): \(trialRule) \(actionText). \(masteryBadgeName), \(trialClears) clears. \(nextMasteryBadgeText)."
     }
 }
 
@@ -4748,8 +4777,17 @@ struct LanguageRouteTrialCompletion: Equatable {
     let completedRuns: Int
 
     var rewardText: String { "+\(rewardXP) XP · +\(rewardGems) gem\(rewardGems == 1 ? "" : "s")" }
+    var unlockedBadgeName: String? {
+        switch completedRuns {
+        case 1: return "Bronze Wayfinder"
+        case 3: return "Silver Pathfinder"
+        case 6: return "Gold Trailblazer"
+        default: return nil
+        }
+    }
     var accessibilityLabel: String {
-        "Route trial complete. \(trialTitle). \(lootName) opened. \(rewardText). Run \(completedRuns)."
+        let badgeText = unlockedBadgeName.map { " New route badge: \($0)." } ?? ""
+        return "Route trial complete. \(trialTitle). \(lootName) opened. \(rewardText). Run \(completedRuns).\(badgeText)"
     }
 }
 

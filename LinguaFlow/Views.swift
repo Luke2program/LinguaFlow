@@ -4480,6 +4480,18 @@ private struct LanguageRoutePassportView: View {
                                 .font(.system(size: 9, weight: .bold, design: .rounded))
                                 .foregroundStyle(stamp.isEquipped ? palette(for: stamp.level)[0] : .secondary)
                                 .lineLimit(1)
+                            HStack(spacing: 3) {
+                                Image(systemName: stamp.masteryBadgeSymbol)
+                                Text(stamp.masteryBadgeName)
+                            }
+                            .font(.system(size: 9, weight: .bold, design: .rounded))
+                            .foregroundStyle(stamp.trialClears > 0 ? palette(for: stamp.level)[1] : .secondary)
+                            .lineLimit(1)
+                            Text(stamp.nextMasteryBadgeText)
+                                .font(.system(size: 8, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .accessibilityIdentifier("languageRouteBadgeProgress_\(stamp.level.rawValue)")
                             Text(stamp.actionText)
                                 .font(.caption2.bold())
                                 .foregroundStyle(stamp.isEquipped ? .green : (stamp.isEarned ? .blue : .secondary))
@@ -5475,6 +5487,13 @@ struct ReviewCardView: View {
                                 Text("\(run.rewardText) · \(run.completedRuns) cleared")
                                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                                     .foregroundStyle(.secondary)
+                                Label(reward.masteryBadgeName, systemImage: reward.masteryBadgeSymbol)
+                                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                                    .foregroundStyle(rewardPalette[1])
+                                Text(reward.nextMasteryBadgeText)
+                                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("equippedLanguageRouteBadgeProgress")
                             }
                         }
                         Spacer(minLength: 0)
@@ -5572,6 +5591,12 @@ private struct LanguageRouteTrialCompletionView: View {
                 Text("\(completion.rewardText) · run \(completion.completedRuns)")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.76))
+                if let badge = completion.unlockedBadgeName {
+                    Label("NEW BADGE · \(badge)", systemImage: "medal.fill")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.yellow)
+                        .accessibilityIdentifier("languageRouteBadgeUnlock")
+                }
             }
             Spacer()
             Image(systemName: "sparkles")

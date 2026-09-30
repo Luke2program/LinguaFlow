@@ -64,7 +64,8 @@ final class AppStore: ObservableObject {
                 reward: copy.1,
                 masteredCount: mastered,
                 targetCount: milestone,
-                isEquipped: stats.equippedLanguageRouteLevel == level
+                isEquipped: stats.equippedLanguageRouteLevel == level,
+                trialClears: stats.languageRouteTrialCompletions?[languageRouteTrialKey(for: level)] ?? 0
             )
         }
         return LanguageRoutePassport(pairName: stats.selectedLanguagePair.displayName, stamps: stamps)
@@ -811,14 +812,18 @@ final class AppStore: ObservableObject {
             completions[key] = completedRuns
             stats.xp += preview.rewardXP
             stats.gems += preview.rewardGems
-            latestLanguageRouteTrialCompletion = LanguageRouteTrialCompletion(
+            let completion = LanguageRouteTrialCompletion(
                 trialTitle: stamp.trialTitle,
                 lootName: preview.lootName,
                 rewardXP: preview.rewardXP,
                 rewardGems: preview.rewardGems,
                 completedRuns: completedRuns
             )
+            latestLanguageRouteTrialCompletion = completion
             feedbackMessage += " \(preview.lootName) opened: \(preview.rewardText)."
+            if let badge = completion.unlockedBadgeName {
+                feedbackMessage += " New route badge: \(badge)."
+            }
         } else {
             progress[key] = nextProgress
             latestLanguageRouteTrialCompletion = nil

@@ -242,7 +242,36 @@ final class LinguaFlowTests: XCTestCase {
             XCTAssertEqual(store.stats.gems, startingGems + 1)
             XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.lootName, "Compass Cache")
             XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.rewardText, "+12 XP · +1 gem")
+            XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.unlockedBadgeName, "Bronze Wayfinder")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.masteryBadgeName, "Bronze Wayfinder")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.nextMasteryBadgeText, "2 clears to Silver")
             XCTAssertTrue(store.feedbackMessage.contains("Compass Cache opened"))
+        }
+    }
+
+    func testRouteTrialClearsUpgradeCollectibleBadgeAtMilestones() async {
+        await MainActor.run {
+            let store = AppStore()
+            let cards = VocabularyData.cards(for: store.stats.selectedLanguagePair).filter { $0.level == .a1 }
+            for card in cards.prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+            store.stats.equippedLanguageRouteLevel = .a1
+            let key = "\(store.stats.selectedLanguagePair.id)|A1"
+
+            store.stats.languageRouteTrialCompletions = [key: 2]
+            XCTAssertEqual(store.equippedLanguageRouteReward?.masteryBadgeName, "Bronze Wayfinder")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.nextMasteryBadgeText, "1 clear to Silver")
+            for _ in 0..<5 { store.advanceLanguageRouteTrial(with: store.equippedLanguageRouteReward!) }
+            XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.unlockedBadgeName, "Silver Pathfinder")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.masteryBadgeName, "Silver Pathfinder")
+
+            store.stats.languageRouteTrialCompletions = [key: 5]
+            store.stats.languageRouteTrialProgress = [key: 0]
+            for _ in 0..<5 { store.advanceLanguageRouteTrial(with: store.equippedLanguageRouteReward!) }
+            XCTAssertEqual(store.latestLanguageRouteTrialCompletion?.unlockedBadgeName, "Gold Trailblazer")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.masteryBadgeName, "Gold Trailblazer")
+            XCTAssertEqual(store.equippedLanguageRouteReward?.nextMasteryBadgeText, "Gold badge maxed")
         }
     }
 

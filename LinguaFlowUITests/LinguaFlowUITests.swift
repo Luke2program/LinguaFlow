@@ -156,6 +156,8 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(routeTrial.label.contains("Alternate translation direction"))
         XCTAssertTrue(routeTrial.label.contains("Compass Cache"))
         XCTAssertTrue(app.progressIndicators["languageRouteTrialProgress"].exists)
+        XCTAssertTrue(app.staticTexts["equippedLanguageRouteBadgeProgress"].exists)
+        XCTAssertTrue(routeTrial.label.contains("Badge unearned"))
     }
 
     func testCanChangeLearningLanguageAfterOnboarding() throws {
