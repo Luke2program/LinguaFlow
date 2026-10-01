@@ -4728,6 +4728,55 @@ struct LanguageRoutePassport: Equatable {
     }
 }
 
+struct LanguageRouteBadgeCollectionItem: Identifiable, Equatable {
+    let pair: LanguagePair
+    let level: CEFRLevel
+    let clears: Int
+
+    var id: String { "\(pair.id)|\(level.rawValue)" }
+    var badgeName: String {
+        switch clears {
+        case 6...: return "Gold Trailblazer"
+        case 3...: return "Silver Pathfinder"
+        default: return "Bronze Wayfinder"
+        }
+    }
+    var badgeSymbol: String {
+        switch clears {
+        case 6...: return "medal.fill"
+        case 3...: return "shield.lefthalf.filled"
+        default: return "seal.fill"
+        }
+    }
+    var tier: Int { clears >= 6 ? 3 : (clears >= 3 ? 2 : 1) }
+    var nextTierText: String {
+        switch clears {
+        case 6...: return "Gold mastered"
+        case 3...: return "\(6 - clears) to Gold"
+        default: return "\(3 - clears) to Silver"
+        }
+    }
+    var accessibilityLabel: String {
+        "\(pair.displayName), \(level.rawValue), \(badgeName), \(clears) route clears. \(nextTierText)."
+    }
+}
+
+struct LanguageRouteBadgeCabinet: Equatable {
+    let items: [LanguageRouteBadgeCollectionItem]
+
+    var badgeCount: Int { items.count }
+    var routeCount: Int { Set(items.map(\.pair.id)).count }
+    var goldCount: Int { items.filter { $0.tier == 3 }.count }
+    var progressText: String {
+        badgeCount == 0 ? "Start your first route trial" : "\(badgeCount) badges · \(routeCount) routes"
+    }
+    var subtitle: String {
+        badgeCount == 0
+            ? "Clear an equipped passport trial to place its badge here."
+            : "Your best route badges stay together across every language."
+    }
+}
+
 struct LanguageRouteTrialRun: Equatable {
     let stamp: LanguageRouteStamp
     let strongAnswers: Int

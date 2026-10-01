@@ -136,6 +136,41 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testLanguageRouteBadgeCabinetCollectsAndRanksBadgesAcrossLanguagePairs() async {
+        await MainActor.run {
+            let store = AppStore()
+            let spanish = LanguagePair(source: .german, target: .spanish)
+            let french = LanguagePair(source: .german, target: .french)
+            let italian = LanguagePair(source: .english, target: .italian)
+            store.stats.languageRouteTrialCompletions = [
+                "\(spanish.id)|A1": 1,
+                "\(french.id)|B1": 6,
+                "\(italian.id)|A2": 3,
+                "malformed": 12
+            ]
+
+            let cabinet = store.languageRouteBadgeCabinet
+
+            XCTAssertEqual(cabinet.badgeCount, 3)
+            XCTAssertEqual(cabinet.routeCount, 3)
+            XCTAssertEqual(cabinet.goldCount, 1)
+            XCTAssertEqual(cabinet.progressText, "3 badges · 3 routes")
+            XCTAssertEqual(cabinet.items.map(\.badgeName), ["Gold Trailblazer", "Silver Pathfinder", "Bronze Wayfinder"])
+            XCTAssertEqual(cabinet.items.first?.pair, french)
+            XCTAssertEqual(cabinet.items.first?.level, .b1)
+            XCTAssertTrue(cabinet.items.first?.accessibilityLabel.contains("6 route clears") ?? false)
+        }
+    }
+
+    func testEmptyLanguageRouteBadgeCabinetInvitesFirstTrial() async {
+        await MainActor.run {
+            let cabinet = AppStore().languageRouteBadgeCabinet
+            XCTAssertTrue(cabinet.items.isEmpty)
+            XCTAssertEqual(cabinet.progressText, "Start your first route trial")
+            XCTAssertTrue(cabinet.subtitle.contains("place its badge here"))
+        }
+    }
+
     func testEarnedLanguageRouteRewardCanBeEquippedAndShownInReviews() async {
         await MainActor.run {
             let store = AppStore()

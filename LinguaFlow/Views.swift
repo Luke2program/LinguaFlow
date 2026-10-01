@@ -4378,10 +4378,117 @@ struct LanguageWorldPathView: View {
                         _ = store.equipLanguageRouteReward(stamp)
                     }
                 }
+                LanguageRouteBadgeCabinetView(cabinet: store.languageRouteBadgeCabinet)
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("worldPathPanel")
+    }
+}
+
+private struct LanguageRouteBadgeCabinetView: View {
+    let cabinet: LanguageRouteBadgeCabinet
+
+    private func colors(for tier: Int) -> [Color] {
+        switch tier {
+        case 3: return [.yellow, .orange]
+        case 2: return [.cyan, .indigo]
+        default: return [.orange, .pink]
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(LinearGradient(colors: [.purple.opacity(0.24), .blue.opacity(0.13)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    Image(systemName: "cabinet.fill")
+                        .font(.headline.bold())
+                        .foregroundStyle(.purple)
+                }
+                .frame(width: 38, height: 38)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("POLYGLOT TROPHY ROOM")
+                        .font(.caption2.bold())
+                        .tracking(0.7)
+                        .foregroundStyle(.purple)
+                    Text("Route Badge Cabinet")
+                        .font(.subheadline.bold())
+                        .accessibilityIdentifier("languageRouteBadgeCabinetTitle")
+                    Text(cabinet.subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(cabinet.progressText)
+                        .font(.caption.bold())
+                        .foregroundStyle(.purple)
+                        .accessibilityIdentifier("languageRouteBadgeCabinetProgress")
+                    if cabinet.goldCount > 0 {
+                        Text("\(cabinet.goldCount) gold")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+
+            if cabinet.items.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: "seal")
+                    Text("Your first Bronze Wayfinder is one 5-answer trial away.")
+                        .font(.caption.bold())
+                }
+                .foregroundStyle(.secondary)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
+                .accessibilityIdentifier("languageRouteBadgeCabinetEmpty")
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(cabinet.items) { item in
+                            let palette = colors(for: item.tier)
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack {
+                                    Text("\(item.pair.source.flag) → \(item.pair.target.flag)")
+                                        .font(.caption.bold())
+                                    Spacer()
+                                    Text(item.level.rawValue)
+                                        .font(.caption2.bold())
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 3)
+                                        .background(.ultraThinMaterial, in: Capsule())
+                                }
+                                Image(systemName: item.badgeSymbol)
+                                    .font(.title2.bold())
+                                    .foregroundStyle(LinearGradient(colors: palette, startPoint: .top, endPoint: .bottom))
+                                Text(item.badgeName)
+                                    .font(.caption.bold())
+                                    .lineLimit(1)
+                                Text("\(item.clears) clears · \(item.nextTierText)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            .frame(width: 142, alignment: .leading)
+                            .padding(10)
+                            .background(LinearGradient(colors: palette.map { $0.opacity(0.14) }, startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(palette[0].opacity(0.25)))
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(item.accessibilityLabel)
+                            .accessibilityIdentifier("languageRouteCabinetBadge_\(item.id)")
+                        }
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.purple.opacity(0.05), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.purple.opacity(0.12)))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("languageRouteBadgeCabinet")
     }
 }
 

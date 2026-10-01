@@ -120,6 +120,19 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["languageRouteStamp_A1"].exists)
         XCTAssertTrue(app.staticTexts["languageRoutePassportNextReward"].exists)
         XCTAssertTrue(app.staticTexts["languageRouteRewardAction_A1"].exists)
+        XCTAssertTrue(element("languageRouteBadgeCabinet", in: app).exists)
+        XCTAssertTrue(app.staticTexts["languageRouteBadgeCabinetTitle"].exists)
+        XCTAssertTrue(app.staticTexts["languageRouteBadgeCabinetProgress"].exists)
+    }
+
+    func testRouteBadgeCabinetShowsCrossLanguageTrophies() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-route-badge-cabinet"])
+        selectDashboardDeck("progress", in: app)
+
+        XCTAssertTrue(element("languageRouteBadgeCabinet", in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["languageRouteBadgeCabinetProgress"].label, "2 badges · 2 routes")
+        XCTAssertTrue(element("languageRouteCabinetBadge_de-DE-es-ES|A1", in: app).exists)
+        XCTAssertTrue(element("languageRouteCabinetBadge_de-DE-fr-FR|A2", in: app).exists)
     }
 
     func testEarnedRouteRewardEquipsWithNamedVisualEffect() throws {

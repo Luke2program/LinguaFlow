@@ -73,6 +73,23 @@ final class AppStore: ObservableObject {
     var equippedLanguageRouteReward: LanguageRouteStamp? {
         languageRoutePassport.stamps.first { $0.isEquipped && $0.isEarned }
     }
+    var languageRouteBadgeCabinet: LanguageRouteBadgeCabinet {
+        let completions = stats.languageRouteTrialCompletions ?? [:]
+        let items = completions.compactMap { key, clears -> LanguageRouteBadgeCollectionItem? in
+            guard clears > 0,
+                  let separator = key.lastIndex(of: "|"),
+                  let level = CEFRLevel(rawValue: String(key[key.index(after: separator)...])) else { return nil }
+            let pairID = String(key[..<separator])
+            guard let pair = LanguagePair.allPairs.first(where: { $0.id == pairID }) else { return nil }
+            return LanguageRouteBadgeCollectionItem(pair: pair, level: level, clears: clears)
+        }
+        .sorted {
+            if $0.tier != $1.tier { return $0.tier > $1.tier }
+            if $0.clears != $1.clears { return $0.clears > $1.clears }
+            return $0.pair.displayName < $1.pair.displayName
+        }
+        return LanguageRouteBadgeCabinet(items: items)
+    }
     var languageRouteTrialRun: LanguageRouteTrialRun? {
         guard let stamp = equippedLanguageRouteReward else { return nil }
         let key = languageRouteTrialKey(for: stamp.level)
@@ -619,6 +636,14 @@ final class AppStore: ObservableObject {
                     schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
                 }
                 stats.equippedLanguageRouteLevel = .a1
+            }
+            if arguments.contains("--ui-testing-route-badge-cabinet") {
+                let current = stats.selectedLanguagePair
+                let second = LanguagePair(source: .german, target: .french)
+                stats.languageRouteTrialCompletions = [
+                    "\(current.id)|A1": 6,
+                    "\(second.id)|A2": 3
+                ]
             }
         }
         refreshPracticeDay(); resetPomodoro(); pickNextCard()
