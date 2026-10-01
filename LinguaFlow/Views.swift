@@ -4403,7 +4403,7 @@ private struct LanguageRouteBadgeCabinetView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(LinearGradient(colors: [.purple.opacity(0.24), .blue.opacity(0.13)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    Image(systemName: "cabinet.fill")
+                    Image(systemName: "archivebox.fill")
                         .font(.headline.bold())
                         .foregroundStyle(.purple)
                 }
