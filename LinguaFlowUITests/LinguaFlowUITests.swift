@@ -135,6 +135,33 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("languageRouteCabinetBadge_de-DE-fr-FR|A2", in: app).exists)
     }
 
+    func testTrophyReplayOpensSelectedLanguageTrial() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-route-badge-cabinet"])
+        selectDashboardDeck("progress", in: app)
+        let badge = app.buttons["languageRouteCabinetBadge_de-DE-fr-FR|A2"].firstMatch
+        XCTAssertTrue(badge.waitForExistence(timeout: 3))
+        for _ in 0..<12 where !badge.isHittable { app.swipeUp() }
+        XCTAssertTrue(badge.isHittable)
+        let cabinetProof = XCTAttachment(screenshot: app.screenshot())
+        cabinetProof.name = "Playable route trophies"
+        cabinetProof.lifetime = .keepAlways
+        add(cabinetProof)
+        badge.tap()
+        let answer = app.textFields["answerInput"].firstMatch
+        XCTAssertTrue(answer.waitForExistence(timeout: 3))
+        for _ in 0..<3 where !answer.isHittable { app.swipeUp() }
+        XCTAssertTrue(answer.isHittable)
+        let trial = element("languageRouteTrial", in: app)
+        XCTAssertTrue(trial.exists)
+        XCTAssertTrue(trial.label.contains("3 completed runs"))
+        XCTAssertTrue(element("equippedLanguageRouteReward", in: app).label.contains("A2"))
+        XCTAssertTrue(app.staticTexts["promptText"].exists)
+        let replayProof = XCTAttachment(screenshot: app.screenshot())
+        replayProof.name = "French A2 trophy replay"
+        replayProof.lifetime = .keepAlways
+        add(replayProof)
+    }
+
     func testEarnedRouteRewardEquipsWithNamedVisualEffect() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-language-route-reward"])
         selectDashboardDeck("progress", in: app)

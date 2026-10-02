@@ -10,6 +10,7 @@ final class AppStore: ObservableObject {
     @Published var currentCard: VocabularyCard?
     @Published var activeDirection: ReviewDirection = .sourceToTarget
     @Published var challengeMode: ChallengeMode = .word
+    @Published var languageRouteLaunchID = 0
     @Published var combo = 0
     @Published var spokenTranscript = ""
     @Published var isListening = false
@@ -640,6 +641,11 @@ final class AppStore: ObservableObject {
             if arguments.contains("--ui-testing-route-badge-cabinet") {
                 let current = stats.selectedLanguagePair
                 let second = LanguagePair(source: .german, target: .french)
+                for (pair, level) in [(current, CEFRLevel.a1), (second, CEFRLevel.a2)] {
+                    for card in VocabularyData.cards(for: pair).filter({ $0.level == level }).prefix(5) {
+                        schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+                    }
+                }
                 stats.languageRouteTrialCompletions = [
                     "\(current.id)|A1": 6,
                     "\(second.id)|A2": 3
@@ -656,6 +662,31 @@ final class AppStore: ObservableObject {
         if !stats.unlockedLevels.contains(level) { stats.unlockedLevels.append(level) }
         prepareSchedulesForCurrentSelection()
         save(); pickNextCard()
+    }
+
+    /// Reopen an owned route without resetting its saved trial or awarding free progress.
+    @discardableResult
+    func replayLanguageRouteBadge(_ badge: LanguageRouteBadgeCollectionItem) -> Bool {
+        guard languageRouteBadgeCabinet.items.contains(where: { $0.id == badge.id }),
+              VocabularyData.cards(for: badge.pair).contains(where: { $0.level == badge.level }) else { return false }
+        stats.selectedSubject = .languages
+        stats.selectedLanguagePair = badge.pair
+        stats.selectedLevel = badge.level
+        stats.direction = .sourceToTarget
+        stats.equippedLanguageRouteLevel = nil
+        prepareSchedulesForCurrentSelection()
+        let stamp = languageRoutePassport.stamps.first { $0.level == badge.level }
+        if let stamp, stamp.isEarned { stats.equippedLanguageRouteLevel = badge.level }
+        combo = 0
+        latestLanguagePhraseRecap = nil
+        latestLanguageRouteTrialCompletion = nil
+        pickNextCard()
+        feedbackMessage = stats.equippedLanguageRouteLevel != nil
+            ? "Route rematch · \(badge.pair.displayName) · \(badge.level.rawValue). Your trial progress is saved."
+            : "Route practice · rebuild mastery to reactivate this badge's trial."
+        save()
+        languageRouteLaunchID += 1
+        return true
     }
 
     func select(languagePair: LanguagePair) {

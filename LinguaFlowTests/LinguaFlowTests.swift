@@ -162,6 +162,62 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testBadgeReplaySwitchesRouteAndPreservesProgressWithoutFreeRewards() async {
+        await MainActor.run {
+            let store = AppStore()
+            let pair = LanguagePair(source: .german, target: .french)
+            let badge = LanguageRouteBadgeCollectionItem(pair: pair, level: .a2, clears: 3)
+            store.stats.languageRouteTrialCompletions = [badge.id: 3]
+            store.stats.languageRouteTrialProgress = [badge.id: 2]
+            for card in VocabularyData.cards(for: pair).filter({ $0.level == .a2 }).prefix(5) {
+                store.schedules[card.id] = CardSchedule(repetitions: 3, intervalDays: 12, easeFactor: 2.5, dueDate: Date())
+            }
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            XCTAssertTrue(store.replayLanguageRouteBadge(badge))
+            XCTAssertEqual(store.stats.selectedLanguagePair, pair)
+            XCTAssertEqual(store.stats.selectedLevel, .a2)
+            XCTAssertEqual(store.stats.selectedSubject, .languages)
+            XCTAssertEqual(store.stats.equippedLanguageRouteLevel, .a2)
+            XCTAssertEqual(store.languageRouteTrialRun?.strongAnswers, 2)
+            XCTAssertEqual(store.languageRouteTrialRun?.completedRuns, 3)
+            XCTAssertNotNil(store.currentCard)
+            XCTAssertTrue(VocabularyData.cards(for: pair).contains { $0.id == store.currentCard?.id })
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+            XCTAssertEqual(store.languageRouteLaunchID, 1)
+            let restored = AppStore()
+            XCTAssertEqual(restored.stats.selectedLanguagePair, pair)
+            XCTAssertEqual(restored.stats.languageRouteTrialProgress?[badge.id], 2)
+            XCTAssertEqual(restored.stats.languageRouteTrialCompletions?[badge.id], 3)
+        }
+    }
+
+    func testBadgeReplayRejectsUnownedRouteWithoutChangingSelection() async {
+        await MainActor.run {
+            let store = AppStore()
+            let before = store.stats.selectedLanguagePair
+            let badge = LanguageRouteBadgeCollectionItem(pair: LanguagePair(source: .german, target: .french), level: .a2, clears: 99)
+            XCTAssertFalse(store.replayLanguageRouteBadge(badge))
+            XCTAssertEqual(store.stats.selectedLanguagePair, before)
+            XCTAssertEqual(store.languageRouteLaunchID, 0)
+        }
+    }
+
+    func testBadgeReplayWithLapsedMasteryOpensPracticeWithoutInventingMastery() async {
+        await MainActor.run {
+            let store = AppStore()
+            let badge = LanguageRouteBadgeCollectionItem(pair: LanguagePair(source: .german, target: .french), level: .a2, clears: 3)
+            store.stats.languageRouteTrialCompletions = [badge.id: 3]
+            XCTAssertTrue(store.replayLanguageRouteBadge(badge))
+            XCTAssertNil(store.stats.equippedLanguageRouteLevel)
+            XCTAssertNil(store.languageRouteTrialRun)
+            XCTAssertEqual(store.stats.languageRouteTrialCompletions?[badge.id], 3)
+            XCTAssertFalse(store.languageRoutePassport.stamps.first { $0.level == .a2 }!.isEarned)
+            XCTAssertTrue(store.feedbackMessage.contains("rebuild mastery"))
+        }
+    }
+
     func testEmptyLanguageRouteBadgeCabinetInvitesFirstTrial() async {
         await MainActor.run {
             let cabinet = AppStore().languageRouteBadgeCabinet

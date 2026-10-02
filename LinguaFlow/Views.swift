@@ -174,6 +174,8 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     ActiveLearningArenaView()
+                        .id(store.languageRouteLaunchID)
+                        .id("learningArena")
                     ChallengeUITestControls()
                     if !store.feedbackMessage.isEmpty {
                         FeedbackBanner(text: store.feedbackMessage)
@@ -202,6 +204,10 @@ struct DashboardView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
                 withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
+            }
+            .onChange(of: store.languageRouteLaunchID) { _, _ in
+                selectedDeck = .quest
+                withAnimation { proxy.scrollTo("learningArena", anchor: .top) }
             }
             .accessibilityIdentifier("dashboardView")
         }
@@ -4378,7 +4384,9 @@ struct LanguageWorldPathView: View {
                         _ = store.equipLanguageRouteReward(stamp)
                     }
                 }
-                LanguageRouteBadgeCabinetView(cabinet: store.languageRouteBadgeCabinet)
+                LanguageRouteBadgeCabinetView(cabinet: store.languageRouteBadgeCabinet) { badge in
+                    _ = store.replayLanguageRouteBadge(badge)
+                }
             }
         }
         .accessibilityElement(children: .contain)
@@ -4388,6 +4396,7 @@ struct LanguageWorldPathView: View {
 
 private struct LanguageRouteBadgeCabinetView: View {
     let cabinet: LanguageRouteBadgeCabinet
+    let replay: (LanguageRouteBadgeCollectionItem) -> Void
 
     private func colors(for tier: Int) -> [Color] {
         switch tier {
@@ -4450,6 +4459,7 @@ private struct LanguageRouteBadgeCabinetView: View {
                     HStack(spacing: 8) {
                         ForEach(cabinet.items) { item in
                             let palette = colors(for: item.tier)
+                            Button { replay(item) } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 HStack {
                                     Text("\(item.pair.source.flag) → \(item.pair.target.flag)")
@@ -4470,14 +4480,21 @@ private struct LanguageRouteBadgeCabinetView: View {
                                 Text("\(item.clears) clears · \(item.nextTierText)")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
-                                    .lineLimit(1)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Label("Play route", systemImage: "play.fill")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.purple)
+                                    .padding(.top, 3)
                             }
                             .frame(width: 142, alignment: .leading)
                             .padding(10)
                             .background(LinearGradient(colors: palette.map { $0.opacity(0.14) }, startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .overlay(RoundedRectangle(cornerRadius: 14).stroke(palette[0].opacity(0.25)))
                             .accessibilityElement(children: .ignore)
+                            }
+                            .buttonStyle(.plain)
                             .accessibilityLabel(item.accessibilityLabel)
+                            .accessibilityHint("Opens this language and level for another run. Saved trial progress is kept.")
                             .accessibilityIdentifier("languageRouteCabinetBadge_\(item.id)")
                         }
                     }
