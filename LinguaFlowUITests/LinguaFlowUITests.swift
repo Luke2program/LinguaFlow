@@ -135,6 +135,32 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("languageRouteCabinetBadge_de-DE-fr-FR|A2", in: app).exists)
     }
 
+    func testRewardVaultOpensWorldAndKeepsLockedBadgeDisabled() throws {
+        let app = launchReadyApp()
+        selectDashboardDeck("rewards", in: app)
+        _ = element("rewardVaultPanel", in: app)
+        // The featured shelf always includes the last unlocked general-subject world.
+        let playable = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND enabled == true", "openWorldReward_")).firstMatch
+        XCTAssertTrue(playable.waitForExistence(timeout: 3))
+        for _ in 0..<12 where !playable.isHittable { app.swipeUp() }
+        XCTAssertTrue(playable.isHittable)
+        let locked = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND enabled == false", "openWorldReward_")).firstMatch
+        XCTAssertTrue(locked.exists)
+        let vaultProof = XCTAttachment(screenshot: app.screenshot())
+        vaultProof.name = "Playable world reward vault"
+        vaultProof.lifetime = .keepAlways
+        add(vaultProof)
+        playable.tap()
+        XCTAssertFalse(app.textFields["answerInput"].exists)
+        let quest = app.buttons["dashboardDeck_quest"].firstMatch
+        XCTAssertTrue(quest.waitForExistence(timeout: 3))
+        XCTAssertEqual(quest.value as? String, "Selected")
+        let worldProof = XCTAttachment(screenshot: app.screenshot())
+        worldProof.name = "World launched from reward vault"
+        worldProof.lifetime = .keepAlways
+        add(worldProof)
+    }
+
     func testTrophyReplayOpensSelectedLanguageTrial() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-route-badge-cabinet"])
         selectDashboardDeck("progress", in: app)

@@ -1669,6 +1669,67 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldRewardOpensWorldWithoutResettingProgressOrGrantingRewards() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 500
+            store.stats.gems = 17
+            store.stats.selectedSubject = .languages
+            var progress = store.stats.progress(for: .history)
+            progress.completedChallengeIds = ["rome-01"]
+            store.stats.updateProgress(for: .history, progress)
+            store.combo = 4
+            let badge = store.stats.worldRewardBadges.first { $0.id == "history-ancient-rome" }!
+            XCTAssertTrue(store.openWorldReward(badge))
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertEqual(store.currentWorld?.id, "ancient-rome")
+            XCTAssertEqual(store.stats.progress(for: .history).completedChallengeIds, ["rome-01"])
+            XCTAssertEqual(store.stats.xp, 500)
+            XCTAssertEqual(store.stats.gems, 17)
+            XCTAssertEqual(store.combo, 0)
+            XCTAssertEqual(store.worldRewardLaunchID, 1)
+            XCTAssertTrue(store.openWorldReward(badge))
+            XCTAssertEqual(store.worldRewardLaunchID, 2)
+            XCTAssertEqual(store.stats.xp, 500)
+            let restored = AppStore()
+            XCTAssertEqual(restored.stats.selectedSubject, .history)
+            XCTAssertEqual(restored.currentWorld?.id, "ancient-rome")
+            XCTAssertEqual(restored.stats.progress(for: .history).completedChallengeIds, ["rome-01"])
+        }
+    }
+
+    func testWorldRewardRejectsStaleUnlockWithoutChangingRoute() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 500
+            let stale = store.stats.worldRewardBadges.first { $0.id == "history-medieval-europe" }!
+            XCTAssertTrue(stale.isEarned)
+            store.stats.xp = 0
+            store.stats.selectedSubject = .science
+            store.combo = 3
+            XCTAssertFalse(store.openWorldReward(stale))
+            XCTAssertEqual(store.stats.selectedSubject, .science)
+            XCTAssertEqual(store.stats.xp, 0)
+            XCTAssertEqual(store.combo, 3)
+            XCTAssertEqual(store.worldRewardLaunchID, 0)
+        }
+    }
+
+    func testWorldRewardNavigationSupportsEveryGeneralSubject() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 0
+            let badges = store.stats.worldRewardBadges.filter { $0.isEarned }
+            XCTAssertEqual(badges.count, 7)
+            for badge in badges {
+                XCTAssertTrue(store.openWorldReward(badge))
+                XCTAssertEqual(store.stats.selectedSubject, badge.subject)
+                XCTAssertEqual(store.currentWorld?.id, badge.world.id)
+            }
+            XCTAssertEqual(store.stats.xp, 0)
+        }
+    }
+
     func testRewardVaultSummarizesEarnedAndNextLockedWorldBadges() {
         var stats = UserStats()
         stats.xp = 0

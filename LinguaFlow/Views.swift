@@ -174,7 +174,7 @@ struct DashboardView: View {
                     header
                     subjectHeader
                     ActiveLearningArenaView()
-                        .id(store.languageRouteLaunchID)
+                        .id("\(store.languageRouteLaunchID)-\(store.worldRewardLaunchID)")
                         .id("learningArena")
                     ChallengeUITestControls()
                     if !store.feedbackMessage.isEmpty {
@@ -206,6 +206,10 @@ struct DashboardView: View {
                 withAnimation(.easeOut(duration: 0.25)) { keyboardHeight = 0 }
             }
             .onChange(of: store.languageRouteLaunchID) { _, _ in
+                selectedDeck = .quest
+                withAnimation { proxy.scrollTo("learningArena", anchor: .top) }
+            }
+            .onChange(of: store.worldRewardLaunchID) { _, _ in
                 selectedDeck = .quest
                 withAnimation { proxy.scrollTo("learningArena", anchor: .top) }
             }
@@ -4924,7 +4928,16 @@ struct RewardVaultView: View {
 
                 HStack(spacing: 8) {
                     ForEach(badges) { badge in
-                        RewardBadgeChip(badge: badge)
+                        Button {
+                            store.openWorldReward(badge)
+                        } label: {
+                            RewardBadgeChip(badge: badge)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!badge.isEarned)
+                        .accessibilityLabel("\(badge.title), \(badge.subtitle)")
+                        .accessibilityHint(badge.isEarned ? "Opens this world and keeps your progress." : "Earn \(badge.xpRemaining) more XP to unlock this world.")
+                        .accessibilityIdentifier("openWorldReward_\(badge.id)")
                     }
                 }
 
@@ -4971,7 +4984,7 @@ struct RewardBadgeChip: View {
                 .foregroundStyle(badge.isEarned ? .primary : .secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
-            Text(badge.isEarned ? "Collected" : "\(badge.xpRemaining) XP")
+            Text(badge.isEarned ? "Play world →" : "\(badge.xpRemaining) XP")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

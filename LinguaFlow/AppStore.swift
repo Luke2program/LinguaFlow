@@ -11,6 +11,7 @@ final class AppStore: ObservableObject {
     @Published var activeDirection: ReviewDirection = .sourceToTarget
     @Published var challengeMode: ChallengeMode = .word
     @Published var languageRouteLaunchID = 0
+    @Published var worldRewardLaunchID = 0
     @Published var combo = 0
     @Published var spokenTranscript = ""
     @Published var isListening = false
@@ -1729,6 +1730,23 @@ final class AppStore: ObservableObject {
         return true
     }
     
+    /// Resolve against current progress, never trust a stale or forged badge's unlock flag.
+    @discardableResult
+    func openWorldReward(_ badge: WorldRewardBadge) -> Bool {
+        guard let current = stats.worldRewardBadges.first(where: { $0.id == badge.id }),
+              current.isEarned else { return false }
+        stats.selectedSubject = current.subject
+        combo = 0
+        newlyUnlockedWorld = nil
+        newlyCompletedWorld = nil
+        latestLanguagePhraseRecap = nil
+        latestLanguageRouteTrialCompletion = nil
+        select(worldId: current.world.id, for: current.subject)
+        feedbackMessage = "World opened: \(current.world.name). Continue your adventure."
+        worldRewardLaunchID += 1
+        return true
+    }
+
     func select(worldId: String, for subject: Subject) {
         var progress = stats.progress(for: subject)
         progress.currentWorldId = worldId
