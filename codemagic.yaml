@@ -21,15 +21,14 @@ workflows:
           include: true
           source: true
     scripts:
-      - name: Build
+      - name: Build and test with retained verification evidence
         script: |
-          xcodebuild -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' build
-      - name: Test
-        script: |
-          xcodebuild test -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' || true
+          bash ci_scripts/verify_ios.sh
     artifacts:
-      - build/ios_integ/Build/Products/**/*.app
-      - /tmp/xcodebuild_logs/*.log
+      - build/verification/**/TestResults.xcresult
+      - build/verification/**/xcodebuild.log
+      - build/verification/**/revision.txt
+      - build/verification/**/DerivedData/Build/Products/Debug-iphonesimulator/*.app
     publishing:
       email:
         recipients:

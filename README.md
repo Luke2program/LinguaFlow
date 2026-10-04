@@ -16,6 +16,12 @@ A native iOS learning adventure with playable subjects, world-based challenges, 
 xcodebuild test -project LinguaFlow.xcodeproj -scheme LinguaFlow -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -parallel-testing-enabled NO
 ```
 
+## Verification evidence
+
+Run `bash ci_scripts/verify_ios.sh` on the Mac or in Codemagic to build and run both test targets with parallel testing disabled. Each attempt retains its commit hash, combined build log, and `.xcresult` bundle (including UI-test screenshot attachments) under a separate `build/verification/run.*` directory. Test failures propagate to CI rather than being ignored. Override `IOS_TEST_DESTINATION` to select an available simulator.
+
+The runner itself has Linux-compatible regression checks: `python3 ci_scripts/test_verify_ios.py -v`. These use a mock build command to check failure propagation and evidence paths; they do **not** verify the iOS app. A real passing XCTest run and screenshot inspection are still required. Codemagic also requires this repository to be registered as an app; adding the workflow alone does not enable cloud builds.
+
 ## Architecture
 
 Important files:
