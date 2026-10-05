@@ -1654,6 +1654,71 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(roulette.rewardText, "+30 XP · +2 gems · Surprise stamp")
     }
 
+    func testRandomStudySkipsCurrentRouteWhenAlternativesExist() {
+        var stats = UserStats()
+        stats.xp = 0
+        stats.selectedSubject = .history
+        var progress = stats.progress(for: .history)
+        progress.currentWorldId = "ancient-rome"
+        stats.updateProgress(for: .history, progress)
+        XCTAssertFalse(stats.randomStudyOptions.isEmpty)
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.id == "history-ancient-rome" })
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .languages })
+    }
+
+    func testRandomStudySkipsClearedWorldButPreservesReplayCatalog() {
+        var stats = UserStats()
+        stats.xp = 0
+        var progress = stats.progress(for: .history)
+        let ids = Subject.history.challengeIds(for: "ancient-rome")
+        XCTAssertFalse(ids.isEmpty)
+        progress.completedChallengeIds = ids
+        stats.updateProgress(for: .history, progress)
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.id == "history-ancient-rome" })
+        XCTAssertTrue(stats.questRoulette.options.contains { $0.id == "history-ancient-rome" })
+        XCTAssertEqual(stats.subjectProgress[Subject.history.rawValue]?.completedChallengeIds, ids)
+    }
+
+    func testRandomStudyKeepsPartiallyCompletedWorld() {
+        var stats = UserStats()
+        stats.xp = 0
+        stats.selectedSubject = .languages
+        var progress = stats.progress(for: .history)
+        let ids = Subject.history.challengeIds(for: "ancient-rome")
+        XCTAssertGreaterThan(ids.count, 1)
+        progress.completedChallengeIds = Array(ids.prefix(1))
+        stats.updateProgress(for: .history, progress)
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.id == "history-ancient-rome" })
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.subject == .languages })
+    }
+
+    func testRandomStudyFallsBackToLanguagesWhenAllWorldsCleared() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        stats.selectedSubject = .languages
+        for subject in Subject.allCases where subject != .languages {
+            var progress = stats.progress(for: subject)
+            progress.completedChallengeIds = subject.worlds.flatMap { subject.challengeIds(for: $0.id) }
+            stats.updateProgress(for: subject, progress)
+        }
+        XCTAssertEqual(stats.randomStudyOptions.map(\.id), ["languages-harbor"])
+    }
+
+    func testRandomStudyRejectsStaleLockedOptionWithoutGrantingRewards() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats.xp = 100_000
+            let locked = store.stats.questRoulette.options.first { $0.id == "history-medieval-europe" }
+            XCTAssertNotNil(locked)
+            store.stats.xp = 0
+            let gems = store.stats.gems
+            store.startRandomStudy(option: locked)
+            XCTAssertNotEqual(store.currentWorld?.id, "medieval-europe")
+            XCTAssertEqual(store.stats.xp, 0)
+            XCTAssertEqual(store.stats.gems, gems)
+        }
+    }
+
     func testQuestRouletteCanStartSpecificWorldOption() async {
         await MainActor.run {
             let store = AppStore()

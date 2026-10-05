@@ -2048,7 +2048,7 @@ struct RandomStudyView: View {
                         .padding(.vertical, 8)
                         .background(Color.primary, in: Capsule())
                     Spacer()
-                    Text("Surprise route changes every spin")
+                    Text("Fresh challenges first · Keep exploring")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)

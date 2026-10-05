@@ -5926,6 +5926,21 @@ extension UserStats {
         return DailyWorldCompass(portals: Array(portals.prefix(3)))
     }
 
+    // Random study should always lead to a live encounter, not a cleared world.
+    // Keep the full route catalog available for deliberate replay/navigation.
+    var randomStudyOptions: [QuestRouletteOption] {
+        let playable = questRoulette.options.filter { option in
+            guard let world = option.world else { return option.subject == .languages }
+            let completed = subjectProgress[option.subject.rawValue]?.completedChallengeIds ?? []
+            return option.subject.challengeIds(for: world.id).contains { !completed.contains($0) }
+        }
+        let alternatives = playable.filter { option in
+            guard option.subject == selectedSubject else { return true }
+            return option.worldId != subjectProgress[selectedSubject.rawValue]?.currentWorldId
+        }
+        return alternatives.isEmpty ? playable : alternatives
+    }
+
     var questRoulette: QuestRoulette {
         let languageOption = QuestRouletteOption(
             subject: .languages,

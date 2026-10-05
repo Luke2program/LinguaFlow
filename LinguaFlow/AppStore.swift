@@ -1018,8 +1018,12 @@ final class AppStore: ObservableObject {
 
     func startRandomStudy(option forcedOption: QuestRouletteOption? = nil) {
         let roulette = stats.questRoulette
+        // Revalidate explicit routes too: stale cards must not bypass XP gates.
+        let validOption = forcedOption.flatMap { requested in
+            roulette.options.first { $0.id == requested.id }
+        }
 
-        guard let pick = forcedOption ?? roulette.options.randomElement() else {
+        guard let pick = validOption ?? stats.randomStudyOptions.randomElement() else {
             select(subject: .languages)
             feedbackMessage = "Roulette picked Languages. Build XP to unlock more worlds."
             return
