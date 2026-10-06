@@ -8,6 +8,74 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testFirstWorldAnswerAfterMidnightCountsWithoutYesterdayCombo() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.lastPracticeDay = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            store.stats.streak = 4
+            store.stats.reviewedToday = 8
+            store.stats.correctToday = 2
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            let challenge = ScienceData.challenges(for: "space-exploration")[0]
+            store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { $0.isCorrect }!)
+
+            XCTAssertEqual(store.stats.reviewedToday, 1)
+            XCTAssertEqual(store.stats.correctToday, 1)
+            XCTAssertEqual(store.stats.streak, 5)
+            XCTAssertEqual(store.stats.xp, xp + 25, "Yesterday's answers must not trigger today's combo")
+            XCTAssertEqual(store.stats.gems, gems + 2)
+            XCTAssertTrue(store.stats.progress(for: .science).completedChallengeIds.contains(challenge.id))
+            let restored = AppStore()
+            XCTAssertEqual(restored.stats.reviewedToday, 1)
+            XCTAssertEqual(restored.stats.correctToday, 1)
+        }
+    }
+
+    func testIncorrectWorldAnswerAfterMissedDayStillCountsAsPractice() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.lastPracticeDay = Calendar.current.date(byAdding: .day, value: -3, to: Date())!
+            store.stats.streak = 4
+            store.stats.reviewedToday = 8
+            store.stats.correctToday = 2
+            let xp = store.stats.xp
+            let challenge = ScienceData.challenges(for: "space-exploration")[0]
+            store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { !$0.isCorrect }!)
+
+            XCTAssertEqual(store.stats.reviewedToday, 1)
+            XCTAssertEqual(store.stats.correctToday, 0)
+            XCTAssertEqual(store.stats.streak, 1)
+            XCTAssertEqual(store.stats.xp, xp + 10)
+        }
+    }
+
+    func testWorldComboUsesOnlyNewDayAnswersAndDuplicateDoesNotCount() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.lastPracticeDay = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            store.stats.reviewedToday = 8
+            store.stats.correctToday = 2
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            let challenges = Array(ScienceData.challenges(for: "space-exploration").prefix(3))
+            XCTAssertEqual(challenges.count, 3)
+            for challenge in challenges {
+                store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { $0.isCorrect }!)
+            }
+            let first = challenges[0]
+            store.submitScienceAnswer(challenge: first, choice: first.choices.first { $0.isCorrect }!)
+
+            XCTAssertEqual(store.stats.reviewedToday, 3)
+            XCTAssertEqual(store.stats.correctToday, 3)
+            XCTAssertEqual(store.stats.xp, xp + 80)
+            XCTAssertEqual(store.stats.gems, gems + 7)
+        }
+    }
+
     func testSchedulerGraduatesLikeAnki() {
         let scheduler = SpacedRepetitionScheduler(calendar: Calendar(identifier: .gregorian))
         let now = Date(timeIntervalSince1970: 1_700_000_000)

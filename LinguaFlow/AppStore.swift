@@ -1942,6 +1942,10 @@ final class AppStore: ObservableObject {
     }
 
     private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
+        // Roll over before counting this encounter, just as language reviews do.
+        // Otherwise an overnight session loses its first answer and can award
+        // a combo using yesterday's correct-answer count.
+        refreshPracticeDay()
         let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
         var progress = stats.progress(for: subject)
         let worldChallengeIds = subject.challengeIds(for: worldId)
@@ -1968,7 +1972,6 @@ final class AppStore: ObservableObject {
         } else {
             stats.updateProgress(for: subject, progress)
         }
-        refreshPracticeDay()
         save()
     }
 
