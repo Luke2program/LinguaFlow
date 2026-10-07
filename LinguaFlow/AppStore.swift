@@ -1942,15 +1942,15 @@ final class AppStore: ObservableObject {
     }
 
     private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
-        // Roll over before counting this encounter, just as language reviews do.
-        // Otherwise an overnight session loses its first answer and can award
-        // a combo using yesterday's correct-answer count.
-        refreshPracticeDay()
         let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
         var progress = stats.progress(for: subject)
         let worldChallengeIds = subject.challengeIds(for: worldId)
         let wasWorldComplete = !worldChallengeIds.isEmpty && worldChallengeIds.allSatisfy { progress.completedChallengeIds.contains($0) }
         if !progress.completedChallengeIds.contains(challengeId) {
+            // Only a new encounter is practice. Replayed result callbacks must
+            // not extend a streak or erase yesterday's counters after midnight.
+            // Roll over before counting so yesterday cannot trigger a combo.
+            refreshPracticeDay()
             progress.completedChallengeIds.append(challengeId)
             let xpEarned = isCorrect ? 25 : 10
             progress.totalHistoryXP += xpEarned

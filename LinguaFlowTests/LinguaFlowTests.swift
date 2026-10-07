@@ -8,6 +8,71 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testDuplicateWorldAnswerAfterMidnightDoesNotExtendStreak() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            store.stats.lastPracticeDay = yesterday
+            store.stats.streak = 4
+            store.stats.bestStreak = 4
+            store.stats.reviewedToday = 8
+            store.stats.correctToday = 2
+            let challenges = ScienceData.challenges(for: "space-exploration")
+            let duplicate = challenges[0]
+            var progress = store.stats.progress(for: .science)
+            progress.completedChallengeIds = [duplicate.id]
+            store.stats.updateProgress(for: .science, progress)
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+
+            store.submitScienceAnswer(challenge: duplicate, choice: duplicate.choices.first { $0.isCorrect }!)
+
+            XCTAssertEqual(store.stats.lastPracticeDay, yesterday)
+            XCTAssertEqual(store.stats.streak, 4)
+            XCTAssertEqual(store.stats.bestStreak, 4)
+            XCTAssertEqual(store.stats.reviewedToday, 8)
+            XCTAssertEqual(store.stats.correctToday, 2)
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+
+            // A genuinely new encounter still rolls over and earns today's streak.
+            let fresh = challenges[1]
+            store.submitScienceAnswer(challenge: fresh, choice: fresh.choices.first { $0.isCorrect }!)
+            XCTAssertEqual(store.stats.streak, 5)
+            XCTAssertEqual(store.stats.reviewedToday, 1)
+            XCTAssertEqual(store.stats.correctToday, 1)
+            XCTAssertEqual(store.stats.xp, xp + 25)
+        }
+    }
+
+    func testDuplicateWorldAnswerAfterMissedDaysDoesNotRewritePracticeHistory() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let lastPractice = Calendar.current.date(byAdding: .day, value: -3, to: Date())!
+            store.stats.lastPracticeDay = lastPractice
+            store.stats.streak = 4
+            store.stats.reviewedToday = 6
+            store.stats.correctToday = 3
+            let challenge = ScienceData.challenges(for: "space-exploration")[0]
+            var progress = store.stats.progress(for: .science)
+            progress.completedChallengeIds = [challenge.id]
+            store.stats.updateProgress(for: .science, progress)
+
+            store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { !$0.isCorrect }!)
+
+            XCTAssertEqual(store.stats.lastPracticeDay, lastPractice)
+            XCTAssertEqual(store.stats.streak, 4)
+            XCTAssertEqual(store.stats.reviewedToday, 6)
+            XCTAssertEqual(store.stats.correctToday, 3)
+            let data = UserDefaults.standard.data(forKey: "linguaflow.stats.v2")!
+            let saved = try! JSONDecoder().decode(UserStats.self, from: data)
+            XCTAssertEqual(saved.lastPracticeDay, lastPractice)
+            XCTAssertEqual(saved.reviewedToday, 6)
+        }
+    }
+
     func testFirstWorldAnswerAfterMidnightCountsWithoutYesterdayCombo() async {
         await MainActor.run {
             let store = AppStore()
