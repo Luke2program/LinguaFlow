@@ -130,11 +130,17 @@ final class AppStore: ObservableObject {
         )
     }
     var dailyRewardTrack: DailyRewardTrack {
-        let claimedToday = stats.lastDailyRewardTrackClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        dailyRewardTrack(at: Date())
+    }
+
+    func dailyRewardTrack(at now: Date) -> DailyRewardTrack {
+        let calendar = Calendar.current
+        let claimedToday = stats.lastDailyRewardTrackClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         return DailyRewardTrack(
             subject: stats.selectedSubject,
             streak: stats.streak,
-            reviewedToday: stats.reviewedToday,
+            reviewedToday: practicedToday ? stats.reviewedToday : 0,
             isClaimedToday: claimedToday
         )
     }
@@ -1531,7 +1537,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimDailyRewardTrack(now: Date = Date()) -> Bool {
-        let track = dailyRewardTrack
+        let track = dailyRewardTrack(at: now)
         guard track.isReady else {
             feedbackMessage = track.isClaimedToday ? "Today's calendar reward is already collected." : "Complete one encounter to unlock today's calendar reward."
             return false

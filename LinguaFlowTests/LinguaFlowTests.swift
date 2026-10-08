@@ -614,11 +614,64 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(ready.ctaTitle, "Claim Reward")
     }
 
+    func testDailyRewardTrackRejectsStalePracticeWithoutChangingStreak() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let now = Date(timeIntervalSince1970: 1800000000)
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            store.stats.lastPracticeDay = yesterday
+            store.stats.reviewedToday = 9
+            store.stats.streak = 4
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+
+            XCTAssertFalse(store.dailyRewardTrack(at: now).isReady)
+            XCTAssertEqual(store.dailyRewardTrack(at: now).ctaTitle, "Study First")
+            XCTAssertFalse(store.claimDailyRewardTrack(now: now))
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+            XCTAssertNil(store.stats.lastDailyRewardTrackClaimDate)
+            XCTAssertEqual(store.stats.lastPracticeDay, yesterday)
+            XCTAssertEqual(store.stats.streak, 4)
+            XCTAssertEqual(store.stats.reviewedToday, 9)
+
+            store.stats.lastPracticeDay = nil
+            XCTAssertFalse(store.claimDailyRewardTrack(now: now))
+        }
+    }
+
+    func testDailyRewardTrackUsesClaimDateAndRequiresFreshStudyNextDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let now = Date(timeIntervalSince1970: 1800000000)
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+            store.stats.lastPracticeDay = now
+            store.stats.reviewedToday = 1
+            store.stats.streak = 3
+            let xp = store.stats.xp
+
+            XCTAssertTrue(store.claimDailyRewardTrack(now: now))
+            XCTAssertTrue(store.dailyRewardTrack(at: now).isClaimedToday)
+            XCTAssertFalse(store.claimDailyRewardTrack(now: now))
+            XCTAssertFalse(store.claimDailyRewardTrack(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 14)
+
+            store.stats.lastPracticeDay = tomorrow
+            store.stats.streak = 4
+            XCTAssertTrue(store.claimDailyRewardTrack(now: tomorrow))
+            XCTAssertFalse(store.claimDailyRewardTrack(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 14 + 16)
+        }
+    }
+
     func testDailyRewardTrackClaimGrantsRewardOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
             store.stats.selectedSubject = .history
             store.stats.streak = 3
+            store.stats.lastPracticeDay = Date()
             store.stats.reviewedToday = 1
             store.stats.xp = 100
             store.stats.gems = 1
