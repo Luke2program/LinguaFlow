@@ -2236,9 +2236,57 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testStreakChestRequiresFreshPracticeAndClaimsOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let now = Calendar.current.date(from: DateComponents(year: 2030, month: 5, day: 10, hour: 12))!
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+            store.stats.reviewedToday = store.dailyQuest.target
+            store.stats.streak = 4
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            let practiceDays: [Date?] = [yesterday, nil]
+            for practiceDay in practiceDays {
+                store.stats.lastPracticeDay = practiceDay
+                XCTAssertFalse(store.streakChest(at: now).isReady)
+                XCTAssertEqual(store.streakChest(at: now).progress, 0)
+                XCTAssertFalse(store.claimStreakChest(now: now))
+                XCTAssertEqual(store.stats.xp, xp)
+                XCTAssertEqual(store.stats.gems, gems)
+                XCTAssertEqual(store.stats.streak, 4)
+                XCTAssertEqual(store.stats.lastPracticeDay, practiceDay)
+                XCTAssertNil(store.stats.lastStreakChestClaimDate)
+            }
+            store.stats.lastPracticeDay = now
+            store.stats.reviewedToday = store.dailyQuest.target - 1
+            XCTAssertFalse(store.claimStreakChest(now: now))
+            store.stats.reviewedToday += 1
+            let reward = store.streakChest(at: now)
+            XCTAssertTrue(store.claimStreakChest(now: now))
+            XCTAssertFalse(store.claimStreakChest(now: now))
+            XCTAssertTrue(store.streakChest(at: now).isClaimedToday)
+            XCTAssertEqual(store.stats.xp, xp + reward.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + reward.rewardGems)
+            XCTAssertFalse(store.streakChest(at: tomorrow).isClaimedToday)
+            XCTAssertFalse(store.claimStreakChest(now: tomorrow))
+            store.stats.lastPracticeDay = tomorrow
+            store.stats.reviewedToday = 1
+            XCTAssertFalse(store.claimStreakChest(now: tomorrow))
+            store.stats.reviewedToday = store.dailyQuest.target
+            XCTAssertTrue(store.claimStreakChest(now: tomorrow))
+            XCTAssertFalse(store.claimStreakChest(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 2 * reward.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + 2 * reward.rewardGems)
+            XCTAssertEqual(store.stats.lastStreakChestClaimDate, tomorrow)
+        }
+    }
+
     func testStreakChestRequiresDailyQuestAndClaimsOnce() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .health
             store.stats.xp = 485
             store.stats.gems = 1
@@ -2265,6 +2313,7 @@ final class LinguaFlowTests: XCTestCase {
     func testRecommendedRunPrioritizesDailyAdventureThenReadyChest() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .history
             store.stats.streak = 3
             store.stats.reviewedToday = 0

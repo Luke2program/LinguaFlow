@@ -115,8 +115,14 @@ final class AppStore: ObservableObject {
         DailyQuest(subject: stats.selectedSubject, completed: stats.reviewedToday, target: min(10, max(4, stats.dailyGoal / 2)))
     }
     var streakChest: StreakChest {
-        let quest = dailyQuest
-        let claimedToday = stats.lastStreakChestClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        streakChest(at: Date())
+    }
+
+    func streakChest(at now: Date) -> StreakChest {
+        let calendar = Calendar.current
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let quest = DailyQuest(subject: stats.selectedSubject, completed: practicedToday ? stats.reviewedToday : 0, target: dailyQuest.target)
+        let claimedToday = stats.lastStreakChestClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         let streakBonus = min(30, max(0, stats.streak - 1) * 3)
         let gemBonus = min(4, max(0, stats.streak / 3))
         return StreakChest(
@@ -1512,7 +1518,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimStreakChest(now: Date = Date()) -> Bool {
-        let chest = streakChest
+        let chest = streakChest(at: now)
         guard chest.isReady, !chest.isClaimedToday else {
             feedbackMessage = chest.isClaimedToday ? "Today's chest is already claimed." : "Finish the Daily Quest to open the chest."
             return false
