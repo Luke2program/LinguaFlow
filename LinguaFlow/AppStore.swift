@@ -157,11 +157,17 @@ final class AppStore: ObservableObject {
         stats.dailyDiscoveryDeck
     }
     var questBoard: QuestBoard {
-        let claimedToday = stats.lastQuestBoardClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        questBoard(at: Date())
+    }
+
+    func questBoard(at now: Date) -> QuestBoard {
+        let calendar = Calendar.current
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let claimedToday = stats.lastQuestBoardClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         return QuestBoard(
             missions: questBoardMissions,
-            reviewedToday: stats.reviewedToday,
-            correctToday: stats.correctToday,
+            reviewedToday: practicedToday ? stats.reviewedToday : 0,
+            correctToday: practicedToday ? stats.correctToday : 0,
             dailyGoal: stats.dailyGoal,
             isClaimedToday: claimedToday
         )
@@ -1492,7 +1498,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimQuestBoard(now: Date = Date()) -> Bool {
-        let board = questBoard
+        let board = questBoard(at: now)
         guard board.isReady else {
             feedbackMessage = board.isClaimedToday ? "Today's Quest Board is already claimed." : "Finish the Quest Board bounties first: \(board.progressText)."
             return false

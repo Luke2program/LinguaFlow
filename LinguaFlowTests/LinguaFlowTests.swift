@@ -2155,9 +2155,62 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testQuestBoardRequiresFreshPracticeAndClaimsOncePerSuppliedDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let now = Date(timeIntervalSince1970: 1_900_000_000)
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+            store.stats.dailyGoal = 6
+            store.stats.reviewedToday = 3
+            store.stats.correctToday = 3
+            store.stats.streak = 5
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+
+            let staleDays: [Date?] = [yesterday, nil]
+            for practiceDay in staleDays {
+                store.stats.lastPracticeDay = practiceDay
+                XCTAssertEqual(store.questBoard(at: now).completedCount, 0)
+                XCTAssertFalse(store.claimQuestBoard(now: now))
+                XCTAssertEqual(store.stats.xp, xp)
+                XCTAssertEqual(store.stats.gems, gems)
+                XCTAssertEqual(store.stats.lastPracticeDay, practiceDay)
+                XCTAssertNil(store.stats.lastQuestBoardClaimDate)
+                XCTAssertEqual(store.stats.streak, 5)
+                XCTAssertEqual(store.stats.reviewedToday, 3)
+                XCTAssertEqual(store.stats.correctToday, 3)
+            }
+
+            store.stats.lastPracticeDay = now
+            let board = store.questBoard(at: now)
+            XCTAssertTrue(board.isReady)
+            XCTAssertTrue(store.claimQuestBoard(now: now))
+            XCTAssertTrue(store.questBoard(at: now).isClaimedToday)
+            XCTAssertFalse(store.claimQuestBoard(now: now))
+            XCTAssertEqual(store.stats.xp, xp + board.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + board.rewardGems)
+            XCTAssertFalse(store.questBoard(at: tomorrow).isClaimedToday)
+            XCTAssertFalse(store.claimQuestBoard(now: tomorrow))
+
+            store.stats.lastPracticeDay = tomorrow
+            store.stats.correctToday = 2
+            XCTAssertFalse(store.claimQuestBoard(now: tomorrow))
+            store.stats.correctToday = 3
+            XCTAssertTrue(store.claimQuestBoard(now: tomorrow))
+            XCTAssertFalse(store.claimQuestBoard(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 2 * board.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + 2 * board.rewardGems)
+            XCTAssertEqual(store.stats.lastQuestBoardClaimDate, tomorrow)
+            XCTAssertEqual(store.stats.streak, 5)
+        }
+    }
+
     func testQuestBoardRequiresThreeBountiesAndClaimsOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .science
             store.stats.dailyGoal = 6
             store.stats.reviewedToday = 2
