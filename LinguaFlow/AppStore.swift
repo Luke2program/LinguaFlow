@@ -176,8 +176,14 @@ final class AppStore: ObservableObject {
         DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
     }
     var dailyBoss: DailyBoss {
-        let defeatedToday = stats.lastBossDefeatDate.map { Calendar.current.isDateInToday($0) } ?? false
-        return DailyBoss(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 5, isDefeatedToday: defeatedToday)
+        dailyBoss(at: Date())
+    }
+
+    func dailyBoss(at now: Date) -> DailyBoss {
+        let calendar = Calendar.current
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let defeatedToday = stats.lastBossDefeatDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        return DailyBoss(subject: stats.selectedSubject, correctToday: practicedToday ? stats.correctToday : 0, target: 5, isDefeatedToday: defeatedToday)
     }
     var dailyRelic: DailyRelic {
         let relics = stats.selectedSubject.mysteryRelics
@@ -1628,7 +1634,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func defeatDailyBoss(now: Date = Date()) -> Bool {
-        let boss = dailyBoss
+        let boss = dailyBoss(at: now)
         guard boss.isReady, !boss.isDefeatedToday else {
             feedbackMessage = boss.isDefeatedToday ? "Today's boss is already defeated." : "Charge the boss with \(boss.progressText) first."
             return false

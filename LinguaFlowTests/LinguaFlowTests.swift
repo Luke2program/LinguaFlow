@@ -804,6 +804,62 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(completedCombo.progress, 1.0, accuracy: 0.001)
     }
 
+    func testDailyBossRequiresFreshCorrectAnswersAndDefeatsOncePerDay() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let now = Date(timeIntervalSince1970: 1_900_000_000)
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+            store.stats.selectedSubject = .math
+            store.stats.correctToday = 5
+            store.stats.reviewedToday = 5
+            store.stats.streak = 5
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+
+            let staleDays: [Date?] = [yesterday, nil]
+            for practiceDay in staleDays {
+                store.stats.lastPracticeDay = practiceDay
+                XCTAssertEqual(store.dailyBoss(at: now).progress, 0)
+                XCTAssertEqual(store.dailyBoss(at: now).progressText, "0/5 charge")
+                XCTAssertFalse(store.defeatDailyBoss(now: now))
+                XCTAssertEqual(store.stats.xp, xp)
+                XCTAssertEqual(store.stats.gems, gems)
+                XCTAssertEqual(store.stats.lastPracticeDay, practiceDay)
+                XCTAssertNil(store.stats.lastBossDefeatDate)
+                XCTAssertEqual(store.stats.correctToday, 5)
+                XCTAssertEqual(store.stats.reviewedToday, 5)
+                XCTAssertEqual(store.stats.streak, 5)
+            }
+
+            store.stats.lastPracticeDay = now
+            store.stats.correctToday = 4
+            XCTAssertFalse(store.defeatDailyBoss(now: now))
+            store.stats.correctToday = 5
+            let boss = store.dailyBoss(at: now)
+            XCTAssertTrue(boss.isReady)
+            XCTAssertTrue(store.defeatDailyBoss(now: now))
+            XCTAssertTrue(store.dailyBoss(at: now).isDefeatedToday)
+            XCTAssertFalse(store.defeatDailyBoss(now: now))
+            XCTAssertEqual(store.stats.xp, xp + boss.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + boss.rewardGems)
+
+            XCTAssertFalse(store.dailyBoss(at: tomorrow).isDefeatedToday)
+            XCTAssertFalse(store.defeatDailyBoss(now: tomorrow))
+            store.stats.lastPracticeDay = tomorrow
+            store.stats.correctToday = 4
+            XCTAssertFalse(store.defeatDailyBoss(now: tomorrow))
+            store.stats.correctToday = 5
+            XCTAssertTrue(store.defeatDailyBoss(now: tomorrow))
+            XCTAssertFalse(store.defeatDailyBoss(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 2 * boss.rewardXP)
+            XCTAssertEqual(store.stats.gems, gems + 2 * boss.rewardGems)
+            XCTAssertEqual(store.stats.lastBossDefeatDate, tomorrow)
+            XCTAssertEqual(store.stats.streak, 5)
+        }
+    }
+
     func testDailyBossChargesAndDefeatsOncePerDay() async {
         await MainActor.run {
             var charging = DailyBoss(subject: .math, correctToday: 4, target: 5, isDefeatedToday: false)
@@ -818,6 +874,7 @@ final class LinguaFlowTests: XCTestCase {
 
             let store = AppStore()
             store.stats.selectedSubject = .math
+            store.stats.lastPracticeDay = Date()
             store.stats.correctToday = 5
             store.stats.xp = 365
             store.stats.gems = 1
