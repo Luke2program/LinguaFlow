@@ -5151,8 +5151,14 @@ extension UserStats {
     }
 
     var dailyDiscoveryDeck: DailyDiscoveryDeck {
-        let claimedToday = lastDailyDiscoveryClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
-        let dayIndex = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
+        dailyDiscoveryDeck(at: Date())
+    }
+
+    func dailyDiscoveryDeck(at now: Date) -> DailyDiscoveryDeck {
+        let calendar = Calendar.current
+        let claimedToday = lastDailyDiscoveryClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let practicedToday = lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let dayIndex = calendar.ordinality(of: .day, in: .year, for: now) ?? 0
         let library: [DailyDiscoveryCard] = [
             DailyDiscoveryCard(
                 id: "history-silk-road-tax",
@@ -5263,7 +5269,7 @@ extension UserStats {
         return DailyDiscoveryDeck(
             cards: featured,
             selectedCard: selected,
-            reviewedToday: reviewedToday,
+            reviewedToday: practicedToday ? reviewedToday : 0,
             isClaimedToday: claimedToday
         )
     }

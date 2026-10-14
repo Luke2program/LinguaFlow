@@ -1581,7 +1581,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimDailyDiscoveryDeck(now: Date = Date()) -> Bool {
-        let deck = dailyDiscoveryDeck
+        let deck = stats.dailyDiscoveryDeck(at: now)
         guard deck.isReady else {
             feedbackMessage = deck.isClaimedToday ? "Today's discovery card is already collected." : "Complete one encounter to unlock today's discovery card."
             return false

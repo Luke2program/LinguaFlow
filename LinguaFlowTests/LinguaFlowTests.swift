@@ -688,6 +688,62 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDiscoveryDeckRejectsStaleAndUndatedProgress() async {
+        await MainActor.run {
+            let store = AppStore()
+            let now = Calendar.current.date(from: DateComponents(year: 2030, month: 5, day: 12, hour: 12))!
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            store.stats.reviewedToday = 8
+            store.stats.xp = 40
+            store.stats.gems = 3
+
+            let practiceDates: [Date?] = [yesterday, nil]
+            for practiceDate in practiceDates {
+                store.stats.lastPracticeDay = practiceDate
+                let deck = store.stats.dailyDiscoveryDeck(at: now)
+                XCTAssertFalse(deck.isReady)
+                XCTAssertEqual(deck.progressText, "0/1 unlock")
+                XCTAssertEqual(deck.ctaTitle, "Study First")
+                XCTAssertFalse(store.claimDailyDiscoveryDeck(now: now))
+                XCTAssertEqual(store.stats.xp, 40)
+                XCTAssertEqual(store.stats.gems, 3)
+                XCTAssertNil(store.stats.lastDailyDiscoveryClaimDate)
+                XCTAssertEqual(store.stats.reviewedToday, 8)
+                XCTAssertEqual(store.stats.lastPracticeDay, practiceDate)
+            }
+        }
+    }
+
+    func testDiscoveryDeckRotatesAndRequiresNewPracticeAfterMidnight() async {
+        await MainActor.run {
+            let store = AppStore()
+            let calendar = Calendar.current
+            let firstDay = calendar.date(from: DateComponents(year: 2030, month: 5, day: 12, hour: 23, minute: 59))!
+            let nextDay = calendar.date(byAdding: .minute, value: 2, to: firstDay)!
+            store.stats.lastPracticeDay = firstDay
+            store.stats.reviewedToday = 1
+            let firstCard = store.stats.dailyDiscoveryDeck(at: firstDay).selectedCard
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+
+            XCTAssertTrue(store.claimDailyDiscoveryDeck(now: firstDay))
+            XCTAssertFalse(store.claimDailyDiscoveryDeck(now: firstDay))
+            let nextDeck = store.stats.dailyDiscoveryDeck(at: nextDay)
+            XCTAssertNotEqual(nextDeck.selectedCard.id, firstCard.id)
+            XCTAssertFalse(nextDeck.isClaimedToday)
+            XCTAssertFalse(nextDeck.isReady)
+            XCTAssertFalse(store.claimDailyDiscoveryDeck(now: nextDay))
+
+            store.stats.lastPracticeDay = nextDay
+            store.stats.reviewedToday = 1
+            XCTAssertTrue(store.claimDailyDiscoveryDeck(now: nextDay))
+            XCTAssertFalse(store.claimDailyDiscoveryDeck(now: nextDay))
+            XCTAssertEqual(store.stats.xp, initialXP + firstCard.rewardXP + nextDeck.selectedCard.rewardXP)
+            XCTAssertEqual(store.stats.gems, initialGems + firstCard.rewardGems + nextDeck.selectedCard.rewardGems)
+            XCTAssertEqual(store.stats.lastDailyDiscoveryClaimDate, nextDay)
+        }
+    }
+
     func testDailyDiscoveryDeckSurfacesCrossSubjectLessonCards() {
         var stats = UserStats()
         stats.selectedSubject = .languages
@@ -703,6 +759,7 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(lockedDeck.selectedCard.lesson.count > 40)
 
         stats.reviewedToday = 1
+        stats.lastPracticeDay = Date()
         let readyDeck = stats.dailyDiscoveryDeck
         XCTAssertTrue(readyDeck.isReady)
         XCTAssertEqual(readyDeck.progressText, "Ready")
@@ -713,6 +770,7 @@ final class LinguaFlowTests: XCTestCase {
     func testDailyDiscoveryDeckClaimGrantsRewardOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.reviewedToday = 1
             store.stats.xp = 20
             store.stats.gems = 1
