@@ -5940,6 +5940,11 @@ extension UserStats {
             let completed = subjectProgress[option.subject.rawValue]?.completedChallengeIds ?? []
             return option.subject.challengeIds(for: world.id).contains { !completed.contains($0) }
         }
+        // Surprise study should explore a different domain when one is live.
+        // Otherwise subjects with many unlocked worlds can repeat back-to-back.
+        let otherSubjects = playable.filter { $0.subject != selectedSubject }
+        if !otherSubjects.isEmpty { return otherSubjects }
+
         let alternatives = playable.filter { option in
             guard option.subject == selectedSubject else { return true }
             return option.worldId != subjectProgress[selectedSubject.rawValue]?.currentWorldId

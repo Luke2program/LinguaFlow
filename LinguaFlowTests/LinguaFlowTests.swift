@@ -1967,6 +1967,34 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .languages })
     }
 
+    func testRandomStudySwitchesSubjectsEvenWithManyUnlockedWorlds() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        stats.selectedSubject = .history
+        var progress = stats.progress(for: .history)
+        progress.currentWorldId = "ancient-rome"
+        stats.updateProgress(for: .history, progress)
+
+        XCTAssertGreaterThan(stats.questRoulette.options.filter { $0.subject == .history }.count, 1)
+        XCTAssertFalse(stats.randomStudyOptions.isEmpty)
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.subject == .history })
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .languages })
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .science })
+        // Manual navigation still exposes every unlocked history world.
+        XCTAssertTrue(stats.questRoulette.options.contains { $0.id == "history-ancient-rome" })
+    }
+
+    func testRandomStudyCanAlternateBackToPreviousSubject() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        stats.selectedSubject = .science
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.subject == .science })
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .history })
+        stats.selectedSubject = .history
+        XCTAssertFalse(stats.randomStudyOptions.contains { $0.subject == .history })
+        XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .science })
+    }
+
     func testRandomStudySkipsClearedWorldButPreservesReplayCatalog() {
         var stats = UserStats()
         stats.xp = 0
