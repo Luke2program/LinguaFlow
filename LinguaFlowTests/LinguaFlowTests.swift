@@ -1967,6 +1967,57 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(stats.randomStudyOptions.contains { $0.subject == .languages })
     }
 
+    private struct StudyRandomGenerator: RandomNumberGenerator {
+        var state: UInt64 = 42
+        mutating func next() -> UInt64 {
+            state = state &* 6364136223846793005 &+ 1442695040888963407
+            return state
+        }
+    }
+
+    func testRandomStudyBalancesSubjectsRatherThanWorldCounts() throws {
+        var stats = UserStats()
+        stats.xp = 100_000
+        stats.selectedSubject = .science
+        let eligible = stats.randomStudyOptions
+        let subjects = Set(eligible.map { $0.subject.rawValue })
+        XCTAssertGreaterThan(eligible.filter { $0.subject == .history }.count,
+                             eligible.filter { $0.subject == .languages }.count)
+        var generator = StudyRandomGenerator()
+        var counts: [String: Int] = [:]
+        var routes = Set<String>()
+        for _ in 0..<4096 {
+            let pick = try XCTUnwrap(stats.randomStudyOption(using: &generator))
+            XCTAssertTrue(eligible.contains { $0.id == pick.id })
+            counts[pick.subject.rawValue, default: 0] += 1
+            routes.insert(pick.id)
+        }
+        let expected = 4096.0 / Double(subjects.count)
+        XCTAssertEqual(Set(counts.keys), subjects)
+        for subject in subjects {
+            XCTAssertEqual(Double(counts[subject, default: 0]), expected,
+                           accuracy: expected * 0.25, subject)
+        }
+        // Picking a domain first must still expose all its live worlds.
+        XCTAssertEqual(routes, Set(eligible.map { $0.id }))
+    }
+
+    func testRandomStudySelectionRetainsLanguageFallbackAfterClearingWorlds() throws {
+        var stats = UserStats()
+        stats.xp = 100_000
+        stats.selectedSubject = .languages
+        for subject in Subject.allCases where subject != .languages {
+            var progress = stats.progress(for: subject)
+            progress.completedChallengeIds = subject.worlds.flatMap { subject.challengeIds(for: $0.id) }
+            stats.updateProgress(for: subject, progress)
+        }
+        var generator = StudyRandomGenerator()
+        for _ in 0..<20 {
+            let pick = try XCTUnwrap(stats.randomStudyOption(using: &generator))
+            XCTAssertEqual(pick.id, "languages-harbor")
+        }
+    }
+
     func testRandomStudySwitchesSubjectsEvenWithManyUnlockedWorlds() {
         var stats = UserStats()
         stats.xp = 100_000

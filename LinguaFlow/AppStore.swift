@@ -1047,7 +1047,8 @@ final class AppStore: ObservableObject {
             roulette.options.first { $0.id == requested.id }
         }
 
-        guard let pick = validOption ?? stats.randomStudyOptions.randomElement() else {
+        var generator = SystemRandomNumberGenerator()
+        guard let pick = validOption ?? stats.randomStudyOption(using: &generator) else {
             select(subject: .languages)
             feedbackMessage = "Roulette picked Languages. Build XP to unlock more worlds."
             return

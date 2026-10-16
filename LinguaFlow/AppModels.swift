@@ -5952,6 +5952,17 @@ extension UserStats {
         return alternatives.isEmpty ? playable : alternatives
     }
 
+    // Choose the domain first: a subject with more worlds must not crowd
+    // languages or smaller subjects out of surprise study.
+    func randomStudyOption<R: RandomNumberGenerator>(using generator: inout R) -> QuestRouletteOption? {
+        let options = randomStudyOptions
+        let subjects = Subject.allCases.filter { subject in
+            options.contains { $0.subject == subject }
+        }
+        guard let subject = subjects.randomElement(using: &generator) else { return nil }
+        return options.filter { $0.subject == subject }.randomElement(using: &generator)
+    }
+
     var questRoulette: QuestRoulette {
         let languageOption = QuestRouletteOption(
             subject: .languages,
