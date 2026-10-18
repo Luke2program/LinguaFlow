@@ -7056,6 +7056,33 @@ struct HistoryWorldView: View {
 }
 
 // MARK: - History Challenge View
+// Uses authored corrections without awarding additional progress.
+private struct CorrectAnswerReveal: View {
+    let answer: String
+    let explanation: String
+    let identifier: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Learn from this", systemImage: "lightbulb.fill")
+                .font(.caption.bold())
+                .foregroundStyle(.green)
+            Text("Correct answer: \(answer)")
+                .font(.subheadline.bold())
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier(identifier)
+            Text(explanation)
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("\(identifier)Explanation")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.green.opacity(0.10))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
 struct HistoryChallengeView: View {
     @EnvironmentObject var store: AppStore
     @State private var selectedChoiceId: String? = nil
@@ -7099,6 +7126,13 @@ struct HistoryChallengeView: View {
                                     Text(choice.isCorrect ? "Correct!" : "Not quite")
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.historicalOutcome,
+                                        identifier: "historyCorrectAnswer"
+                                    )
                                 }
                                 Text(choice.consequence)
                                     .font(.subheadline)
@@ -7379,6 +7413,13 @@ struct ScienceChallengeView: View {
                                     Text(choice.isCorrect ? "Correct!" : "Not quite")
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "scienceCorrectAnswer"
+                                    )
                                 }
                                 Text(choice.explanation)
                                     .font(.subheadline)
@@ -7665,6 +7706,13 @@ struct GeographyChallengeView: View {
                                     Text(choice.isCorrect ? "Route found!" : "Wrong turn")
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "geographyCorrectAnswer"
+                                    )
                                 }
                                 Text(choice.explanation)
                                     .font(.subheadline)
@@ -8081,6 +8129,13 @@ struct MathChallengeView: View {
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
                                 }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "mathCorrectAnswer"
+                                    )
+                                }
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
@@ -8411,6 +8466,13 @@ struct CultureChallengeView: View {
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
                                 }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "cultureCorrectAnswer"
+                                    )
+                                }
                                 Text(choice.explanation)
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
@@ -8735,6 +8797,13 @@ struct BusinessChallengeView: View {
                                     Text(choice.isCorrect ? "Smart move!" : "Costly move")
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "businessCorrectAnswer"
+                                    )
                                 }
                                 Text(choice.explanation)
                                     .font(.subheadline)
@@ -9063,6 +9132,13 @@ struct HealthChallengeView: View {
                                     Text(choice.isCorrect ? "Healthy move!" : "Needs a reset")
                                         .font(.headline)
                                         .foregroundStyle(choice.isCorrect ? .green : .red)
+                                }
+                                if !choice.isCorrect, let correctChoice = challenge.choices.first(where: { $0.isCorrect }) {
+                                    CorrectAnswerReveal(
+                                        answer: correctChoice.text,
+                                        explanation: correctChoice.explanation,
+                                        identifier: "healthCorrectAnswer"
+                                    )
                                 }
                                 Text(choice.explanation)
                                     .font(.subheadline)

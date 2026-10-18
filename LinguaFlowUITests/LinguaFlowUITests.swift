@@ -577,6 +577,20 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(missionText.waitForExistence(timeout: 3))
     }
 
+    func testWrongScienceAnswerRevealsCorrectionAndClearsOnNextMission() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
+        button("scienceChoice_a", in: app).tap()
+        XCTAssertTrue(element("scienceCorrectAnswer", in: app).label.contains("Sputnik"))
+        XCTAssertFalse(element("scienceCorrectAnswerExplanation", in: app).label.isEmpty)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "science-wrong-answer-correction"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        button("nextScienceChallenge", in: app).tap()
+        XCTAssertFalse(app.staticTexts["scienceCorrectAnswer"].exists)
+        XCTAssertTrue(button("scienceChoice_a", in: app).exists)
+    }
+
     func testScienceChallengeInteraction() throws {
         let app = launchReadyApp(arguments: ["--ui-testing-science-world"])
 
@@ -585,6 +599,7 @@ final class LinguaFlowUITests: XCTestCase {
         choiceB.tap()
 
         XCTAssertTrue(element("scienceExperimentRecap", in: app).waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["scienceCorrectAnswer"].exists)
         XCTAssertEqual(element("scienceExperimentStatus", in: app).label, "HYPOTHESIS CONFIRMED")
         XCTAssertEqual(element("scienceExperimentTitle", in: app).label, "Aerospace result logged")
         XCTAssertTrue(element("scienceResearchProgress", in: app).label.contains("1/6 experiments logged"))
