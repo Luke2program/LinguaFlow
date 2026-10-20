@@ -5138,15 +5138,21 @@ extension UserStats {
     }
 
     var dailyLootPortal: DailyLootPortal {
-        DailyLootPortal(
+        dailyLootPortal(at: Date())
+    }
+
+    func dailyLootPortal(at now: Date) -> DailyLootPortal {
+        let calendar = Calendar.current
+        let practicedToday = lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        return DailyLootPortal(
             subject: selectedSubject,
-            reviewedToday: reviewedToday,
-            correctToday: correctToday,
+            reviewedToday: practicedToday ? reviewedToday : 0,
+            correctToday: practicedToday ? correctToday : 0,
             dailyGoal: dailyGoal,
             streak: streak,
             nextUnlock: nextWorldUnlockBadge,
-            discoveryCard: dailyDiscoveryDeck.selectedCard,
-            isClaimedToday: lastDailyLootPortalClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+            discoveryCard: dailyDiscoveryDeck(at: now).selectedCard,
+            isClaimedToday: lastDailyLootPortalClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         )
     }
 

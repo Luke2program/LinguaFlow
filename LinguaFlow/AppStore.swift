@@ -1609,7 +1609,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimDailyLootPortal(now: Date = Date()) -> Bool {
-        let portal = dailyLootPortal
+        let portal = stats.dailyLootPortal(at: now)
         guard portal.isReady else {
             feedbackMessage = portal.isClaimedToday ? "Today's Loot Portal is already claimed." : "Light the Loot Portal first: \(portal.progressText)."
             return false

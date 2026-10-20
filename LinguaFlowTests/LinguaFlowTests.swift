@@ -792,8 +792,73 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testLootPortalRejectsStaleUndatedAndFuturePractice() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let calendar = Calendar.current
+            let now = calendar.date(from: DateComponents(year: 2030, month: 5, day: 12, hour: 12))!
+            let dates: [Date?] = [nil, calendar.date(byAdding: .day, value: -1, to: now), calendar.date(byAdding: .day, value: 1, to: now)]
+            store.stats.reviewedToday = 8
+            store.stats.correctToday = 6
+            store.stats.xp = 40
+            store.stats.gems = 3
+            for date in dates {
+                store.stats.lastPracticeDay = date
+                let portal = store.stats.dailyLootPortal(at: now)
+                XCTAssertFalse(portal.isReady)
+                XCTAssertEqual(portal.progressText, "0/3 locks")
+                XCTAssertEqual(portal.ctaTitle, "3 locks left")
+                XCTAssertFalse(store.claimDailyLootPortal(now: now))
+                XCTAssertEqual(store.stats.xp, 40)
+                XCTAssertEqual(store.stats.gems, 3)
+                XCTAssertNil(store.stats.lastDailyLootPortalClaimDate)
+                XCTAssertEqual(store.stats.lastPracticeDay, date)
+                XCTAssertEqual(store.stats.reviewedToday, 8)
+                XCTAssertEqual(store.stats.correctToday, 6)
+            }
+        }
+    }
+
+    func testLootPortalRequiresFreshLocksAfterMidnightAndPaysOnce() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let calendar = Calendar.current
+            let firstDay = calendar.date(from: DateComponents(year: 2030, month: 5, day: 12, hour: 23, minute: 59))!
+            let nextDay = calendar.date(byAdding: .minute, value: 2, to: firstDay)!
+            store.stats.lastPracticeDay = firstDay
+            store.stats.reviewedToday = 5
+            store.stats.correctToday = 4
+            let firstPortal = store.stats.dailyLootPortal(at: firstDay)
+            let initialXP = store.stats.xp
+            let initialGems = store.stats.gems
+            XCTAssertTrue(store.claimDailyLootPortal(now: firstDay))
+            XCTAssertFalse(store.claimDailyLootPortal(now: firstDay))
+            let stalePortal = store.stats.dailyLootPortal(at: nextDay)
+            XCTAssertFalse(stalePortal.isClaimedToday)
+            XCTAssertEqual(stalePortal.progressText, "0/3 locks")
+            XCTAssertEqual(stalePortal.discoveryCard, store.stats.dailyDiscoveryDeck(at: nextDay).selectedCard)
+            XCTAssertFalse(store.claimDailyLootPortal(now: nextDay))
+
+            store.stats.lastPracticeDay = nextDay
+            store.stats.reviewedToday = 1
+            store.stats.correctToday = 1
+            XCTAssertFalse(store.claimDailyLootPortal(now: nextDay))
+            store.stats.reviewedToday = 5
+            store.stats.correctToday = 2
+            let freshPortal = store.stats.dailyLootPortal(at: nextDay)
+            XCTAssertTrue(store.claimDailyLootPortal(now: nextDay))
+            XCTAssertFalse(store.claimDailyLootPortal(now: nextDay))
+            XCTAssertEqual(store.stats.xp, initialXP + firstPortal.rewardXP + freshPortal.rewardXP)
+            XCTAssertEqual(store.stats.gems, initialGems + firstPortal.rewardGems + freshPortal.rewardGems)
+            XCTAssertEqual(store.stats.lastDailyLootPortalClaimDate, nextDay)
+        }
+    }
+
     func testDailyLootPortalTracksLocksCollectibleAndRewards() {
         var stats = UserStats()
+        stats.lastPracticeDay = Date()
         stats.selectedSubject = .history
         stats.dailyGoal = 12
         stats.reviewedToday = 2
@@ -823,6 +888,7 @@ final class LinguaFlowTests: XCTestCase {
     func testDailyLootPortalClaimGrantsRewardOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .history
             store.stats.reviewedToday = 3
             store.stats.correctToday = 2
