@@ -1986,13 +1986,17 @@ final class AppStore: ObservableObject {
             if isCorrect { awardDailyComboBonusIfNeeded() }
             progress.worldScores[worldId, default: 0] += xpEarned
             stats.updateProgress(for: subject, progress)
+            // Include the world-clear bonus before resolving newly opened gates.
+            // A final encounter can cross a threshold only after its +40 XP reward.
+            checkForWorldCompletion(subject: subject, worldId: worldId, wasComplete: wasWorldComplete)
             let newlyEarned = stats.worldRewardBadges.filter { $0.isEarned && previouslyLocked.contains($0.id) }
             if let unlocked = newlyEarned.first(where: { $0.subject == subject }) ?? newlyEarned.first {
                 newlyUnlockedWorld = unlocked
-                feedbackMessage = "Reward unlocked: \(unlocked.world.name) opened."
+                let unlockMessage = "Reward unlocked: \(unlocked.world.name) opened."
+                let justClearedWorld = !wasWorldComplete && isWorldCleared(subject: subject, worldId: worldId)
+                feedbackMessage = justClearedWorld ? "\(feedbackMessage) \(unlockMessage)" : unlockMessage
                 objectWillChange.send()
             }
-            checkForWorldCompletion(subject: subject, worldId: worldId, wasComplete: wasWorldComplete)
             feedPet(correctCount: isCorrect ? 2 : 1)
         } else {
             stats.updateProgress(for: subject, progress)

@@ -2900,6 +2900,41 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldClearBonusUnlocksNextWorldAndPreservesBothCelebrations() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.selectedSubject = .history
+            store.stats.xp = 440
+            let challenges = HistoryData.challenges(for: "ancient-rome")
+            var progress = store.stats.progress(for: .history)
+            progress.currentWorldId = "ancient-rome"
+            progress.completedChallengeIds = challenges.dropLast().map { $0.id }
+            store.stats.updateProgress(for: .history, progress)
+            let finalChallenge = challenges.last!
+            let choice = finalChallenge.choices.first { $0.isCorrect }!
+
+            store.submitHistoryAnswer(challenge: finalChallenge, choice: choice)
+
+            XCTAssertEqual(store.stats.xp, 505)
+            XCTAssertEqual(store.newlyUnlockedWorld?.world.id, "medieval-europe")
+            XCTAssertEqual(store.newlyCompletedWorld?.world.id, "ancient-rome")
+            XCTAssertEqual(store.newlyCompletedWorld?.nextWorldXPRemaining, 0)
+            XCTAssertTrue(store.feedbackMessage.contains("World cleared"))
+            XCTAssertTrue(store.feedbackMessage.contains("Reward unlocked"))
+            XCTAssertEqual(store.stats.gems, UserStats().gems + 6)
+
+            // Dismissing celebrations and replaying a callback cannot pay again.
+            store.newlyUnlockedWorld = nil
+            store.newlyCompletedWorld = nil
+            store.submitHistoryAnswer(challenge: finalChallenge, choice: choice)
+            XCTAssertEqual(store.stats.xp, 505)
+            XCTAssertEqual(store.stats.gems, UserStats().gems + 6)
+            XCTAssertNil(store.newlyUnlockedWorld)
+            XCTAssertNil(store.newlyCompletedWorld)
+        }
+    }
+
     func testCompletedWorldRewardDoesNotRepeatForFinishedChallenge() async {
         await MainActor.run {
             let store = AppStore()
