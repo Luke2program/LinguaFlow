@@ -8,6 +8,47 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testDailyQuestResetsAtMidnightWithoutMutatingPracticeHistory() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let today = Calendar.current.startOfDay(for: Date())
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+            store.stats.lastPracticeDay = yesterday
+            store.stats.reviewedToday = 10
+            store.stats.streak = 4
+
+            XCTAssertEqual(store.dailyQuest(at: yesterday).progress, 1)
+            XCTAssertEqual(store.dailyQuest(at: today).progress, 0)
+            XCTAssertEqual(store.dailyQuest.progress, 0)
+            XCTAssertEqual(store.streakChest(at: today).progress, 0)
+            XCTAssertFalse(store.streakChest(at: today).isReady)
+            XCTAssertEqual(store.stats.reviewedToday, 10)
+            XCTAssertEqual(store.stats.lastPracticeDay, yesterday)
+            XCTAssertEqual(store.stats.streak, 4)
+        }
+    }
+
+    func testDailyQuestAndChestShareFreshProgressAcrossSubjects() async {
+        await MainActor.run {
+            let store = AppStore()
+            let now = Date()
+            for subject in [Subject.languages, .history, .science, .geography, .math, .culture, .business, .health] {
+                store.stats = UserStats()
+                store.stats.selectedSubject = subject
+                store.stats.dailyGoal = 8
+                store.stats.reviewedToday = 2
+                XCTAssertEqual(store.dailyQuest(at: now).progress, 0, "Undated progress is not today's practice")
+                store.stats.lastPracticeDay = now
+                XCTAssertEqual(store.dailyQuest(at: now).progress, 0.5)
+                XCTAssertEqual(store.streakChest(at: now).progress, 0.5)
+                store.stats.reviewedToday = 4
+                XCTAssertEqual(store.dailyQuest(at: now).progress, 1)
+                XCTAssertTrue(store.streakChest(at: now).isReady)
+            }
+        }
+    }
+
     func testDuplicateWorldAnswerAfterMidnightDoesNotExtendStreak() async {
         await MainActor.run {
             let store = AppStore()

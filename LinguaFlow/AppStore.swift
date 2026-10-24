@@ -112,7 +112,13 @@ final class AppStore: ObservableObject {
     var goalDailyNeed: Int { max(5, Int(ceil(Double(availableCards.count - masteredCount) / Double(daysUntilGoal)))) }
     var learnedEnoughToday: Bool { stats.reviewedToday >= max(stats.dailyGoal, goalDailyNeed) }
     var dailyQuest: DailyQuest {
-        DailyQuest(subject: stats.selectedSubject, completed: stats.reviewedToday, target: min(10, max(4, stats.dailyGoal / 2)))
+        dailyQuest(at: Date())
+    }
+
+    func dailyQuest(at now: Date) -> DailyQuest {
+        // Display only today’s practice, even before the first answer rolls over storage.
+        let practicedToday = stats.lastPracticeDay.map { Calendar.current.isDate($0, inSameDayAs: now) } ?? false
+        return DailyQuest(subject: stats.selectedSubject, completed: practicedToday ? stats.reviewedToday : 0, target: min(10, max(4, stats.dailyGoal / 2)))
     }
     var streakChest: StreakChest {
         streakChest(at: Date())
@@ -120,8 +126,7 @@ final class AppStore: ObservableObject {
 
     func streakChest(at now: Date) -> StreakChest {
         let calendar = Calendar.current
-        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
-        let quest = DailyQuest(subject: stats.selectedSubject, completed: practicedToday ? stats.reviewedToday : 0, target: dailyQuest.target)
+        let quest = dailyQuest(at: now)
         let claimedToday = stats.lastStreakChestClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         let streakBonus = min(30, max(0, stats.streak - 1) * 3)
         let gemBonus = min(4, max(0, stats.streak / 3))
