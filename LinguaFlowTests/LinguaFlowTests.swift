@@ -1056,10 +1056,68 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testDailyRelicRejectsStaleAndUndatedPracticeAcrossSubjects() async {
+        await MainActor.run {
+            let store = AppStore()
+            let now = Calendar.current.startOfDay(for: Date())
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: now)!
+            let practiceDates: [Date?] = [nil, yesterday]
+            for subject in Subject.allCases {
+                for practiceDate in practiceDates {
+                    store.stats = UserStats()
+                    store.stats.selectedSubject = subject
+                    store.stats.lastPracticeDay = practiceDate
+                    store.stats.correctToday = 3
+                    store.stats.streak = 4
+                    let xp = store.stats.xp
+                    let gems = store.stats.gems
+                    let relics = store.stats.collectedRelicSet
+                    XCTAssertEqual(store.dailyRelic(at: now).progress, 0)
+                    XCTAssertFalse(store.claimDailyRelic(now: now))
+                    XCTAssertEqual(store.stats.xp, xp)
+                    XCTAssertEqual(store.stats.gems, gems)
+                    XCTAssertEqual(store.stats.collectedRelicSet, relics)
+                    XCTAssertNil(store.stats.lastMysteryRelicClaimDate)
+                    XCTAssertEqual(store.stats.lastPracticeDay, practiceDate)
+                    XCTAssertEqual(store.stats.correctToday, 3)
+                    XCTAssertEqual(store.stats.streak, 4)
+                }
+            }
+        }
+    }
+
+    func testDailyRelicUsesClaimDateForReadinessAndOncePerDayGuard() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            // A fixed date catches accidental reads from the wall clock.
+            let day = Date(timeIntervalSince1970: 1_700_000_000)
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: day)!
+            store.stats.lastPracticeDay = day
+            store.stats.correctToday = 2
+            XCTAssertFalse(store.claimDailyRelic(now: day))
+            store.stats.correctToday = 3
+            let relic = store.dailyRelic(at: day).relic
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            XCTAssertTrue(store.claimDailyRelic(now: day))
+            XCTAssertTrue(store.stats.collectedRelicSet.contains(relic.id))
+            XCTAssertTrue(store.dailyRelic(at: day).isClaimedToday)
+            XCTAssertFalse(store.claimDailyRelic(now: day))
+            XCTAssertFalse(store.claimDailyRelic(now: tomorrow))
+            store.stats.lastPracticeDay = tomorrow
+            XCTAssertTrue(store.claimDailyRelic(now: tomorrow))
+            XCTAssertFalse(store.claimDailyRelic(now: tomorrow))
+            XCTAssertEqual(store.stats.xp, xp + 36)
+            XCTAssertEqual(store.stats.gems, gems + 4)
+        }
+    }
+
     func testDailyRelicRevealsCollectibleOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
             store.stats.selectedSubject = .history
+            store.stats.lastPracticeDay = Date()
             store.stats.correctToday = 3
             store.stats.xp = 100
             store.stats.gems = 1

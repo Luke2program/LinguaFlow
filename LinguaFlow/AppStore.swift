@@ -191,13 +191,19 @@ final class AppStore: ObservableObject {
         return DailyBoss(subject: stats.selectedSubject, correctToday: practicedToday ? stats.correctToday : 0, target: 5, isDefeatedToday: defeatedToday)
     }
     var dailyRelic: DailyRelic {
+        dailyRelic(at: Date())
+    }
+
+    func dailyRelic(at now: Date) -> DailyRelic {
+        let calendar = Calendar.current
         let relics = stats.selectedSubject.mysteryRelics
-        let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
+        let day = calendar.ordinality(of: .day, in: .year, for: now) ?? 0
         let relic = relics[(day + stats.learningLevel) % max(1, relics.count)]
-        let claimedToday = stats.lastMysteryRelicClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        let claimedToday = stats.lastMysteryRelicClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         return DailyRelic(
             relic: relic,
-            correctToday: stats.correctToday,
+            correctToday: practicedToday ? stats.correctToday : 0,
             target: 3,
             isClaimedToday: claimedToday,
             alreadyCollected: stats.collectedRelicSet.contains(relic.id)
@@ -1665,7 +1671,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimDailyRelic(now: Date = Date()) -> Bool {
-        let relicDrop = dailyRelic
+        let relicDrop = dailyRelic(at: now)
         guard relicDrop.isReady, !relicDrop.isClaimedToday else {
             feedbackMessage = relicDrop.isClaimedToday ? "Today's relic is already secured." : "Reveal the relic with \(relicDrop.progressText) first."
             return false
