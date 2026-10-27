@@ -8,6 +8,59 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testDailyComboResetsAtMidnightWithoutChangingEarnedRewards() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let today = Calendar.current.startOfDay(for: Date())
+            let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+            store.stats.lastPracticeDay = yesterday
+            store.stats.correctToday = 6
+            store.stats.reviewedToday = 8
+            store.stats.xp = 160
+            store.stats.gems = 14
+            store.stats.streak = 4
+
+            XCTAssertEqual(store.dailyCombo(at: yesterday).completedCombos, 2)
+            XCTAssertEqual(store.dailyCombo(at: yesterday).progress, 1)
+            XCTAssertEqual(store.dailyCombo(at: today).correctToday, 0)
+            XCTAssertEqual(store.dailyCombo(at: today).completedCombos, 0)
+            XCTAssertEqual(store.dailyCombo.progress, 0)
+            XCTAssertEqual(store.dailyCombo.title, "Build a Focus Combo")
+            XCTAssertEqual(store.dailyCombo.progressText, "0/3 chain")
+            XCTAssertTrue(store.dailyCombo.accessibilityLabel.contains("3 correct moves"))
+            XCTAssertEqual(store.stats.correctToday, 6)
+            XCTAssertEqual(store.stats.reviewedToday, 8)
+            XCTAssertEqual(store.stats.lastPracticeDay, yesterday)
+            XCTAssertEqual(store.stats.xp, 160)
+            XCTAssertEqual(store.stats.gems, 14)
+            XCTAssertEqual(store.stats.streak, 4)
+        }
+    }
+
+    func testDailyComboUsesOnlyDatedPracticeAcrossEverySubject() async {
+        await MainActor.run {
+            let store = AppStore()
+            let now = Date()
+            for subject in [Subject.languages, .history, .science, .geography, .math, .culture, .business, .health] {
+                store.stats = UserStats()
+                store.stats.selectedSubject = subject
+                store.stats.correctToday = 2
+                XCTAssertEqual(store.dailyCombo(at: now).progress, 0, "Undated answers cannot fill today's chain")
+                store.stats.lastPracticeDay = now
+                XCTAssertEqual(store.dailyCombo(at: now).subject, subject)
+                XCTAssertEqual(store.dailyCombo(at: now).progress, 2.0 / 3.0, accuracy: 0.001)
+                XCTAssertEqual(store.dailyCombo(at: now).progressText, "2/3 chain")
+                store.stats.correctToday = 3
+                XCTAssertEqual(store.dailyCombo(at: now).completedCombos, 1)
+                XCTAssertEqual(store.dailyCombo(at: now).progress, 1)
+                store.stats.correctToday = 4
+                XCTAssertEqual(store.dailyCombo(at: now).completedCombos, 1)
+                XCTAssertEqual(store.dailyCombo(at: now).progressText, "1/3 chain")
+            }
+        }
+    }
+
     func testDailyQuestResetsAtMidnightWithoutMutatingPracticeHistory() async {
         await MainActor.run {
             let store = AppStore()

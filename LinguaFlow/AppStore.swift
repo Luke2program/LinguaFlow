@@ -178,7 +178,14 @@ final class AppStore: ObservableObject {
         )
     }
     var dailyCombo: DailyCombo {
-        DailyCombo(subject: stats.selectedSubject, correctToday: stats.correctToday, target: 3)
+        dailyCombo(at: Date())
+    }
+
+    func dailyCombo(at now: Date) -> DailyCombo {
+        // Match the quest board and boss: yesterday's chain is not today's progress.
+        // Keep persisted counters intact until actual practice starts the new day.
+        let practicedToday = stats.lastPracticeDay.map { Calendar.current.isDate($0, inSameDayAs: now) } ?? false
+        return DailyCombo(subject: stats.selectedSubject, correctToday: practicedToday ? stats.correctToday : 0, target: 3)
     }
     var dailyBoss: DailyBoss {
         dailyBoss(at: Date())
