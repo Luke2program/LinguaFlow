@@ -1034,6 +1034,10 @@ final class AppStore: ObservableObject {
     private func refreshPracticeDay(now: Date = Date()) {
         let calendar = Calendar.current
         guard let last = stats.lastPracticeDay else {
+            // Imported or older saves may have counters without a practice date.
+            // Do not turn those unknown answers into today's quests or combo rewards.
+            stats.reviewedToday = 0
+            stats.correctToday = 0
             stats.lastPracticeDay = now; stats.streak = max(stats.streak, 1); stats.bestStreak = max(stats.bestStreak, stats.streak); return
         }
         if calendar.isDate(last, inSameDayAs: now) { return }

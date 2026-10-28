@@ -8,6 +8,59 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testFirstUndatedWorldAnswerStartsFreshWithoutBonusRewards() async {
+        await MainActor.run {
+            for isCorrect in [true, false] {
+                let store = AppStore()
+                store.stats = UserStats()
+                store.stats.lastPracticeDay = nil
+                store.stats.reviewedToday = 20
+                store.stats.correctToday = 2
+                store.stats.xp = 100
+                store.stats.gems = 10
+                let challenge = ScienceData.challenges(for: "space-exploration")[0]
+                store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { $0.isCorrect == isCorrect }!)
+
+                XCTAssertEqual(store.stats.reviewedToday, 1)
+                XCTAssertEqual(store.stats.correctToday, isCorrect ? 1 : 0)
+                XCTAssertEqual(store.stats.xp, 100 + (isCorrect ? 25 : 10))
+                XCTAssertEqual(store.stats.gems, 10 + (isCorrect ? 2 : 0))
+                XCTAssertFalse(store.streakChest.isReady)
+                XCTAssertEqual(store.dailyCombo.completedCombos, 0)
+                XCTAssertNotNil(store.stats.lastPracticeDay)
+                let restored = AppStore()
+                XCTAssertEqual(restored.stats.reviewedToday, 1)
+                XCTAssertEqual(restored.stats.correctToday, isCorrect ? 1 : 0)
+            }
+        }
+    }
+
+    func testFirstUndatedLanguageReviewStartsFreshAndKeepsLifetimeProgress() async {
+        await MainActor.run {
+            for grade in [ReviewGrade.good, .again] {
+                let store = AppStore()
+                store.stats = UserStats()
+                store.stats.lastPracticeDay = nil
+                store.stats.reviewedToday = 20
+                store.stats.correctToday = 2
+                store.stats.totalReviews = 50
+                store.stats.xp = 100
+                store.stats.gems = 10
+                XCTAssertNotNil(store.currentCard)
+                store.grade(grade, expected: store.currentAnswer)
+
+                XCTAssertEqual(store.stats.reviewedToday, 1)
+                XCTAssertEqual(store.stats.correctToday, grade == .again ? 0 : 1)
+                XCTAssertEqual(store.stats.totalReviews, 51)
+                XCTAssertEqual(store.stats.xp, 100 + grade.xp)
+                XCTAssertEqual(store.stats.gems, grade == .again ? 10 : 11)
+                XCTAssertFalse(store.streakChest.isReady)
+                XCTAssertEqual(store.dailyCombo.completedCombos, 0)
+                XCTAssertNotNil(store.stats.lastPracticeDay)
+            }
+        }
+    }
+
     func testDailyComboResetsAtMidnightWithoutChangingEarnedRewards() async {
         await MainActor.run {
             let store = AppStore()
