@@ -1289,9 +1289,70 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testFinaleUsesOneDateForProgressClaimsAndPersistence() async {
+        await MainActor.run {
+            let day = Calendar.current.date(from: DateComponents(year: 2024, month: 6, day: 15, hour: 12))!
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: day)!
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.selectedSubject = .science
+            store.stats.dailyGoal = 12
+            store.stats.lastPracticeDay = day
+            store.stats.reviewedToday = 6
+            store.stats.correctToday = 3
+            store.stats.xp = 140
+            store.stats.gems = 2
+            XCTAssertTrue(store.dailyFinale(at: day).isReady)
+            XCTAssertTrue(store.claimDailyFinale(now: day))
+            XCTAssertEqual(store.stats.xp, 200)
+            XCTAssertEqual(store.stats.gems, 7)
+            let restored = AppStore()
+            XCTAssertTrue(restored.dailyFinale(at: day).isClaimedToday)
+            XCTAssertFalse(restored.claimDailyFinale(now: day))
+            XCTAssertFalse(restored.claimDailyFinale(now: tomorrow))
+            XCTAssertEqual(restored.dailyFinale(at: tomorrow).completedCount, 0)
+            XCTAssertEqual(restored.dailyFinale(at: tomorrow).reviewedToday, 0)
+            XCTAssertEqual(restored.dailyFinale(at: tomorrow).correctToday, 0)
+            XCTAssertEqual(restored.stats.xp, 200)
+            XCTAssertEqual(restored.stats.gems, 7)
+            XCTAssertEqual(restored.stats.lastDailyFinaleClaimDate, day)
+            // App startup may roll old counters over to the real current day.
+            // Supply a fresh completed practice session for the simulated next day.
+            restored.stats.lastPracticeDay = tomorrow
+            restored.stats.reviewedToday = 6
+            restored.stats.correctToday = 3
+            XCTAssertTrue(restored.claimDailyFinale(now: tomorrow))
+            XCTAssertFalse(restored.claimDailyFinale(now: tomorrow))
+            XCTAssertEqual(restored.stats.xp, 260)
+            XCTAssertEqual(restored.stats.gems, 12)
+        }
+    }
+
+    func testFinaleRejectsUndatedPracticeWithoutMutatingProgress() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.lastPracticeDay = nil
+            store.stats.reviewedToday = 20
+            store.stats.correctToday = 10
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            XCTAssertEqual(store.dailyFinale.completedCount, 0)
+            XCTAssertEqual(store.dailyFinale.reviewedToday, 0)
+            XCTAssertEqual(store.dailyFinale.correctToday, 0)
+            XCTAssertFalse(store.claimDailyFinale())
+            XCTAssertNil(store.stats.lastDailyFinaleClaimDate)
+            XCTAssertEqual(store.stats.reviewedToday, 20)
+            XCTAssertEqual(store.stats.correctToday, 10)
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+        }
+    }
+
     func testDailyFinaleRequiresAllGatesAndClaimsOncePerDay() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .science
             store.stats.dailyGoal = 12
             store.stats.reviewedToday = 5
@@ -2992,6 +3053,7 @@ final class LinguaFlowTests: XCTestCase {
     func testAdventureTrailRoutesFinaleStopAndClaimsCrownWhenReady() async {
         await MainActor.run {
             let store = AppStore()
+            store.stats.lastPracticeDay = Date()
             store.stats.selectedSubject = .science
             store.stats.xp = 140
             store.stats.gems = 2

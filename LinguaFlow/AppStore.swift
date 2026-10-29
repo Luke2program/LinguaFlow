@@ -220,14 +220,20 @@ final class AppStore: ObservableObject {
         stats.worldRelicForge
     }
     var dailyFinale: DailyFinale {
-        let claimedToday = stats.lastDailyFinaleClaimDate.map { Calendar.current.isDateInToday($0) } ?? false
+        dailyFinale(at: Date())
+    }
+
+    func dailyFinale(at now: Date) -> DailyFinale {
+        let calendar = Calendar.current
+        let claimedToday = stats.lastDailyFinaleClaimDate.map { calendar.isDate($0, inSameDayAs: now) } ?? false
+        let practicedToday = stats.lastPracticeDay.map { calendar.isDate($0, inSameDayAs: now) } ?? false
         return DailyFinale(
             subject: stats.selectedSubject,
-            reviewedToday: stats.reviewedToday,
-            correctToday: stats.correctToday,
-            dailyQuest: dailyQuest,
-            combo: dailyCombo,
-            relic: dailyRelic,
+            reviewedToday: practicedToday ? stats.reviewedToday : 0,
+            correctToday: practicedToday ? stats.correctToday : 0,
+            dailyQuest: dailyQuest(at: now),
+            combo: dailyCombo(at: now),
+            relic: dailyRelic(at: now),
             isClaimedToday: claimedToday
         )
     }
@@ -1757,7 +1763,7 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func claimDailyFinale(now: Date = Date()) -> Bool {
-        let finale = dailyFinale
+        let finale = dailyFinale(at: now)
         guard finale.isReady, !finale.isClaimedToday else {
             feedbackMessage = finale.isClaimedToday ? "Today's finale crown is already claimed." : "Finish \(max(0, finale.totalCount - finale.completedCount)) more finale gates first."
             return false
