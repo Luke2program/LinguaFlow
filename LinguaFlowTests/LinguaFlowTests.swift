@@ -2431,6 +2431,61 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testWorldSelectionRejectsLockedAndUnknownRoutesWithoutChangingProgress() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 0
+            store.select(subject: .history)
+            store.select(worldId: "ancient-rome", for: .history)
+            let original = store.stats.progress(for: .history)
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+
+            store.select(worldId: "medieval-europe", for: .history)
+            XCTAssertEqual(store.stats.progress(for: .history).currentWorldId, original.currentWorldId)
+            store.select(worldId: "missing-world", for: .history)
+            XCTAssertEqual(store.stats.progress(for: .history).currentWorldId, original.currentWorldId)
+            XCTAssertEqual(store.stats.progress(for: .history).completedChallengeIds, original.completedChallengeIds)
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+            XCTAssertNotNil(store.nextHistoryChallenge)
+            XCTAssertEqual(AppStore().stats.progress(for: .history).currentWorldId, original.currentWorldId)
+        }
+    }
+
+    func testWorldSelectionOpensNewlyUnlockedWorldAndPersistsRoute() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 100_000
+            store.select(subject: .history)
+            var progress = store.stats.progress(for: .history)
+            progress.completedChallengeIds = ["rome-01"]
+            store.stats.updateProgress(for: .history, progress)
+            store.select(worldId: "medieval-europe", for: .history)
+
+            XCTAssertEqual(store.stats.progress(for: .history).currentWorldId, "medieval-europe")
+            XCTAssertEqual(store.stats.progress(for: .history).completedChallengeIds, ["rome-01"])
+            XCTAssertEqual(store.stats.xp, 100_000)
+            XCTAssertEqual(AppStore().stats.progress(for: .history).currentWorldId, "medieval-europe")
+        }
+    }
+
+    func testWorldSelectionRejectsWorldFromAnotherSubject() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 100_000
+            store.select(subject: .science)
+            let original = store.stats.progress(for: .science).currentWorldId
+            store.select(worldId: "ancient-rome", for: .science)
+            XCTAssertEqual(store.stats.progress(for: .science).currentWorldId, original)
+            XCTAssertEqual(store.stats.selectedSubject, .science)
+            XCTAssertNotNil(store.nextScienceChallenge)
+        }
+    }
+
     func testQuestRouletteCanStartSpecificWorldOption() async {
         await MainActor.run {
             let store = AppStore()

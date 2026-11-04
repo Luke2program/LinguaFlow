@@ -1805,6 +1805,10 @@ final class AppStore: ObservableObject {
     }
 
     func select(worldId: String, for subject: Subject) {
+        // Revalidate at launch: a stale map card must not bypass a world gate
+        // or persist an unknown route that leaves the learner without encounters.
+        guard let world = subject.worlds.first(where: { $0.id == worldId }),
+              world.isUnlocked(withXP: stats.xp) else { return }
         var progress = stats.progress(for: subject)
         progress.currentWorldId = worldId
         stats.updateProgress(for: subject, progress)
