@@ -1999,6 +1999,11 @@ final class AppStore: ObservableObject {
     }
 
     private func completeSubjectChallenge(subject: Subject, challengeId: String, worldId: String, isCorrect: Bool) {
+        // Validate at the reward boundary too: restored or stale encounters can
+        // outlive navigation. Invalid routes must not award XP or touch streaks.
+        guard let world = subject.worlds.first(where: { $0.id == worldId }),
+              world.isUnlocked(withXP: stats.xp),
+              subject.challengeIds(for: worldId).contains(challengeId) else { return }
         let previouslyLocked = Set(stats.worldRewardBadges.filter { !$0.isEarned }.map(\.id))
         var progress = stats.progress(for: subject)
         let worldChallengeIds = subject.challengeIds(for: worldId)

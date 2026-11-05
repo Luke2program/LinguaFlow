@@ -8,6 +8,80 @@ final class LinguaFlowTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "linguaflow.schedules.v1")
     }
 
+    func testLockedEncounterCannotAwardProgressOrRefreshPracticeDay() async {
+        await MainActor.run {
+            for isCorrect in [true, false] {
+                let store = AppStore()
+                store.stats = UserStats()
+                store.stats.xp = 749
+                store.stats.gems = 7
+                store.stats.streak = 4
+                store.stats.lastPracticeDay = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+                store.stats.reviewedToday = 8
+                store.stats.correctToday = 2
+                store.save()
+                let before = UserDefaults.standard.data(forKey: "linguaflow.stats.v2")
+                let challenge = ScienceData.challenges(for: "quantum-realm")[0]
+
+                store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { $0.isCorrect == isCorrect }!)
+
+                XCTAssertEqual(store.stats.xp, 749)
+                XCTAssertEqual(store.stats.gems, 7)
+                XCTAssertEqual(store.stats.streak, 4)
+                XCTAssertEqual(store.stats.reviewedToday, 8)
+                XCTAssertEqual(store.stats.correctToday, 2)
+                XCTAssertFalse(store.stats.progress(for: .science).completedChallengeIds.contains(challenge.id))
+                XCTAssertNil(store.newlyUnlockedWorld)
+                XCTAssertNil(store.newlyCompletedWorld)
+                XCTAssertEqual(UserDefaults.standard.data(forKey: "linguaflow.stats.v2"), before)
+            }
+        }
+    }
+
+    func testEncounterBecomesRewardableAtExactWorldUnlockThreshold() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 750
+            store.stats.gems = 0
+            let challenge = ScienceData.challenges(for: "quantum-realm")[0]
+            let choice = challenge.choices.first { $0.isCorrect }!
+
+            store.submitScienceAnswer(challenge: challenge, choice: choice)
+            store.submitScienceAnswer(challenge: challenge, choice: choice)
+
+            XCTAssertEqual(store.stats.xp, 775)
+            XCTAssertEqual(store.stats.gems, 2)
+            XCTAssertEqual(store.stats.reviewedToday, 1)
+            XCTAssertEqual(store.stats.correctToday, 1)
+            XCTAssertTrue(store.stats.progress(for: .science).completedChallengeIds.contains(challenge.id))
+            XCTAssertEqual(AppStore().stats.xp, 775)
+        }
+    }
+
+    func testInvalidEncounterRouteCannotEarnRewards() async {
+        await MainActor.run {
+            let source = ScienceData.challenges(for: "space-exploration")[0]
+            for (id, worldID) in [("unknown-encounter", source.worldId), (source.id, "unknown-world"), (source.id, "quantum-realm")] {
+                let store = AppStore()
+                store.stats = UserStats()
+                store.stats.xp = 1000
+                store.stats.gems = 0
+                let challenge = ScienceChallenge(id: id, worldId: worldID, era: source.era,
+                    question: source.question, context: source.context, choices: source.choices,
+                    funFact: source.funFact, field: source.field)
+
+                store.submitScienceAnswer(challenge: challenge, choice: challenge.choices.first { $0.isCorrect }!)
+
+                XCTAssertEqual(store.stats.xp, 1000)
+                XCTAssertEqual(store.stats.gems, 0)
+                XCTAssertEqual(store.stats.reviewedToday, 0)
+                XCTAssertNil(store.stats.lastPracticeDay)
+                XCTAssertFalse(store.stats.progress(for: .science).completedChallengeIds.contains(id))
+            }
+        }
+    }
+
     func testFirstUndatedWorldAnswerStartsFreshWithoutBonusRewards() async {
         await MainActor.run {
             for isCorrect in [true, false] {
