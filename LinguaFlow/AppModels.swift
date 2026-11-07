@@ -3410,7 +3410,7 @@ struct QuestRoulette: Equatable {
     var subtitle: String {
         "Spin across languages, history, science, maps, math, culture, business, and health."
     }
-    var progressText: String { "\(options.count) live routes" }
+    var progressText: String { "\(options.count) unlocked routes" }
     var rewardText: String { "+30 XP · +2 gems · Surprise stamp" }
     var ctaTitle: String { "Spin" }
     var pickedOption: QuestRouletteOption? {
@@ -5998,7 +5998,21 @@ extension UserStats {
 
         let options = [languageOption] + worldOptions
         let offset = options.isEmpty ? 0 : abs(xp + reviewedToday + correctToday + streak) % options.count
-        let featured = Array(Self.rotated(options, by: offset).prefix(4))
+        // Discovery cards must lead to encounters that still have something to teach.
+        // Retain every unlocked route in options for deliberate map navigation.
+        let liveOptions = options.filter { option in
+            guard let world = option.world else { return option.subject == .languages }
+            let completed = subjectProgress[option.subject.rawValue]?.completedChallengeIds ?? []
+            return option.subject.challengeIds(for: world.id).contains { !completed.contains($0) }
+        }
+        // Show distinct subjects first so large world catalogs cannot crowd out
+        // smaller learning domains. Rotate within the live pool for fresh routes.
+        let rotatedLiveOptions = Self.rotated(liveOptions, by: offset)
+        var featured: [QuestRouletteOption] = []
+        for option in rotatedLiveOptions where !featured.contains(where: { $0.subject == option.subject }) {
+            featured.append(option)
+            if featured.count == 4 { break }
+        }
         return QuestRoulette(options: options, featuredOptions: featured, spinSeed: offset)
     }
 

@@ -2357,8 +2357,66 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertTrue(roulette.options.contains { $0.id == "business-founder-guild" })
         XCTAssertFalse(roulette.options.contains { $0.id == "history-medieval-europe" })
         XCTAssertEqual(roulette.featuredOptions.count, 4)
-        XCTAssertEqual(roulette.progressText, "\(roulette.options.count) live routes")
+        XCTAssertEqual(roulette.progressText, "\(roulette.options.count) unlocked routes")
         XCTAssertEqual(roulette.rewardText, "+30 XP · +2 gems · Surprise stamp")
+    }
+
+    func testRouletteFeaturedCardsExcludeClearedWorldsAcrossAllDomains() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        for subject in Subject.allCases where subject != .languages {
+            var progress = stats.progress(for: subject)
+            progress.completedChallengeIds = subject.worlds.flatMap { subject.challengeIds(for: $0.id) }
+            stats.updateProgress(for: subject, progress)
+        }
+        let roulette = stats.questRoulette
+        XCTAssertEqual(roulette.featuredOptions.map(\.id), ["languages-harbor"])
+        XCTAssertGreaterThan(roulette.options.count, 1)
+        XCTAssertTrue(roulette.options.contains { $0.id == "history-ancient-rome" })
+        XCTAssertTrue(roulette.accessibilityLabel.contains("unlocked routes"))
+    }
+
+    func testRouletteFeaturedCardsRetainLastUnfinishedEncounter() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        for subject in Subject.allCases where subject != .languages {
+            var progress = stats.progress(for: subject)
+            progress.completedChallengeIds = subject.worlds.flatMap { subject.challengeIds(for: $0.id) }
+            stats.updateProgress(for: subject, progress)
+        }
+        let remainingID = Subject.history.challengeIds(for: "ancient-rome").last!
+        var progress = stats.progress(for: .history)
+        progress.completedChallengeIds.removeAll { $0 == remainingID }
+        stats.updateProgress(for: .history, progress)
+        XCTAssertEqual(Set(stats.questRoulette.featuredOptions.map(\.id)),
+                       Set(["languages-harbor", "history-ancient-rome"]))
+        progress.completedChallengeIds.append(remainingID)
+        stats.updateProgress(for: .history, progress)
+        XCTAssertEqual(stats.questRoulette.featuredOptions.map(\.id), ["languages-harbor"])
+    }
+
+    func testRouletteFeaturedCardsOfferDistinctLearningDomainsAtHighXP() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        for count in 0..<100 {
+            stats.reviewedToday = count
+            let featured = stats.questRoulette.featuredOptions
+            XCTAssertEqual(featured.count, 4)
+            XCTAssertEqual(Set(featured.map { $0.subject.rawValue }).count, 4)
+            XCTAssertEqual(featured, stats.questRoulette.featuredOptions)
+        }
+    }
+
+    func testRouletteFeaturedCardsStayUnlockedAndBounded() {
+        var stats = UserStats()
+        stats.xp = 0
+        for count in 0..<20 {
+            stats.reviewedToday = count
+            let roulette = stats.questRoulette
+            XCTAssertEqual(roulette.featuredOptions.count, 4)
+            XCTAssertEqual(Set(roulette.featuredOptions.map(\.id)).count, 4)
+            XCTAssertTrue(roulette.featuredOptions.allSatisfy { $0.world?.isUnlocked(withXP: 0) ?? true })
+        }
     }
 
     func testRandomStudySkipsCurrentRouteWhenAlternativesExist() {
