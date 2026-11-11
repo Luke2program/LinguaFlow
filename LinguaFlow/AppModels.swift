@@ -6005,13 +6005,18 @@ extension UserStats {
             let completed = subjectProgress[option.subject.rawValue]?.completedChallengeIds ?? []
             return option.subject.challengeIds(for: world.id).contains { !completed.contains($0) }
         }
-        // Show distinct subjects first so large world catalogs cannot crowd out
-        // smaller learning domains. Rotate within the live pool for fresh routes.
-        let rotatedLiveOptions = Self.rotated(liveOptions, by: offset)
-        var featured: [QuestRouletteOption] = []
-        for option in rotatedLiveOptions where !featured.contains(where: { $0.subject == option.subject }) {
-            featured.append(option)
-            if featured.count == 4 { break }
+        // Rotate domains, not the flattened world catalog: every live subject
+        // gets equal discovery space even when other subjects have more worlds.
+        let discoverySeed = xp + reviewedToday + correctToday + streak
+        let liveSubjects = Subject.allCases.filter { subject in
+            liveOptions.contains { $0.subject == subject }
+        }
+        let featured: [QuestRouletteOption] = Self.rotated(liveSubjects, by: discoverySeed).prefix(4).compactMap { subject in
+            let routes = liveOptions.filter { $0.subject == subject }
+            // Advance routes once per complete domain cycle, so every world
+            // remains discoverable without biasing the domain rotation.
+            let routeOffset = discoverySeed / max(1, liveSubjects.count)
+            return Self.rotated(routes, by: routeOffset).first
         }
         return QuestRoulette(options: options, featuredOptions: featured, spinSeed: offset)
     }

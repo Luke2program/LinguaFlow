@@ -2407,6 +2407,40 @@ final class LinguaFlowTests: XCTestCase {
         }
     }
 
+    func testRouletteDiscoveryGivesEveryDomainEqualSpacePerCycle() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        var appearances: [Subject: Int] = [:]
+        for count in 0..<Subject.allCases.count {
+            stats.reviewedToday = count
+            for option in stats.questRoulette.featuredOptions {
+                appearances[option.subject, default: 0] += 1
+            }
+        }
+        for subject in Subject.allCases {
+            XCTAssertEqual(appearances[subject], 4, "Unequal discovery space for \(subject)")
+        }
+    }
+
+    func testRouletteDiscoveryEventuallyFeaturesEveryLiveWorld() {
+        var stats = UserStats()
+        stats.xp = 100_000
+        let options = stats.questRoulette.options
+        let longestCatalog = Subject.allCases.map { subject in
+            options.filter { $0.subject == subject }.count
+        }.max() ?? 1
+        var discovered = Set<String>()
+        for count in 0..<(Subject.allCases.count * (longestCatalog + 1)) {
+            stats.reviewedToday = count
+            discovered.formUnion(stats.questRoulette.featuredOptions.map(\.id))
+        }
+        let liveIDs = options.filter { option in
+            guard let world = option.world else { return true }
+            return !option.subject.challengeIds(for: world.id).isEmpty
+        }.map(\.id)
+        XCTAssertEqual(discovered, Set(liveIDs))
+    }
+
     func testRouletteFeaturedCardsStayUnlockedAndBounded() {
         var stats = UserStats()
         stats.xp = 0
