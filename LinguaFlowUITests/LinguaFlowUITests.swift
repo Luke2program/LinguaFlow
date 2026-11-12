@@ -319,6 +319,29 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("rewardShopPanel", in: app).exists)
     }
 
+    func testFeaturedExpeditionOpensChosenWorldInsteadOfRandomRoute() throws {
+        let app = launchReadyApp()
+        selectDashboardDeck("explore", in: app)
+        let destination = button("featuredExpedition_history-ancient-rome", in: app)
+        for _ in 0..<8 where !destination.isHittable { app.swipeUp() }
+        XCTAssertTrue(destination.isHittable)
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "Featured expeditions"
+        before.lifetime = .keepAlways
+        add(before)
+        destination.tap()
+
+        let arena = app.staticTexts["activeLearningArenaTitle"].firstMatch
+        for _ in 0..<12 where !arena.isHittable { app.swipeDown() }
+        XCTAssertTrue(arena.waitForExistence(timeout: 3))
+        XCTAssertEqual(arena.label, "Ancient Rome")
+        XCTAssertTrue(app.descendants(matching: .any)["historyChallengeView"].firstMatch.exists)
+        let after = XCTAttachment(screenshot: app.screenshot())
+        after.name = "Chosen expedition arena"
+        after.lifetime = .keepAlways
+        add(after)
+    }
+
     func testExploreWorldTourStartsCurrentChapter() throws {
         let app = launchReadyApp()
         selectDashboardDeck("explore", in: app)

@@ -300,6 +300,7 @@ struct ExploreFocusView: View {
     var body: some View {
         VStack(spacing: 12) {
             CampaignSpotlightView()
+            FeaturedExpeditionsView()
 
             GlassCard {
                 VStack(alignment: .leading, spacing: 12) {
@@ -388,6 +389,59 @@ struct ExploreFocusView: View {
                 WorldPathView()
             }
         }
+    }
+}
+
+struct FeaturedExpeditionsView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Discover your next world", systemImage: "sparkles")
+                    .font(.headline)
+                    .accessibilityIdentifier("featuredExpeditionsTitle")
+                Text("Pick a destination. Fresh encounters across different subjects.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                    ForEach(store.stats.questRoulette.featuredOptions) { option in
+                        Button {
+                            withAnimation(.spring(duration: 0.35)) {
+                                store.startRandomStudy(option: option)
+                            }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: option.systemImage)
+                                    Spacer()
+                                    Image(systemName: "play.circle.fill")
+                                }
+                                .foregroundStyle(option.subject.accentColor)
+                                Text(option.title)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(.primary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(option.subject.displayName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, minHeight: 100, alignment: .topLeading)
+                            .background(option.subject.accentColor.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("Explore \(option.title). \(option.subject.displayName).")
+                        .accessibilityHint("Opens this destination in the learning arena.")
+                        .accessibilityIdentifier("featuredExpedition_\(option.id)")
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("featuredExpeditionsPanel")
     }
 }
 

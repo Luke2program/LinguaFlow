@@ -2582,6 +2582,29 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.randomStudyOptions.map(\.id), ["languages-harbor"])
     }
 
+    func testFeaturedExpeditionOpensExactDestinationWithoutAwardingPractice() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let options = store.stats.questRoulette.featuredOptions
+            XCTAssertGreaterThan(options.count, 1)
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            let reviewed = store.stats.reviewedToday
+            for option in options {
+                store.startRandomStudy(option: option)
+                XCTAssertEqual(store.stats.selectedSubject, option.subject)
+                if let world = option.world {
+                    XCTAssertEqual(store.currentWorld?.id, world.id)
+                }
+                XCTAssertEqual(store.stats.xp, xp)
+                XCTAssertEqual(store.stats.gems, gems)
+                XCTAssertEqual(store.stats.reviewedToday, reviewed)
+                XCTAssertEqual(AppStore().stats.selectedSubject, option.subject)
+            }
+        }
+    }
+
     func testRandomStudyRejectsStaleLockedOptionWithoutGrantingRewards() async {
         await MainActor.run {
             let store = AppStore()
