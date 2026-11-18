@@ -325,6 +325,9 @@ final class LinguaFlowUITests: XCTestCase {
         let destination = button("featuredExpedition_history-ancient-rome", in: app)
         for _ in 0..<8 where !destination.isHittable { app.swipeUp() }
         XCTAssertTrue(destination.isHittable)
+        XCTAssertTrue(destination.label.contains("cleared"))
+        XCTAssertTrue(destination.label.contains("to go"))
+        XCTAssertTrue(destination.label.contains("Start exploring"))
         let before = XCTAttachment(screenshot: app.screenshot())
         before.name = "Featured expeditions"
         before.lifetime = .keepAlways

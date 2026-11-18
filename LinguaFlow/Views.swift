@@ -423,9 +423,17 @@ struct FeaturedExpeditionsView: View {
                                     .font(.subheadline.bold())
                                     .foregroundStyle(.primary)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Text(option.subject.displayName)
+                                Text(option.subtitle)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(option.progressText(in: store.stats))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(option.actionTitle(in: store.stats))
+                                    .font(.caption.bold())
+                                    .foregroundStyle(option.subject.accentColor)
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, minHeight: 100, alignment: .topLeading)
@@ -433,7 +441,7 @@ struct FeaturedExpeditionsView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("Explore \(option.title). \(option.subject.displayName).")
+                        .accessibilityLabel("Explore \(option.title). \(option.subtitle). \(option.progressText(in: store.stats)). \(option.actionTitle(in: store.stats)).")
                         .accessibilityHint("Opens this destination in the learning arena.")
                         .accessibilityIdentifier("featuredExpedition_\(option.id)")
                     }

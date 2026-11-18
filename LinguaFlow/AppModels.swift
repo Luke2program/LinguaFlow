@@ -3396,6 +3396,24 @@ struct QuestRouletteOption: Identifiable, Equatable {
 
     var id: String { "\(subject.rawValue)-\(world?.id ?? "harbor")" }
     var worldId: String? { world?.id }
+
+    func progressText(in stats: UserStats) -> String {
+        guard let world else { return "Speaking & typing practice" }
+        let ids = Set(subject.challengeIds(for: world.id))
+        let completed = Set(stats.subjectProgress[subject.rawValue]?.completedChallengeIds ?? [])
+        let cleared = ids.intersection(completed).count
+        if ids.isEmpty { return "Exploration coming soon" }
+        if cleared == ids.count { return "All encounters cleared" }
+        return "\(cleared)/\(ids.count) cleared · \(ids.count - cleared) to go"
+    }
+
+    func actionTitle(in stats: UserStats) -> String {
+        guard let world else { return "Practice" }
+        let ids = Set(subject.challengeIds(for: world.id))
+        let completed = Set(stats.subjectProgress[subject.rawValue]?.completedChallengeIds ?? [])
+        return ids.isDisjoint(with: completed) ? "Start exploring" : "Continue exploring"
+    }
+
     var accessibilityLabel: String {
         "\(title). \(subtitle). Reward \(reward)."
     }

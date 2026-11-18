@@ -2582,6 +2582,33 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.randomStudyOptions.map(\.id), ["languages-harbor"])
     }
 
+    func testExpeditionPreviewCountsOnlyDistinctEncountersInItsWorld() throws {
+        var stats = UserStats()
+        let option = try XCTUnwrap(stats.questRoulette.options.first { $0.subject == .history })
+        let world = try XCTUnwrap(option.world)
+        let ids = option.subject.challengeIds(for: world.id)
+        let first = try XCTUnwrap(ids.first)
+        XCTAssertEqual(option.progressText(in: stats), "0/\(ids.count) cleared · \(ids.count) to go")
+        XCTAssertEqual(option.actionTitle(in: stats), "Start exploring")
+
+        var progress = SubjectProgress()
+        progress.completedChallengeIds = [first, first, "unrelated-encounter"]
+        stats.updateProgress(for: .history, progress)
+        XCTAssertEqual(option.progressText(in: stats), "1/\(ids.count) cleared · \(ids.count - 1) to go")
+        XCTAssertEqual(option.actionTitle(in: stats), "Continue exploring")
+
+        progress.completedChallengeIds = ids + [first, "unrelated-encounter"]
+        stats.updateProgress(for: .history, progress)
+        XCTAssertEqual(option.progressText(in: stats), "All encounters cleared")
+    }
+
+    func testLanguageExpeditionPreviewDoesNotInventFiniteWorldProgress() throws {
+        let stats = UserStats()
+        let option = try XCTUnwrap(stats.questRoulette.options.first { $0.subject == .languages })
+        XCTAssertEqual(option.progressText(in: stats), "Speaking & typing practice")
+        XCTAssertEqual(option.actionTitle(in: stats), "Practice")
+    }
+
     func testFeaturedExpeditionOpensExactDestinationWithoutAwardingPractice() async {
         await MainActor.run {
             let store = AppStore()
