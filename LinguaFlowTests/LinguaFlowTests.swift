@@ -2582,6 +2582,80 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.randomStudyOptions.map(\.id), ["languages-harbor"])
     }
 
+    func testResumeExpeditionExcludesNewClearedLockedAndUnknownProgress() throws {
+        var stats = UserStats()
+        XCTAssertNil(stats.resumableExpedition)
+        var progress = SubjectProgress()
+        progress.completedChallengeIds = ["unknown-encounter"]
+        stats.updateProgress(for: .history, progress)
+        XCTAssertNil(stats.resumableExpedition)
+
+        let ids = Subject.history.challengeIds(for: "ancient-rome")
+        let first = try XCTUnwrap(ids.first)
+        progress.completedChallengeIds = [first, first, "unknown-encounter"]
+        stats.updateProgress(for: .history, progress)
+        let resume = try XCTUnwrap(stats.resumableExpedition)
+        XCTAssertEqual(resume.id, "history-ancient-rome")
+        XCTAssertEqual(try XCTUnwrap(resume.completionFraction(in: stats)), 1.0 / Double(ids.count), accuracy: 0.0001)
+
+        progress.completedChallengeIds = ids + Array(Subject.history.challengeIds(for: "medieval-europe").prefix(1))
+        stats.updateProgress(for: .history, progress)
+        XCTAssertNil(stats.resumableExpedition, "Cleared and XP-locked worlds cannot be resumed")
+        let language = try XCTUnwrap(stats.questRoulette.options.first { $0.subject == .languages })
+        XCTAssertNil(language.completionFraction(in: stats))
+    }
+
+    func testResumeExpeditionPrefersActiveRouteThenNearestCompletion() throws {
+        var stats = UserStats()
+        let historyIDs = Subject.history.challengeIds(for: "ancient-rome")
+        var history = SubjectProgress()
+        history.currentWorldId = "ancient-rome"
+        history.completedChallengeIds = Array(historyIDs.prefix(1))
+        stats.updateProgress(for: .history, history)
+        let scienceWorld = try XCTUnwrap(Subject.science.worlds.first)
+        let scienceIDs = Subject.science.challengeIds(for: scienceWorld.id)
+        var science = SubjectProgress()
+        science.currentWorldId = scienceWorld.id
+        science.completedChallengeIds = Array(scienceIDs.dropLast())
+        stats.updateProgress(for: .science, science)
+        stats.selectedSubject = .languages
+        XCTAssertEqual(stats.resumableExpedition?.subject, .science)
+        stats.selectedSubject = .history
+        XCTAssertEqual(stats.resumableExpedition?.id, "history-ancient-rome")
+        // Discovery rotation must never hide the active unfinished route.
+        for seed in 0..<16 {
+            stats.reviewedToday = seed
+            XCTAssertEqual(stats.resumableExpedition?.id, "history-ancient-rome")
+        }
+        history.completedChallengeIds = historyIDs
+        stats.updateProgress(for: .history, history)
+        XCTAssertEqual(stats.resumableExpedition?.subject, .science)
+    }
+
+    func testResumeExpeditionOpensNextEncounterWithoutResetOrReward() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            let ids = Subject.history.challengeIds(for: "ancient-rome")
+            var history = SubjectProgress()
+            history.completedChallengeIds = Array(ids.prefix(1))
+            store.stats.updateProgress(for: .history, history)
+            guard let resume = store.stats.resumableExpedition else {
+                XCTFail("Expected unfinished expedition")
+                return
+            }
+            let xp = store.stats.xp
+            let gems = store.stats.gems
+            store.startRandomStudy(option: resume)
+            XCTAssertEqual(store.currentWorld?.id, "ancient-rome")
+            XCTAssertEqual(store.nextHistoryChallenge?.id, ids.dropFirst().first)
+            XCTAssertEqual(store.stats.progress(for: .history).completedChallengeIds, history.completedChallengeIds)
+            XCTAssertEqual(store.stats.xp, xp)
+            XCTAssertEqual(store.stats.gems, gems)
+            XCTAssertEqual(AppStore().stats.resumableExpedition?.id, resume.id)
+        }
+    }
+
     func testExpeditionPreviewCountsOnlyDistinctEncountersInItsWorld() throws {
         var stats = UserStats()
         let option = try XCTUnwrap(stats.questRoulette.options.first { $0.subject == .history })

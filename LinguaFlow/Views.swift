@@ -399,6 +399,41 @@ struct FeaturedExpeditionsView: View {
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
+                if let resume = store.stats.resumableExpedition {
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            store.startRandomStudy(option: resume)
+                        }
+                    } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Continue your journey", systemImage: "flag.checkered")
+                                .font(.caption.bold())
+                            Text(resume.title)
+                                .font(.headline)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(resume.subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            ProgressView(value: resume.completionFraction(in: store.stats) ?? 0)
+                                .tint(resume.subject.accentColor)
+                            Text(resume.progressText(in: store.stats))
+                                .font(.caption)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Label("Resume expedition", systemImage: "play.fill")
+                                .font(.subheadline.bold())
+                        }
+                        .foregroundStyle(resume.subject.accentColor)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(resume.subject.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Continue your journey. \(resume.title). \(resume.subtitle). \(resume.progressText(in: store.stats)). Resume expedition.")
+                    .accessibilityHint("Opens this world's next unfinished encounter without resetting progress.")
+                    .accessibilityIdentifier("resumeExpedition_\(resume.id)")
+                }
                 Label("Discover your next world", systemImage: "sparkles")
                     .font(.headline)
                     .accessibilityIdentifier("featuredExpeditionsTitle")

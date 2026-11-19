@@ -319,6 +319,28 @@ final class LinguaFlowUITests: XCTestCase {
         XCTAssertTrue(element("rewardShopPanel", in: app).exists)
     }
 
+    func testExploreResumesUnfinishedHistoryExpedition() throws {
+        let app = launchReadyApp(arguments: ["--ui-testing-history-world"])
+        button("historyChoice_a", in: app).tap()
+        XCTAssertTrue(element("historyEncounterRecap", in: app).waitForExistence(timeout: 3))
+        button("nextHistoryChallenge", in: app).tap()
+        selectDashboardDeck("explore", in: app)
+        let resume = button("resumeExpedition_history-ancient-rome", in: app)
+        for _ in 0..<8 where !resume.isHittable { app.swipeUp() }
+        XCTAssertTrue(resume.isHittable)
+        XCTAssertTrue(resume.label.contains("1/5 cleared"))
+        XCTAssertTrue(resume.label.contains("Resume expedition"))
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Resume unfinished expedition"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        resume.tap()
+        let arena = app.staticTexts["activeLearningArenaTitle"].firstMatch
+        for _ in 0..<12 where !arena.isHittable { app.swipeDown() }
+        XCTAssertEqual(arena.label, "Ancient Rome")
+        XCTAssertTrue(element("historyChallengeView", in: app).exists)
+    }
+
     func testFeaturedExpeditionOpensChosenWorldInsteadOfRandomRoute() throws {
         let app = launchReadyApp()
         selectDashboardDeck("explore", in: app)

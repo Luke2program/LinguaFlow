@@ -3397,6 +3397,14 @@ struct QuestRouletteOption: Identifiable, Equatable {
     var id: String { "\(subject.rawValue)-\(world?.id ?? "harbor")" }
     var worldId: String? { world?.id }
 
+    func completionFraction(in stats: UserStats) -> Double? {
+        guard let world else { return nil }
+        let ids = Set(subject.challengeIds(for: world.id))
+        guard !ids.isEmpty else { return nil }
+        let completed = Set(stats.subjectProgress[subject.rawValue]?.completedChallengeIds ?? [])
+        return Double(ids.intersection(completed).count) / Double(ids.count)
+    }
+
     func progressText(in stats: UserStats) -> String {
         guard let world else { return "Speaking & typing practice" }
         let ids = Set(subject.challengeIds(for: world.id))
@@ -5985,6 +5993,24 @@ extension UserStats {
         }
         guard let subject = subjects.randomElement(using: &generator) else { return nil }
         return options.filter { $0.subject == subject }.randomElement(using: &generator)
+    }
+
+    // Keep unfinished journeys reachable even when discovery rotates elsewhere.
+    // Prefer the active route, then the route nearest completion; ties retain
+    // catalog order. Unknown/duplicate stored IDs never manufacture progress.
+    var resumableExpedition: QuestRouletteOption? {
+        let candidates = questRoulette.options.filter { option in
+            guard let fraction = option.completionFraction(in: self) else { return false }
+            return fraction > 0 && fraction < 1
+        }
+        if let active = candidates.first(where: {
+            $0.subject == selectedSubject && $0.worldId == currentWorldId(for: selectedSubject)
+        }) { return active }
+        return candidates.enumerated().sorted { lhs, rhs in
+            let left = lhs.element.completionFraction(in: self) ?? 0
+            let right = rhs.element.completionFraction(in: self) ?? 0
+            return left == right ? lhs.offset < rhs.offset : left > right
+        }.first?.element
     }
 
     var questRoulette: QuestRoulette {
