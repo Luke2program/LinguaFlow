@@ -2582,6 +2582,79 @@ final class LinguaFlowTests: XCTestCase {
         XCTAssertEqual(stats.randomStudyOptions.map(\.id), ["languages-harbor"])
     }
 
+    func testStaleLockedDestinationDoesNotRedirectOrMutateProgress() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 100_000
+            guard let route = store.stats.questRoulette.options.first(where: {
+                $0.world?.id == "quantum-realm" && $0.subject == .science
+            }) else {
+                XCTFail("Expected high-level science route")
+                return
+            }
+            store.stats.xp = 0
+            store.stats.selectedSubject = .history
+            var history = SubjectProgress()
+            history.currentWorldId = "ancient-rome"
+            history.completedChallengeIds = Array(Subject.history.challengeIds(for: "ancient-rome").prefix(1))
+            store.stats.updateProgress(for: .history, history)
+            store.save()
+            let before = UserDefaults.standard.data(forKey: "linguaflow.stats.v2")
+            let nextEncounter = store.nextHistoryChallenge?.id
+
+            store.startRandomStudy(option: route)
+
+            XCTAssertEqual(store.stats.selectedSubject, .history)
+            XCTAssertEqual(store.currentWorld?.id, "ancient-rome")
+            XCTAssertEqual(store.nextHistoryChallenge?.id, nextEncounter)
+            XCTAssertEqual(store.stats.progress(for: .history).completedChallengeIds, history.completedChallengeIds)
+            XCTAssertEqual(store.stats.xp, 0)
+            XCTAssertEqual(UserDefaults.standard.data(forKey: "linguaflow.stats.v2"), before)
+            XCTAssertEqual(store.feedbackMessage, "This route is unavailable. Choose an unlocked world in Explore.")
+        }
+    }
+
+    func testUnknownExplicitDestinationDoesNotFallBackToRandomStudy() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.save()
+            let before = UserDefaults.standard.data(forKey: "linguaflow.stats.v2")
+            let unknown = QuestRouletteOption(subject: .history, world: nil,
+                title: "Removed route", subtitle: "", reward: "", systemImage: "map")
+
+            store.startRandomStudy(option: unknown)
+
+            XCTAssertEqual(store.stats.selectedSubject, .languages)
+            XCTAssertEqual(UserDefaults.standard.data(forKey: "linguaflow.stats.v2"), before)
+            XCTAssertTrue(store.feedbackMessage.contains("unavailable"))
+        }
+    }
+
+    func testExplicitDestinationBecomesAvailableAtUnlockThreshold() async {
+        await MainActor.run {
+            let store = AppStore()
+            store.stats = UserStats()
+            store.stats.xp = 100_000
+            guard let route = store.stats.questRoulette.options.first(where: {
+                $0.world?.id == "quantum-realm" && $0.subject == .science
+            }) else {
+                XCTFail("Expected high-level science route")
+                return
+            }
+            store.stats.xp = 749
+            store.startRandomStudy(option: route)
+            XCTAssertEqual(store.stats.selectedSubject, .languages)
+            store.stats.xp = 750
+            store.startRandomStudy(option: route)
+            XCTAssertEqual(store.stats.selectedSubject, .science)
+            XCTAssertEqual(store.currentWorld?.id, "quantum-realm")
+            XCTAssertEqual(AppStore().stats.selectedSubject, .science)
+            XCTAssertEqual(store.stats.xp, 750)
+        }
+    }
+
     func testResumeExpeditionExcludesNewClearedLockedAndUnknownProgress() throws {
         var stats = UserStats()
         XCTAssertNil(stats.resumableExpedition)

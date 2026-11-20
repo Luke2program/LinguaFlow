@@ -1075,6 +1075,13 @@ final class AppStore: ObservableObject {
             roulette.options.first { $0.id == requested.id }
         }
 
+        // A deliberate destination tap is not a roulette spin. Keep the current
+        // journey intact if a stale/locked card is no longer available.
+        if forcedOption != nil && validOption == nil {
+            feedbackMessage = "This route is unavailable. Choose an unlocked world in Explore."
+            return
+        }
+
         var generator = SystemRandomNumberGenerator()
         guard let pick = validOption ?? stats.randomStudyOption(using: &generator) else {
             select(subject: .languages)
